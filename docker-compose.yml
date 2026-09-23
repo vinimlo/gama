@@ -1,0 +1,62 @@
+services:
+  gama:
+    build:
+      context: .
+      target: runtime
+      args:
+        TORCH_INDEX: https://download.pytorch.org/whl/cpu
+    image: gama:dev
+    working_dir: /app
+    # Teto de CPU: sem isto o container toma todos os núcleos da máquina.
+    cpus: "4.0"
+    mem_limit: 4g
+    volumes:
+      - ./src:/app/src:ro
+      - ./avaliacao:/app/avaliacao:ro
+      - ./vendor:/app/vendor:ro
+      - ./tests:/app/tests:ro
+      - ./geracao:/app/geracao:ro
+      - ./treino:/app/treino:ro
+      - ./reais:/app/reais:ro
+      - ./bench:/app/bench
+      - ./corpus:/app/corpus
+      - ./dados:/app/dados:ro
+      - ./saidas:/app/saidas
+      - ./modelos:/models:ro
+    environment:
+      PYTHONPATH: /app/src:/app
+      PYTHONHASHSEED: "0"
+      HF_HOME: /app/corpus/hf
+    entrypoint: [""]
+    command: ["sleep", "infinity"]
+
+  lab:
+    build:
+      context: .
+      target: lab
+      args:
+        TORCH_INDEX: https://download.pytorch.org/whl/cpu
+    image: gama:lab
+    working_dir: /app
+    # Teto de CPU: sem isto o container toma todos os núcleos da máquina.
+    cpus: "4.0"
+    mem_limit: 4g
+    volumes:
+      - ./src:/app/src:ro
+      - ./avaliacao:/app/avaliacao:ro
+      - ./vendor:/app/vendor:ro
+      - ./tests:/app/tests:ro
+      - ./geracao:/app/geracao:ro
+      - ./treino:/app/treino:ro
+      - ./reais:/app/reais:ro
+      - ./bench:/app/bench
+      - ./corpus:/app/corpus
+      - ./dados:/app/dados:ro
+      - ./saidas:/app/saidas
+      - ./modelos:/models:ro
+    environment:
+      PYTHONPATH: /app/src:/app
+      PYTHONHASHSEED: "0"
+      HF_HOME: /app/corpus/hf
+    entrypoint: [""]
+    command: ["sleep", "infinity"]

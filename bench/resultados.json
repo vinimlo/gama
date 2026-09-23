@@ -1,0 +1,431 @@
+{
+ "meta": {
+  "regua": {
+   "regua": {
+    "extrator": "regua",
+    "modelo": "regras",
+    "torch": "2.14.0+cu126",
+    "dispositivo": "NVIDIA L4"
+   },
+   "regua_dev": {
+    "extrator": "regua",
+    "dispositivo": "cpu (container, 4 vCPUs)"
+   }
+  },
+  "gliner": {
+   "gliner": {
+    "extrator": "gliner",
+    "modelo": "urchade/gliner_multi-v2.1@443d26d",
+    "gliner": "0.2.29",
+    "torch": "2.14.0+cu130",
+    "dispositivo": "NVIDIA L4"
+   }
+  },
+  "qwen": {
+   "qwen": {
+    "extrator": "qwen",
+    "modelo": "Qwen/Qwen3-8B@b968826",
+    "backend": "transformers bf16",
+    "transformers": "5.17.0",
+    "torch": "2.14.0+cu130",
+    "dispositivo": "NVIDIA A100-SXM4-80GB",
+    "falhas_json": 0,
+    "trechos_nao_alinhados": 583
+   }
+  },
+  "gama": {
+   "gama": {
+    "extrator": "gama",
+    "modelo": "vinimlo/gama@ad06ffd",
+    "torch": "2.14.0+cu126",
+    "dispositivo": "NVIDIA L4"
+   },
+   "gama_dev": {
+    "extrator": "gama",
+    "dispositivo": "cpu (container, 4 vCPUs)"
+   }
+  }
+ },
+ "resultados": {
+  "regua": {
+   "dev": {
+    "documentos": 26,
+    "s_por_doc": 0.0008,
+    "extracao": {
+     "f1": 1.0,
+     "por_tipo": {
+      "JURIS": {
+       "f1": 1.0,
+       "tp": 132,
+       "fp": 0,
+       "fn": 0
+      },
+      "LEI": {
+       "f1": 1.0,
+       "tp": 28,
+       "fp": 0,
+       "fn": 0
+      },
+      "VAGA": {
+       "f1": 1.0,
+       "tp": 32,
+       "fp": 0,
+       "fn": 0
+      }
+     }
+    },
+    "oficial": {
+     "final": 1.09848,
+     "n1": {
+      "score": 1.0985,
+      "f1": {
+       "real": 1.0,
+       "inventada": 1.0,
+       "incompleta": 1.0
+      },
+      "tau": 0.0
+     },
+     "n2": {
+      "score": 1.0985,
+      "f1": {
+       "real": 1.0,
+       "inventada": 1.0,
+       "incompleta": 1.0
+      },
+      "tau": 0.0
+     }
+    }
+   },
+   "estresse": {
+    "documentos": 600,
+    "s_por_doc": 0.0015,
+    "extracao": {
+     "f1": 0.8582,
+     "por_tipo": {
+      "JURIS": {
+       "f1": 0.893,
+       "tp": 2800,
+       "fp": 468,
+       "fn": 203
+      },
+      "LEI": {
+       "f1": 0.784,
+       "tp": 568,
+       "fp": 151,
+       "fn": 162
+      },
+      "VAGA": {
+       "f1": 0.7627,
+       "tp": 442,
+       "fp": 3,
+       "fn": 272
+      }
+     }
+    },
+    "oficial": {
+     "final": 0.84865,
+     "n1": {
+      "score": 1.0455,
+      "f1": {
+       "real": 0.967,
+       "inventada": 0.933,
+       "incompleta": 0.956
+      },
+      "tau": 0.0
+     },
+     "n2": {
+      "score": 0.7502,
+      "f1": {
+       "real": 0.876,
+       "inventada": 0.663,
+       "incompleta": 0.514
+      },
+      "tau": 0.0
+     }
+    }
+   },
+   "reais": {
+    "documentos": 305,
+    "s_por_doc": 0.0004,
+    "extracao": {
+     "f1": 0.6627,
+     "por_tipo": {
+      "JURIS": {
+       "f1": 0.7074,
+       "tp": 376,
+       "fp": 196,
+       "fn": 115
+      },
+      "LEI": {
+       "f1": 0.6204,
+       "tp": 349,
+       "fp": 182,
+       "fn": 245
+      }
+     }
+    }
+   }
+  },
+  "gliner": {
+   "estresse": {
+    "documentos": 600,
+    "s_por_doc": 0.1465,
+    "extracao": {
+     "f1": 0.4531,
+     "por_tipo": {
+      "JURIS": {
+       "f1": 0.4773,
+       "tp": 973,
+       "fp": 101,
+       "fn": 2030
+      },
+      "LEI": {
+       "f1": 0.5694,
+       "tp": 550,
+       "fp": 652,
+       "fn": 180
+      },
+      "VAGA": {
+       "f1": 0.0,
+       "tp": 0,
+       "fp": 0,
+       "fn": 714
+      }
+     }
+    },
+    "oficial": {
+     "final": 0.32732,
+     "n1": {
+      "score": 0.3805,
+      "f1": {
+       "real": 0.418,
+       "inventada": 0.632,
+       "incompleta": 0.0
+      },
+      "tau": 0.0
+     },
+     "n2": {
+      "score": 0.3008,
+      "f1": {
+       "real": 0.285,
+       "inventada": 0.545,
+       "incompleta": 0.0
+      },
+      "tau": 0.0
+     }
+    }
+   },
+   "reais": {
+    "documentos": 305,
+    "s_por_doc": 0.0465,
+    "extracao": {
+     "f1": 0.4093,
+     "por_tipo": {
+      "JURIS": {
+       "f1": 0.5784,
+       "tp": 236,
+       "fp": 89,
+       "fn": 255
+      },
+      "LEI": {
+       "f1": 0.2994,
+       "tp": 188,
+       "fp": 474,
+       "fn": 406
+      }
+     }
+    }
+   }
+  },
+  "qwen": {
+   "estresse": {
+    "documentos": 600,
+    "s_por_doc": 2.2467,
+    "extracao": {
+     "f1": 0.8246,
+     "por_tipo": {
+      "JURIS": {
+       "f1": 0.8749,
+       "tp": 2637,
+       "fp": 388,
+       "fn": 366
+      },
+      "LEI": {
+       "f1": 0.8176,
+       "tp": 549,
+       "fp": 64,
+       "fn": 181
+      },
+      "VAGA": {
+       "f1": 0.5468,
+       "tp": 289,
+       "fp": 54,
+       "fn": 425
+      }
+     }
+    },
+    "oficial": {
+     "final": 0.81051,
+     "n1": {
+      "score": 0.8897,
+      "f1": {
+       "real": 0.947,
+       "inventada": 0.867,
+       "incompleta": 0.623
+      },
+      "tau": 0.0
+     },
+     "n2": {
+      "score": 0.7709,
+      "f1": {
+       "real": 0.892,
+       "inventada": 0.756,
+       "incompleta": 0.47
+      },
+      "tau": 0.0
+     }
+    }
+   },
+   "reais": {
+    "documentos": 305,
+    "s_por_doc": 1.3423,
+    "extracao": {
+     "f1": 0.7073,
+     "por_tipo": {
+      "JURIS": {
+       "f1": 0.753,
+       "tp": 378,
+       "fp": 135,
+       "fn": 113
+      },
+      "LEI": {
+       "f1": 0.6628,
+       "tp": 342,
+       "fp": 96,
+       "fn": 252
+      }
+     }
+    }
+   }
+  },
+  "gama": {
+   "dev": {
+    "documentos": 26,
+    "s_por_doc": 18.6116,
+    "extracao": {
+     "f1": 1.0,
+     "por_tipo": {
+      "JURIS": {
+       "f1": 1.0,
+       "tp": 132,
+       "fp": 0,
+       "fn": 0
+      },
+      "LEI": {
+       "f1": 1.0,
+       "tp": 28,
+       "fp": 0,
+       "fn": 0
+      },
+      "VAGA": {
+       "f1": 1.0,
+       "tp": 32,
+       "fp": 0,
+       "fn": 0
+      }
+     }
+    },
+    "oficial": {
+     "final": 1.1,
+     "n1": {
+      "score": 1.1,
+      "f1": {
+       "real": 1.0,
+       "inventada": 1.0,
+       "incompleta": 1.0
+      },
+      "tau": 0.0
+     },
+     "n2": {
+      "score": 1.1,
+      "f1": {
+       "real": 1.0,
+       "inventada": 1.0,
+       "incompleta": 1.0
+      },
+      "tau": 0.0
+     }
+    }
+   },
+   "estresse": {
+    "documentos": 600,
+    "s_por_doc": 0.0734,
+    "extracao": {
+     "f1": 1.0,
+     "por_tipo": {
+      "JURIS": {
+       "f1": 1.0,
+       "tp": 3003,
+       "fp": 0,
+       "fn": 0
+      },
+      "LEI": {
+       "f1": 1.0,
+       "tp": 730,
+       "fp": 0,
+       "fn": 0
+      },
+      "VAGA": {
+       "f1": 1.0,
+       "tp": 714,
+       "fp": 0,
+       "fn": 0
+      }
+     }
+    },
+    "oficial": {
+     "final": 1.09974,
+     "n1": {
+      "score": 1.1,
+      "f1": {
+       "real": 1.0,
+       "inventada": 1.0,
+       "incompleta": 1.0
+      },
+      "tau": 0.0
+     },
+     "n2": {
+      "score": 1.0996,
+      "f1": {
+       "real": 0.999,
+       "inventada": 1.0,
+       "incompleta": 1.0
+      },
+      "tau": 0.0
+     }
+    }
+   },
+   "reais": {
+    "documentos": 305,
+    "s_por_doc": 0.0254,
+    "extracao": {
+     "f1": 0.6054,
+     "por_tipo": {
+      "JURIS": {
+       "f1": 0.4749,
+       "tp": 374,
+       "fp": 710,
+       "fn": 117
+      },
+      "LEI": {
+       "f1": 0.7472,
+       "tp": 541,
+       "fp": 313,
+       "fn": 53
+      }
+     }
+    }
+   }
+  }
+ }
+}

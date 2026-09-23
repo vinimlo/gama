@@ -1,0 +1,10 @@
+{
+ "dispositivo|inventada|alta": 0.995,
+ "dispositivo|real|alta": 0.995,
+ "processo|inventada|alta": 0.995,
+ "processo|real_ambiguo|alta": 0.5,
+ "processo|real|alta": 0.995,
+ "sumula|inventada|alta": 0.9935,
+ "sumula|real|alta": 0.9923,
+ "vaga|incompleta|alta": 0.995
+}

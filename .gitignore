@@ -1,0 +1,28 @@
+# Dados da organização — 94 MB, redistribuição não autorizada.
+# Reponha com: make dados  (ou baixe a aba Data da competição no Kaggle)
+dados/
+
+# Saídas geradas
+saidas/
+*.csv.gz
+submission.csv
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+corpus/
+modelos/
+
+# Material de desenvolvimento: fica no disco, fora do repositório
+CLAUDE.md
+.serena/
+docs/superpowers/
+wiki/diario/
+wiki/operacao/
+wiki/referencias/
+Makefile.local
+scripts/monitor_cego.*
+scripts/com.melo.*.plist

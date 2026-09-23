@@ -1,0 +1,10 @@
+# Pinado por exigência de reprodutibilidade da organização.
+# torch==2.14.0 é instalado antes, pelo Dockerfile (índice CUDA ou CPU).
+numpy==2.1.3
+pandas==2.2.3
+transformers==5.17.0
+tokenizers==0.23.2
+safetensors
+
+# Desenvolvimento
+pytest==8.3.4

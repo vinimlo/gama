@@ -1,0 +1,6 @@
+# Só no estágio `lab` do Dockerfile: geração, validação adversarial, treino local.
+# A imagem avaliada pela organização não instala nada daqui.
+scikit-learn==1.5.2
+huggingface_hub
+accelerate
+pyarrow

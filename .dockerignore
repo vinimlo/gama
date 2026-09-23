@@ -1,0 +1,6 @@
+dados/
+saidas/
+.git/
+.venv/
+__pycache__/
+wiki/
