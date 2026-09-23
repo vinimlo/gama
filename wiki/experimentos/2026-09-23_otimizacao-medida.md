@@ -166,6 +166,15 @@ treinou). A execução em FP32 reproduz os spans do benchmark nas 305 ementas, b
 | BF16 | 0,028 | 0,026 | 1.863 MiB | 0 (confiança anda até 0,0012) | 27 | 0,8071 |
 | FP16 | 0,028 | 0,026 | 1.863 MiB | 0 (até 0,0006) | 18 | 0,8071 |
 
+Duas ressalvas, apontadas pela revisão independente, valem para esta tabela. A rodada FP16
+carregou o estado FP32 em parâmetros que ainda estavam em BF16 e só depois converteu, então
+é FP16 com um arredondamento BF16 no meio. E a cópia FP32 guardada para restaurar entre as
+rodadas ficou na GPU durante todas elas: os picos de VRAM estão inflados por ela e não são o
+consumo do modelo em produção. As duas medidas precisam ser repetidas com cada precisão
+carregada do zero. Guardar os pesos em FP16 e voltar a FP32 na carga também não é exato:
+num teste em CPU com 126 documentos, o dev e 40 documentos N2 do estresse ficaram iguais,
+mas 1 de 60 ementas reais mudou um span e 4 confianças atravessaram 0,95 ou 0,98.
+
 Meia precisão é 2,5 vezes mais rápida e guardaria os pesos em 0,62 GB em vez de 1,23 GB. No
 estilo da organização a saída é a mesma; fora dele, perto da fronteira de decisão, muda, sem
 efeito líquido no F1. Com 0,07 s por documento contra um teto de 60 s, o tempo não é
