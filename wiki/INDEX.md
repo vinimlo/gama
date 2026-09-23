@@ -96,6 +96,7 @@ que o bruto.
 - [Modelos elegíveis](conceitos/modelos-elegiveis.md): o que as regras permitem e o que foi avaliado
 - [Achados do webinar](conceitos/webinar-achados.md): o que a organização disse além do site e do Kaggle
 - [Regras e reprodutibilidade](conceitos/regras-e-reprodutibilidade.md): o que é re-executado, o envelope vale para a inferência, e como a solução cumpre cada exigência
+- [Literatura](conceitos/literatura.md): papers do arXiv que sustentam cada parte da solução, e a lacuna que ela ocupa
 
 ## Como registrar
 
