@@ -38,6 +38,22 @@ com a escolha validada fora dos dados em que foi feita. Números completos na
   sempre a mesma e o ganho médio é +0,20.
 - O desempate não mexe em τ: só escolhe entre candidatos que já existem.
 
+## Confirmação num teste intocado
+
+As 305 ementas em que a guarda foi escolhida deixaram de ser um teste limpo. Por isso foram
+sorteadas 200 ementas novas, ao acaso e fora de tudo o que já tinha sido usado
+(`reais/sortear_teste.py`), anotadas pelo mesmo processo; 172 passaram no alinhamento
+exato, com 682 citações. Nelas:
+
+| | F1 de extração | Jurisprudência (P / R) | Lei (P / R) |
+|---|---|---|---|
+| Gama sozinho | 0,615 | 0,34 / 0,72 | 0,71 / 0,93 |
+| Gama com a guarda | 0,820 | 0,82 / 0,73 | 0,81 / 0,92 |
+| Régua | 0,679 | 0,67 / 0,76 | 0,70 / 0,60 |
+
+Ganho da guarda: +0,205 (IC95 +0,154 a +0,246, bootstrap por ementa), o mesmo das ementas
+em que foi escolhida (+0,203).
+
 ## Por que não é a união da D-007
 
 A união acrescentava a régua em todo lugar e custava 61 falsos positivos em N2. A guarda só
