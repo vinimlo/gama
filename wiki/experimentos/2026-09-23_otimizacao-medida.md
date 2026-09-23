@@ -156,29 +156,28 @@ O torch dimensiona as threads pelos núcleos da máquina, não pela cota do cont
 as duas dá 14% a 29% de ganho sem mudar nada na saída. O int8 muda spans e confianças (até
 0,18) e fica de fora.
 
-GPU (L4, `bench/extrair_dtype.py`, job de 10,6 min, cerca de US$ 0,14), sobre o estresse, o
+GPU (L4, `bench/extrair_dtype.py`, cerca de US$ 0,15 por rodada), sobre o estresse, o
 texto real e o `final_v1` (4.000 documentos sintéticos de outra semente, que o v1.2 não
-treinou). A execução em FP32 reproduz os spans do benchmark nas 305 ementas, byte a byte.
+treinou). Cada precisão parte dos pesos FP32 do disco, num modelo novo. A execução em FP32
+reproduz os spans do benchmark nas 305 ementas, byte a byte.
 
 | Precisão | s/doc estresse | s/doc v1 | VRAM pico | Estresse + v1: docs com spans diferentes | Texto real: docs com spans diferentes | F1 real com o filtro |
 |---|---|---|---|---|---|---|
-| FP32 | 0,070 | 0,059 | 2.476 MiB | referência | referência | 0,8076 |
-| BF16 | 0,028 | 0,026 | 1.863 MiB | 0 (confiança anda até 0,0012) | 27 | 0,8071 |
-| FP16 | 0,028 | 0,026 | 1.863 MiB | 0 (até 0,0006) | 18 | 0,8071 |
+| FP32 | 0,073 | 0,061 | 1.285 MiB | referência | referência | 0,8076 |
+| BF16 | 0,029 | 0,027 | 671 MiB | 0 (confiança anda até 0,0012) | 27 | 0,8071 |
+| FP16 | 0,030 | 0,027 | 671 MiB | 0 (até 0,00007) | 5 | 0,8073 |
 
-Duas ressalvas, apontadas pela revisão independente, valem para esta tabela. A rodada FP16
-carregou o estado FP32 em parâmetros que ainda estavam em BF16 e só depois converteu, então
-é FP16 com um arredondamento BF16 no meio. E a cópia FP32 guardada para restaurar entre as
-rodadas ficou na GPU durante todas elas: os picos de VRAM estão inflados por ela e não são o
-consumo do modelo em produção. As duas medidas precisam ser repetidas com cada precisão
-carregada do zero. Guardar os pesos em FP16 e voltar a FP32 na carga também não é exato:
-num teste em CPU com 126 documentos, o dev e 40 documentos N2 do estresse ficaram iguais,
-mas 1 de 60 ementas reais mudou um span e 4 confianças atravessaram 0,95 ou 0,98.
+Uma primeira rodada deste job tinha dois defeitos, apontados pela revisão independente: a
+rodada FP16 herdava um arredondamento BF16 e uma cópia FP32 ficava na GPU, inflando os picos
+(2.476 e 1.863 MiB). A tabela acima é a da rodada corrigida. Guardar os pesos em FP16 e
+voltar a FP32 na carga também não é exato: num teste em CPU com 126 documentos, o dev e 40
+documentos N2 do estresse ficaram iguais, mas 1 de 60 ementas reais mudou um span.
 
-Meia precisão é 2,5 vezes mais rápida e guardaria os pesos em 0,62 GB em vez de 1,23 GB. No
-estilo da organização a saída é a mesma; fora dele, perto da fronteira de decisão, muda, sem
-efeito líquido no F1. Com 0,07 s por documento contra um teto de 60 s, o tempo não é
-gargalo, e o ganho não paga uma revisão nova de pesos a uma semana da entrega.
+Meia precisão é 2,5 vezes mais rápida, usa metade da memória e guardaria os pesos em 0,62 GB
+em vez de 1,23 GB. No estilo da organização a saída é a mesma; fora dele, perto da fronteira
+de decisão, muda um pouco, e o F1 filtrado cai 0,0003 (FP16) a 0,0005 (BF16). Pela regra de
+zero perda, fica de fora; com 0,07 s por documento contra um teto de 60 s, o tempo também não
+pede a troca.
 
 O mesmo job mediu a cauda de confiança no `final_v1`: 29.532 acertos, nenhum falso
 positivo, menor confiança 0,9867. Somando dev, estresse e v1, nenhum de 34.171 acertos no

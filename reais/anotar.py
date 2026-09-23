@@ -102,6 +102,8 @@ def main() -> int:
     ap.add_argument("--concordantes", type=int, default=60, help="amostra de ementas sem divergência")
     ap.add_argument("--divergentes", type=int, default=300, help="amostra de ementas com divergência")
     ap.add_argument("--paralelo", type=int, default=8)
+    ap.add_argument("--ids", help="JSON com a lista de ementas a anotar (ex.: o teste de reais.sortear_teste); "
+                                  "sem ele, a amostra enriquecida por divergência")
     a = ap.parse_args()
     textos = {r["id"]: r for r in map(json.loads, open(a.amostra, encoding="utf-8"))}
     preds = {r["id"]: r for r in map(json.loads, open(a.predicoes, encoding="utf-8"))}
@@ -110,9 +112,13 @@ def main() -> int:
         g = [tuple(s[:2]) for s in p["gama"]]
         r = [tuple(s[:2]) for s in p["regua"]]
         (div if set(g) != set(r) else conc).append(i)
-    rng = random.Random(3)
-    alvo = sorted(rng.sample(sorted(div), min(a.divergentes, len(div)))) + \
-        sorted(rng.sample(sorted(conc), min(a.concordantes, len(conc))))
+    if a.ids:
+        alvo = json.loads(pathlib.Path(a.ids).read_text())
+        div = set(div)
+    else:
+        rng = random.Random(3)
+        alvo = sorted(rng.sample(sorted(div), min(a.divergentes, len(div)))) + \
+            sorted(rng.sample(sorted(conc), min(a.concordantes, len(conc))))
     print(f"{len(div)} ementas com divergência Gama x régua; {len(conc)} sem; anotando {len(alvo)}", flush=True)
 
     def anota(i):
