@@ -64,20 +64,21 @@ def _modulo(caminho: pathlib.Path, nome: str):
     return mod
 
 
-def carregar_sinteticos(pasta: pathlib.Path) -> tuple[dict, dict]:
+def carregar_sinteticos(pasta: pathlib.Path) -> tuple[dict, dict, dict]:
     spans = collections.defaultdict(list)
     for r in csv.DictReader(open(pasta / "goldenset_offsets.csv", encoding="utf-8-sig")):
         tipo = "VAGA" if r["classificacao"] == "incompleta" else ("LEI" if r["tipo"] == "lei" else "JURIS")
         spans[r["documento_id"]].append((int(r["inicio"]), int(r["fim"]), tipo))
-    split = {}
+    split, nivel = {}, {}
     for linha in (pasta / "meta.jsonl").read_text(encoding="utf-8").splitlines():
         m = json.loads(linha)
         split[m["documento_id"]] = m.get("split", "treino")
+        nivel[m["documento_id"]] = m.get("nivel", 1)
     docs = {}
     for arq in sorted((pasta / "txt").glob("*.txt")):
         with open(arq, encoding="utf-8", newline="") as fh:      # o mesmo texto que a inferência lê
             docs[arq.stem] = (fh.read(), spans.get(arq.stem, []))
-    return docs, split
+    return docs, split, nivel
 
 
 def especiais(tok) -> tuple[list, list]:
@@ -197,6 +198,8 @@ def main() -> int:
     ap.add_argument("--camadas", default=CAMADAS_PADRAO)
     ap.add_argument("--sem-destilacao", action="store_true", help="controle: só o ouro, sem professor")
     ap.add_argument("--sem-reais", action="store_true", help="não usar as ementas reais sem rótulo")
+    ap.add_argument("--extras", default="", help="pastas sintéticas a mais, com ouro (ex.: dobra0_llm,dobra1_llm)")
+    ap.add_argument("--peso-n2", type=int, default=1, help="quantas vezes cada janela de documento N2 entra")
     ap.add_argument("--saida", required=True)
     ap.add_argument("--max-len", type=int, default=2048)
     ap.add_argument("--epocas", type=float, default=3)
@@ -213,19 +216,27 @@ def main() -> int:
     set_seed(a.semente)
     random.seed(a.semente)
     t0 = time.time()
+    extras = [x for x in a.extras.split(",") if x]
     raiz = pathlib.Path(snapshot_download(a.dados, repo_type="dataset", revision=a.revisao, allow_patterns=[
-        f"{a.subpasta}/**", "codigo/*", "bench/codigo/**", "reais/amostra.jsonl", "destilacao/*"]))
+        f"{a.subpasta}/**", "codigo/*", "bench/codigo/**", "reais/amostra.jsonl", "destilacao/*",
+        *[f"{x}/**" for x in extras]]))
     bio = _modulo(raiz / "codigo" / "bio.py", "bio")
     professor_dir = snapshot_download(a.professor, revision=a.professor_rev)
     tok = AutoTokenizer.from_pretrained(professor_dir)
 
-    docs, split = carregar_sinteticos(raiz / a.subpasta)
-    treino = {d: v for d, v in docs.items() if split.get(d, "treino") == "treino"}
+    docs, split, nivel = carregar_sinteticos(raiz / a.subpasta)
+    treino = [(texto, spans, nivel.get(d, 1)) for d, (texto, spans) in docs.items() if split.get(d, "treino") == "treino"]
     reserva = {d: v for d, v in docs.items() if split.get(d) == "estresse"}
+    for x in extras:                       # outra semente, nenhum em teste; nomes repetem, então vão à parte
+        ed, _, en = carregar_sinteticos(raiz / x)
+        treino += [(texto, spans, en.get(d, 1)) for d, (texto, spans) in ed.items()]
     if a.limite:
-        treino = dict(list(treino.items())[: a.limite])
+        treino = treino[: a.limite]
         reserva = dict(list(reserva.items())[: max(4, a.limite // 4)])
-    ex = [w for texto, spans in treino.values() for w in janelas_de(tok, bio, texto, spans, a.max_len)]
+    ex = []
+    for texto, spans, nv in treino:
+        ws = janelas_de(tok, bio, texto, spans, a.max_len)
+        ex += ws * (a.peso_n2 if nv == 2 else 1)
     n_sint = len(ex)
     n_reais = 0
     if not (a.sem_destilacao or a.sem_reais):
@@ -249,7 +260,7 @@ def main() -> int:
             a.aluno, revision=a.aluno_rev, num_labels=len(bio.ROTULOS),
             id2label=dict(enumerate(bio.ROTULOS)), label2id=bio.ID)
         tok_aluno = AutoTokenizer.from_pretrained(a.aluno, revision=a.aluno_rev)
-        amostra = next(iter(treino.values()))[0][:5000]
+        amostra = treino[0][0][:5000]
         assert tok_aluno(amostra)["input_ids"] == tok(amostra)["input_ids"], "tokenizadores diferentes"
     parametros = sum(p.numel() for p in aluno.parameters())
     print(f"aluno: {a.aluno}, {parametros / 1e6:.1f}M parâmetros", flush=True)

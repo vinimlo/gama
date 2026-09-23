@@ -66,5 +66,16 @@ Custo de execução:
    mais rápido na L4, 2 vezes em CPU) e também melhora no texto real, mas perde no ruído
    pesado de OCR: uma referência vaga muito ruidosa não é achada, uma citação é partida em
    duas e duas confianças caem de faixa. Pela regra de zero perda, não passa.
-4. Nenhum aluno é byte a byte idêntico ao professor no estilo da organização; a submissão
-   segue com o professor.
+4. Nenhum aluno é byte a byte idêntico ao professor no estilo da organização. O aluno A
+   empata na nota, e a única diferença não muda classe, link nem confiança publicada.
+
+## Checagens de entrega do aluno A
+
+As mesmas que o professor passou antes de ir para a submissão:
+
+| Checagem | Professor | Aluno A |
+|---|---|---|
+| Sondas de ruído do extrator (`tests/test_sondas_ruido.py`) | 6 de 6 | 6 de 6, os mesmos casos |
+| Tabela de calibração | medida (D-006) | igual por construção: o JSON final, com a confiança publicada, é o mesmo em 4.625 de 4.626 documentos, e no restante a citação cai no mesmo balde |
+| GPU igual a CPU (100 documentos do estresse, metade N2) | idêntico | idêntico, confiança com diferença zero |
+| Imagem de entrega sem rede, no dev | 1,10000 | 1,10000, `extrator: neural`, 1,09 s por documento em CPU |
