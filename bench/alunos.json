@@ -139,6 +139,162 @@
    }
   }
  },
+ "b2": {
+  "dev": {
+   "oficial": 1.1,
+   "docs_json_diferente": 0,
+   "docs_spans_diferentes": 0,
+   "s_por_doc": 0.8373
+  },
+  "estresse": {
+   "oficial": 1.09999,
+   "docs_json_diferente": 1,
+   "docs_spans_diferentes": 1,
+   "s_por_doc": 0.0412
+  },
+  "v1": {
+   "oficial": 1.09999,
+   "docs_json_diferente": 0,
+   "docs_spans_diferentes": 0,
+   "s_por_doc": 0.0336
+  },
+  "reais": {
+   "f1_com_guarda": 0.8139,
+   "dif_para_professor": 0.0063,
+   "ic95": [
+    -0.0091,
+    0.0217
+   ],
+   "s_por_doc": 0.0202
+  },
+  "novas": {
+   "f1_com_guarda": 0.8225,
+   "dif_para_professor": 0.0021,
+   "ic95": [
+    -0.0124,
+    0.0157
+   ],
+   "s_por_doc": 0.0222
+  },
+  "meta": {
+   "modelo_b2": {
+    "extrator": "b2",
+    "modelo": "vinimlo/gama-aluno-b2@9a3563b",
+    "parametros": 140644231,
+    "torch": "2.14.0+cu126",
+    "dispositivo": "NVIDIA L4"
+   },
+   "modelo_b2_dev": {
+    "extrator": "b2",
+    "pasta": "/app/corpus/modelos/b2",
+    "dispositivo": "cpu (container, 4 vCPUs)"
+   }
+  }
+ },
+ "base12": {
+  "dev": {
+   "oficial": 1.1,
+   "docs_json_diferente": 0,
+   "docs_spans_diferentes": 0,
+   "s_por_doc": 0.9331
+  },
+  "estresse": {
+   "oficial": 1.09999,
+   "docs_json_diferente": 0,
+   "docs_spans_diferentes": 0,
+   "s_por_doc": 0.0455
+  },
+  "v1": {
+   "oficial": 1.09999,
+   "docs_json_diferente": 0,
+   "docs_spans_diferentes": 0,
+   "s_por_doc": 0.0377
+  },
+  "reais": {
+   "f1_com_guarda": 0.818,
+   "dif_para_professor": 0.0104,
+   "ic95": [
+    -0.0049,
+    0.0258
+   ],
+   "s_por_doc": 0.0161
+  },
+  "novas": {
+   "f1_com_guarda": 0.8392,
+   "dif_para_professor": 0.0188,
+   "ic95": [
+    0.003,
+    0.0331
+   ],
+   "s_por_doc": 0.0186
+  },
+  "meta": {
+   "modelo_base12": {
+    "extrator": "base12",
+    "modelo": "vinimlo/gama-aluno-a-base12@f49e37b",
+    "parametros": 257385223,
+    "torch": "2.14.0+cu126",
+    "dispositivo": "NVIDIA L4"
+   },
+   "modelo_base12_dev": {
+    "extrator": "base12",
+    "pasta": "/app/corpus/modelos/base12",
+    "dispositivo": "cpu (container, 4 vCPUs)"
+   }
+  }
+ },
+ "base9": {
+  "dev": {
+   "oficial": 1.1,
+   "docs_json_diferente": 0,
+   "docs_spans_diferentes": 0,
+   "s_por_doc": 0.6378
+  },
+  "estresse": {
+   "oficial": 1.09966,
+   "docs_json_diferente": 1,
+   "docs_spans_diferentes": 1,
+   "s_por_doc": 0.0365
+  },
+  "v1": {
+   "oficial": 1.09999,
+   "docs_json_diferente": 3,
+   "docs_spans_diferentes": 1,
+   "s_por_doc": 0.0303
+  },
+  "reais": {
+   "f1_com_guarda": 0.8174,
+   "dif_para_professor": 0.0098,
+   "ic95": [
+    -0.0061,
+    0.0248
+   ],
+   "s_por_doc": 0.0133
+  },
+  "novas": {
+   "f1_com_guarda": 0.8386,
+   "dif_para_professor": 0.0182,
+   "ic95": [
+    0.0034,
+    0.0329
+   ],
+   "s_por_doc": 0.0154
+  },
+  "meta": {
+   "modelo_base9": {
+    "extrator": "base9",
+    "modelo": "vinimlo/gama-aluno-a-base9@17df6e0",
+    "parametros": 242340103,
+    "torch": "2.14.0+cu126",
+    "dispositivo": "NVIDIA L4"
+   },
+   "modelo_base9_dev": {
+    "extrator": "base9",
+    "pasta": "/app/corpus/modelos/base9",
+    "dispositivo": "cpu (container, 4 vCPUs)"
+   }
+  }
+ },
  "b_controle": {
   "dev": {
    "oficial": 1.1,

@@ -69,6 +69,29 @@ Custo de execução:
 4. Nenhum aluno é byte a byte idêntico ao professor no estilo da organização. O aluno A
    empata na nota, e a única diferença não muda classe, link nem confiança publicada.
 
+## Segunda rodada: o que a literatura sugeria
+
+- Poda das camadas de cima ([Sajjad et al., 2004.03844](https://arxiv.org/abs/2004.03844)):
+  as camadas de baixo pesam mais, e tirar as de cima foi a melhor estratégia deles. Alunos
+  com as 12 e as 9 primeiras camadas do Gama, mesma receita do A (o padrão global/local se
+  mantém por construção).
+- Mais dados onde o aluno pequeno falhava ([Stanton et al., 2106.05945](https://arxiv.org/abs/2106.05945)):
+  B2, o mmBERT-small com 8 épocas, documentos N2 com peso dobrado e 3.000 documentos das
+  pastas de dobras (sementes 100 e 101, fora dos testes).
+
+| | Dev / estresse / v1 | JSON diferente do professor (4.626 docs) | Real 305 | Real 172 novas | L4 s/doc (estresse) | CPU s/doc (dev) | Pesos |
+|---|---|---|---|---|---|---|---|
+| Professor | 1,10000 / 1,09999 / 1,09999 | | 0,8076 | 0,8204 | 0,071 | 1,62 | 1,23 GB |
+| Base 12 camadas | igual | 0 | 0,8180 | 0,8392 (+0,019; +0,003 a +0,033) | 0,046 | 0,93 | 1,03 GB |
+| Base 9 camadas | 1,10000 / 1,09966 / 1,09999 | 4 | 0,8174 | 0,8386 | 0,037 | 0,64 | 0,97 GB |
+| B2 | igual | 1 | 0,8139 | 0,8225 (+0,002; −0,012 a +0,016) | 0,041 | 0,84 | 0,56 GB |
+
+O aluno com as 12 primeiras camadas sai byte a byte idêntico ao professor em todos os 4.626
+documentos do estilo da organização e melhora no texto real, com ganho significativo no
+teste intocado. Com 9 camadas começa a perder no ruído pesado. O B2 fecha a perda do B na
+nota; a única diferença que sobra é o mesmo ponto fraco, um prefixo ruidoso ("Ernbargos de
+Declaração no") deixado de fora, que ainda casa com o ouro e resolve para o mesmo registro.
+
 ## Checagens de entrega do aluno A
 
 As mesmas que o professor passou antes de ir para a submissão:
