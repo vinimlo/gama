@@ -1,0 +1,194 @@
+{
+ "professor": {
+  "dev": {
+   "oficial": 1.1,
+   "s_por_doc": 1.619
+  },
+  "estresse": {
+   "oficial": 1.09999,
+   "s_por_doc": 0.0708
+  },
+  "v1": {
+   "oficial": 1.09999,
+   "s_por_doc": 0.06
+  },
+  "reais": {
+   "f1_com_guarda": 0.8076,
+   "s_por_doc": 0.0249
+  },
+  "novas": {
+   "f1_com_guarda": 0.8204,
+   "s_por_doc": 0.0289
+  },
+  "meta": {
+   "modelo_professor": {
+    "extrator": "professor",
+    "modelo": "vinimlo/gama@ad06ffd",
+    "parametros": 307535623,
+    "torch": "2.14.0+cu126",
+    "dispositivo": "NVIDIA L4"
+   },
+   "modelo_professor_dev": {
+    "extrator": "professor",
+    "pasta": "/models",
+    "dispositivo": "cpu (container, 4 vCPUs)"
+   }
+  }
+ },
+ "a": {
+  "dev": {
+   "oficial": 1.1,
+   "docs_json_diferente": 0,
+   "docs_spans_diferentes": 0,
+   "s_por_doc": 0.9587
+  },
+  "estresse": {
+   "oficial": 1.09999,
+   "docs_json_diferente": 1,
+   "docs_spans_diferentes": 1,
+   "s_por_doc": 0.0473
+  },
+  "v1": {
+   "oficial": 1.09999,
+   "docs_json_diferente": 0,
+   "docs_spans_diferentes": 0,
+   "s_por_doc": 0.0389
+  },
+  "reais": {
+   "f1_com_guarda": 0.8191,
+   "dif_para_professor": 0.0115,
+   "ic95": [
+    -0.004,
+    0.0283
+   ],
+   "s_por_doc": 0.0168
+  },
+  "novas": {
+   "f1_com_guarda": 0.8426,
+   "dif_para_professor": 0.0223,
+   "ic95": [
+    0.0072,
+    0.0378
+   ],
+   "s_por_doc": 0.0196
+  },
+  "meta": {
+   "modelo_a": {
+    "extrator": "a",
+    "modelo": "vinimlo/gama-aluno-a@ea3b116",
+    "parametros": 262400263,
+    "torch": "2.14.0+cu126",
+    "dispositivo": "NVIDIA L4"
+   },
+   "modelo_a_dev": {
+    "extrator": "a",
+    "pasta": "/app/corpus/modelos/a",
+    "dispositivo": "cpu (container, 4 vCPUs)"
+   }
+  }
+ },
+ "b": {
+  "dev": {
+   "oficial": 1.1,
+   "docs_json_diferente": 0,
+   "docs_spans_diferentes": 0,
+   "s_por_doc": 0.8058
+  },
+  "estresse": {
+   "oficial": 1.09966,
+   "docs_json_diferente": 3,
+   "docs_spans_diferentes": 3,
+   "s_por_doc": 0.0401
+  },
+  "v1": {
+   "oficial": 1.09994,
+   "docs_json_diferente": 3,
+   "docs_spans_diferentes": 1,
+   "s_por_doc": 0.0329
+  },
+  "reais": {
+   "f1_com_guarda": 0.8154,
+   "dif_para_professor": 0.0078,
+   "ic95": [
+    -0.0072,
+    0.0227
+   ],
+   "s_por_doc": 0.02
+  },
+  "novas": {
+   "f1_com_guarda": 0.8396,
+   "dif_para_professor": 0.0192,
+   "ic95": [
+    0.0017,
+    0.0361
+   ],
+   "s_por_doc": 0.0219
+  },
+  "meta": {
+   "modelo_b": {
+    "extrator": "b",
+    "modelo": "vinimlo/gama-aluno-b@9ba7500",
+    "parametros": 140644231,
+    "torch": "2.14.0+cu126",
+    "dispositivo": "NVIDIA L4"
+   },
+   "modelo_b_dev": {
+    "extrator": "b",
+    "pasta": "/app/corpus/modelos/b",
+    "dispositivo": "cpu (container, 4 vCPUs)"
+   }
+  }
+ },
+ "b_controle": {
+  "dev": {
+   "oficial": 1.1,
+   "docs_json_diferente": 0,
+   "docs_spans_diferentes": 0,
+   "s_por_doc": 0.8091
+  },
+  "estresse": {
+   "oficial": 1.09999,
+   "docs_json_diferente": 10,
+   "docs_spans_diferentes": 10,
+   "s_por_doc": 0.0395
+  },
+  "v1": {
+   "oficial": 1.09999,
+   "docs_json_diferente": 1,
+   "docs_spans_diferentes": 1,
+   "s_por_doc": 0.0332
+  },
+  "reais": {
+   "f1_com_guarda": 0.5743,
+   "dif_para_professor": -0.2333,
+   "ic95": [
+    -0.2627,
+    -0.2047
+   ],
+   "s_por_doc": 0.0197
+  },
+  "novas": {
+   "f1_com_guarda": 0.5881,
+   "dif_para_professor": -0.2322,
+   "ic95": [
+    -0.2793,
+    -0.1903
+   ],
+   "s_por_doc": 0.0218
+  },
+  "meta": {
+   "modelo_b_controle": {
+    "extrator": "b_controle",
+    "modelo": "vinimlo/gama-aluno-b-controle@5571f61",
+    "parametros": 140644231,
+    "torch": "2.14.0+cu126",
+    "dispositivo": "NVIDIA L4"
+   },
+   "modelo_b_controle_dev": {
+    "extrator": "b_controle",
+    "pasta": "/app/corpus/modelos/b_controle",
+    "dispositivo": "cpu (container, 4 vCPUs)"
+   }
+  }
+ }
+}
