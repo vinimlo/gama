@@ -56,12 +56,15 @@ def main() -> int:
         with open(arq, encoding="utf-8", newline="") as fh:
             docs.append({"conjunto": "v1", "id": arq.stem, "texto": fh.read()})
     docs = docs[: a.limite]
-    ext = ExtratorNeural(snapshot_download(a.pesos, revision=a.pesos_rev))
-    fp32 = {k: v.clone() for k, v in ext.modelo.state_dict().items()}
+    pasta_pesos = snapshot_download(a.pesos, revision=a.pesos_rev)
     api = HfApi()
     tipos = {"fp32": torch.float32, "bf16": torch.bfloat16, "fp16": torch.float16}
     for nome in a.precisoes.split(","):
-        ext.modelo.load_state_dict(fp32)
+        # Cada precisão parte dos pesos FP32 do disco, num modelo novo: sem arredondamento
+        # herdado da rodada anterior e sem cópia extra na GPU inflando o pico de VRAM.
+        ext = None
+        torch.cuda.empty_cache()
+        ext = ExtratorNeural(pasta_pesos)
         ext.modelo.to(tipos[nome])
         torch.cuda.reset_peak_memory_stats()
         ext.extrair("aquecimento: REsp nº 1.234.567/SP e art. 927 do Código Civil.")
@@ -82,7 +85,7 @@ def main() -> int:
                 fh.write(json.dumps({"conjunto": d["conjunto"], "id": d["id"], "segundos": round(dt, 4), "spans": [
                     [s.inicio, s.fim, s.tipo, s.forma, s.digitos, s.confianca] for s in ss]},
                     ensure_ascii=False) + "\n")
-        vram = torch.cuda.max_memory_allocated() / 2**20
+        vram = torch.cuda.max_memory_allocated() / 2**20      # pesos + ativações da inferência
         print(f"FIM {nome}: " + " | ".join(f"{c} {len(v)} docs {sum(v) / len(v):.4f} s/doc"
                                           for c, v in tempos.items()) + f" | VRAM pico {vram:.0f} MiB", flush=True)
         if not a.limite:
