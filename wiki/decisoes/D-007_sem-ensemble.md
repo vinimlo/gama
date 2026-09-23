@@ -49,4 +49,6 @@ resolveria.
 Atualização (23/09): a [D-008](D-008_guarda-do-extrator.md) resolveu o texto fora do molde
 de outro jeito. A régua entra só onde o modelo hesita (confiança < 0,95), o que no estilo da
 organização não muda nenhum documento; a união continua como opção, mas deixou de ser a
-proteção recomendada.
+proteção recomendada. A submissão roda com a configuração congelada: nenhuma escolha de
+modo é feita depois de ver os documentos do conjunto cego (as regras do Kaggle vedam usar
+predição humana sobre dados de teste).
