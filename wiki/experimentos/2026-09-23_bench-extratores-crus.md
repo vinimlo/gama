@@ -68,4 +68,7 @@ F1 de extração por tipo:
    com o v1 e contra a prata, dava 0,49), mas fora do molde marca fragmentos soltos ("Rel",
    "2011", "DJe 19/08/2019"): 710 falsos positivos de JURIS. É o preço da especialização no estilo da organização, que é o
    formato anunciado para o cego; a [D-007](../decisoes/D-007_sem-ensemble.md) mantém a
-   união com a régua como opção para texto fora do molde.
+   união com a régua como opção para texto fora do molde. A
+   [otimização medida](2026-09-23_otimizacao-medida.md) mostra que a confiança do próprio
+   modelo separa esses fragmentos: filtrado, o Gama vai a 0,808 no texto real, sem mudar
+   nada no estilo da organização.

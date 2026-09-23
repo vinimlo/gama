@@ -40,6 +40,14 @@ que o bruto.
   do Qwen3-8B zero-shot, marcando fragmentos soltos. Ver
   [benchmark](experimentos/2026-09-23_bench-extratores-crus.md) e
   [D-007](decisoes/D-007_sem-ensemble.md).
+- O Gama sabe quando está inseguro. Nenhum de 34.171 acertos no estilo da organização (dev,
+  estresse, v1) tem confiança abaixo de 0,98; os fragmentos em ementa real ficam abaixo.
+  Tirar VAGA colada a outro span e trocar span abaixo de 0,95 pelo da régua leva o texto
+  real de 0,605 a 0,808 sem mudar um documento no estilo da organização. Ver
+  [otimização medida](experimentos/2026-09-23_otimizacao-medida.md).
+- No estilo da organização, o que resta é resolução. Os únicos erros do estresse são
+  desempate de cadeia ("Ag. Int.", embargos com ruído de OCR); duas regras gerais levam o
+  estresse a 1,09999. Ver [otimização medida](experimentos/2026-09-23_otimizacao-medida.md).
 - O leaderboard da fase de treino é ruído. Ele pontua contra a amostra de
   desenvolvimento, cujo gabarito foi distribuído. Quando o conjunto cego for ativado, o
   leaderboard reinicia.
@@ -77,6 +85,7 @@ que o bruto.
 - [Estresse difícil](experimentos/2026-09-22_estresse-dificil.md): redação nunca treinada e ruído forte
 - [Texto real](experimentos/2026-09-22_texto-real.md): ementas reais, fora do estilo da organização
 - [Benchmark contra extratores sem treino](experimentos/2026-09-23_bench-extratores-crus.md): Gama × régua × GLiNER × Qwen3-8B zero-shot
+- [Otimização medida](experimentos/2026-09-23_otimizacao-medida.md): filtro de fragmentos, desempate de cadeia, vieses do texto real, CPU, meia precisão
 
 ## Conceitos
 
