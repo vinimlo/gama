@@ -14,7 +14,7 @@ revisao: ad06ffd34e838bf3496645d9c16281dfc70cb871
 | Modelo base | [`jhu-clsp/mmBERT-base`](https://huggingface.co/jhu-clsp/mmBERT-base) (MIT), revisão `c5955035435e2bf121cde7f3c8863ef52ff35d82` |
 | Fine-tune | classificação de tokens BIO (JURIS, LEI, VAGA), `treino/treinar.py` |
 | Pesos publicados | https://huggingface.co/vinimlo/gama (revisão acima) |
-| Dados de treino | goldenset sintético v3 (`geracao/`, 6.000 docs, ruído dirigido à palavra-chave), dataset `vinimlo/gama-goldenset` (privado), subpasta `final_v3`, revisão `31474b1f7db9096c4ca4f2a4eae2e9b82852d7a7` |
+| Dados de treino | goldenset sintético v3 (`geracao/`, 6.000 docs, ruído dirigido à palavra-chave), dataset [`vinimlo/gama-goldenset`](https://huggingface.co/datasets/vinimlo/gama-goldenset), subpasta `final_v3`, revisão `31474b1f7db9096c4ca4f2a4eae2e9b82852d7a7` |
 | Semente | 13 |
 | Hardware de treino | HF Jobs, 1× A100 80 GB; 3 épocas, max_len 1024, lote 8, lr 5e-5 |
 | Execução | offline, `eval()`, sem amostragem, algoritmos determinísticos do torch |

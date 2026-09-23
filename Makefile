@@ -34,8 +34,8 @@ submissao: predizer  ## Gera saidas/submission.csv pelo conversor OFICIAL
 test:  ## Testes
 	$(RUN) python -m pytest tests/ -q
 
-lint:  ## Checagem rápida de sintaxe
-	$(RUN) python -m compileall -q src avaliacao
+lint:  ## Checagem rápida de sintaxe (bytecode fora das pastas, que estão montadas só para leitura)
+	$(RUN) env PYTHONPYCACHEPREFIX=/tmp/pycache python -m compileall -q src avaliacao geracao treino reais bench tests
 
 shell:  ## Shell no container
 	$(RUN) bash

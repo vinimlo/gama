@@ -191,6 +191,11 @@ Quatro invariantes quebram em silêncio se forem violadas:
 4. A confiança vem de `src/gama/calibracao.json`, medida por `avaliacao/calibrar.py` e
    nunca escrita à mão. Nunca 1,0: confiança alta em cima de erro é o pior caso do Brier.
 
+## Licença
+
+MIT, ver [LICENSE](LICENSE). A exceção é `vendor/`, cópia do código da organização do
+desafio (métrica e conversor oficiais), que segue os termos dela.
+
 ## Equipe
 
 Vinícius Melo Almeida · Gabriel Siron
