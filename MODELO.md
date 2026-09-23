@@ -24,7 +24,7 @@ revisao: ad06ffd34e838bf3496645d9c16281dfc70cb871
 | Versão | Revisão | O que mudou | Estresse difícil (erros de borda, 4.447 spans) | Sondas |
 |---|---|---|---|---|
 | v1 | `2aba5d1` | 4.000 docs, org + LLM v1 | 2 | 5/6 (falha "Terna") |
-| v1.1 | (`vinimlo/gama-v1-1@7ea7a67`, rejeitada) | Tema de 1 a 2.999 | 2 | 4/6 (regrediu) |
+| v1.1 | rejeitada; pesos apagados (treino: `final_v2` do dataset) | Tema de 1 a 2.999 | 2 | 4/6 (regrediu) |
 | v1.2 | `ad06ffd` | ruído dirigido à palavra-chave, 6.000 docs | 0 | 6/6 ("Reclarnação" no limite, IoU 0,5) |
 
 ## Histórico de submissões
