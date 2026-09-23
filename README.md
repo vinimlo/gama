@@ -198,4 +198,4 @@ desafio (métrica e conversor oficiais), que segue os termos dela.
 
 ## Equipe
 
-Vinícius Melo Almeida · Gabriel Siron
+Vinícius Melo e Gabriel Siron
