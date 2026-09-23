@@ -136,3 +136,36 @@ def test_abreviacao_com_espaco_depois_do_ponto():
 
 def test_lei_com_circunflexo(idx):
     assert _classe(idx, "Art.\n186 da Lêi nº 10.A06/2Q02", "LEI") == ("real", "10718759")
+
+
+@pytest.mark.parametrize("trecho,esperado", [
+    # "Ag. Int." não entra na cadeia lida, (EDv, EDv, REsp); só uma ficha a contém
+    ("Ag. Int. nos Emb. Div. nos  EDv no\nREsp nº\n1599372 (PR)", "2679381856"),
+    # "Ernbarg0s dc Divergêneia" é lido como "E", prefixo do "EDv" da ficha
+    ("Agravo Interno  nos  Ernbarg0s dc Divergêneia no Recurso Especial\nn°\xa01 597\n443\n(PR)",
+     "2679428592"),
+    # "AgRG" é lido como "Ag": cabe nas duas fichas, vale a de mesmo comprimento
+    ("AgRG no REsp n. 2015694\xa0(SP)", "1908248675"),
+])
+def test_desempate_por_cadeia_compativel(idx, trecho, esperado):
+    assert _classe(idx, trecho) == ("real", esperado)
+
+
+def test_empate_sem_cadeia_continua_empate(idx):
+    """Duas fichas do mesmo ARE que só diferem no ordinal dos embargos, e o texto não traz
+    cadeia: nenhuma regra pode escolher, a confiança fica a do empate."""
+    texto = "Cita-se o ARE nº 1356440/SP, no ponto."
+    sp = span_de(texto, 10, 27, "JURIS")
+    c = classificar(sp, resolver(sp, idx))
+    assert c.classificacao == "real" and c.balde[:2] == ("processo", "real_ambiguo")
+
+
+def test_cnj_com_classe_grudada_pelo_ocr(idx):
+    """'AI' virou 'A1' e grudou no número: 22 dígitos. CNJ tem 20; ficam os 20 últimos."""
+    assert _classe(idx, "AgR-A1 0603026-69.2018.6.09.0000") == ("real", "1888089426")
+    assert _classe(idx, "AgR-AI 0603026-69.2018.6.09.0000") == ("real", "1888089426")
+
+
+def test_cnj_inventado_continua_inventado(idx):
+    assert _classe(idx, "AgR-A1 0603026-69.2018.6.09.0001") == ("inventada", None)
+    assert _classe(idx, "0603026-69.2018.6.09.0001") == ("inventada", None)

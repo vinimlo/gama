@@ -82,7 +82,7 @@ def main(argv=None) -> int:
     ap.add_argument("--db", default=os.environ.get("GAMA_DB", DB_PADRAO),
                     help="base canonica SQLite")
     ap.add_argument("--extrator", default=os.environ.get("GAMA_EXTRATOR", "regua"),
-                    choices=["regua", "neural", "uniao"], help="quem decide o que e citacao")
+                    choices=["regua", "neural", "neural-cru", "uniao"], help="quem decide o que e citacao")
     ap.add_argument("--modelos", default=os.environ.get("GAMA_MODELOS", "/models"),
                     help="pasta com os pesos do extrator neural (montada por volume)")
     args = ap.parse_args(argv)

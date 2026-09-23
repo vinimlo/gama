@@ -45,3 +45,8 @@ lista depois de "DJe", entre parênteses com "Rel. Min.", ementa em caixa-alta.
 
 Reabrir se o conjunto cego mostrar divergência sistemática que um segundo modelo
 resolveria.
+
+Atualização (23/09): a [D-008](D-008_guarda-do-extrator.md) resolveu o texto fora do molde
+de outro jeito. A régua entra só onde o modelo hesita (confiança < 0,95), o que no estilo da
+organização não muda nenhum documento; a união continua como opção, mas deixou de ser a
+proteção recomendada.

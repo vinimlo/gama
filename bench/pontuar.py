@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """Pontua os quatro extratores nos três conjuntos, com o mesmo resolver e a mesma métrica.
 
-Todo extrator vira uma lista de spans por documento, gravada em `saidas/bench/`. Daí em
+Todo extrator vira uma lista de spans por documento, gravada em `saidas/bench/`. A linha
+`gama_guarda` é o Gama como a solução o roda: os mesmos spans, pela guarda de produção. Daí em
 diante o caminho é o de produção para todos: `aparar`, `processar` (resolver + classe +
 confiança) e a métrica oficial. Régua e Gama guardam o Span completo (forma, dígitos,
 confiança); GLiNER e Qwen entram como o extrator neural entra, por `span_de`, sem
@@ -26,6 +27,7 @@ import shutil
 import time
 
 from gama.extratores import carregar as carregar_extrator
+from gama.extratores.guarda import guardar
 from gama.formas import span_de
 from gama.indice import construir
 from gama.pipeline import SCHEMA, aparar, processar
@@ -36,7 +38,7 @@ from . import conjuntos
 
 SAIDA = conjuntos.SAIDA
 RESULTADOS = pathlib.Path("/app/bench/resultados.json")
-EXTRATORES = ["regua", "gliner", "qwen", "gama"]
+EXTRATORES = ["regua", "gliner", "qwen", "gama", "gama_guarda"]
 CONJUNTOS = ["dev", "estresse", "reais"]
 DB = "/app/dados/desafio1_bracis.db"
 
@@ -60,6 +62,28 @@ def spans_de(extrator: str) -> tuple[dict, dict]:
         metas[arq.stem] = meta
         todas.update(linhas)
     return metas, todas
+
+
+def spans_com_guarda() -> tuple[dict, dict]:
+    """O Gama como a solução o usa: os spans gravados do modelo e da régua passam pela guarda
+    de produção (`src/gama/extratores/guarda.py`). Tempo = a soma dos dois."""
+    mg, gama = spans_de("gama")
+    mr, regua = spans_de("regua")
+    textos = {}
+    for nome in CONJUNTOS:
+        textos.update({(nome, d): t for d, t in conjuntos.carregar(nome)[0].items()})
+    linhas = {}
+    for k, lg in gama.items():
+        if k not in regua or k not in textos:
+            continue
+        t = textos[k]
+
+        def aparados(ss, t=t):
+            return [s for s in (aparar(para_span(t, x), t) for x in ss) if s]
+        ss = guardar(aparados(lg["spans"]), aparados(regua[k]["spans"]))
+        linhas[k] = {"segundos": lg["segundos"] + regua[k]["segundos"],
+                     "spans": [[s.inicio, s.fim, s.tipo, s.forma, s.digitos, s.confianca] for s in ss]}
+    return {"gama": mg, "regua": mr}, linhas
 
 
 def para_span(texto: str, s: list) -> Span:
@@ -130,7 +154,7 @@ def oficial(nome: str, extrator: str, textos: dict, spans: dict, idx) -> dict:
 
 def extrair_local(extrator: str, nomes: list[str]) -> int:
     """Roda régua ou Gama aqui (por padrão, só no dev) e grava os spans completos."""
-    ext = carregar_extrator("regua" if extrator == "regua" else "neural", "/models")
+    ext = carregar_extrator("regua" if extrator == "regua" else "neural-cru", "/models")
     meta = {"extrator": extrator, "dispositivo": "cpu (container, 4 vCPUs)"}
     for nome in nomes:
         textos, _ = conjuntos.carregar(nome)
@@ -161,7 +185,7 @@ def main() -> int:
     idx = construir(DB)
     saida = {"meta": {}, "resultados": {}}
     for extrator in EXTRATORES:
-        metas, linhas = spans_de(extrator)
+        metas, linhas = spans_com_guarda() if extrator == "gama_guarda" else spans_de(extrator)
         saida["meta"][extrator] = metas
         res = saida["resultados"][extrator] = {}
         for nome in CONJUNTOS:

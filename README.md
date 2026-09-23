@@ -34,7 +34,7 @@ organização que nunca viu. O que separa os candidatos é o que vem a seguir.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="bench/grafico-escuro.svg">
-  <img alt="Estresse difícil, métrica oficial: Gama 1,0997, régua 0,8487, Qwen3-8B 0,8105, GLiNER 0,3273. Texto real, F1 de extração: Gama 0,605, régua 0,663, Qwen3-8B 0,707, GLiNER 0,409." src="bench/grafico-claro.svg">
+  <img alt="Estresse difícil, métrica oficial: Gama com a guarda 1,09999, Gama sozinho 1,09999, régua 0,84880, Qwen3-8B 0,81065, GLiNER 0,32732. Texto real, F1 de extração: Gama com a guarda 0,808, Gama sozinho 0,605, régua 0,663, Qwen3-8B 0,707, GLiNER 0,409." src="bench/grafico-claro.svg">
 </picture>
 
 Para medir o que o fine-tune rende, comparamos o Gama com o que dava para conseguir sem
@@ -42,20 +42,25 @@ treinar nada dentro das regras do desafio: a régua, o GLiNER multi v2.1 e o Qwe
 dois últimos com pesos abertos e em zero-shot. Os quatro passam pelo mesmo resolver e pela
 mesma métrica.
 
-| | Gama v1.2 | Régua | Qwen3-8B | GLiNER |
-|---|---|---|---|---|
-| Estresse difícil, métrica oficial (600 documentos) | 1,0997 | 0,8487 | 0,8105 | 0,3273 |
-| Texto real, F1 de extração (305 ementas) | 0,605 | 0,663 | 0,707 | 0,409 |
-| Tempo por documento numa NVIDIA L4 | 0,057 s | 0,001 s | 11,7 s | 0,113 s |
+| | Gama v1.2 com a guarda | Gama v1.2 sozinho | Régua | Qwen3-8B | GLiNER |
+|---|---|---|---|---|---|
+| Estresse difícil, métrica oficial (600 documentos) | 1,09999 | 1,09999 | 0,84880 | 0,81065 | 0,32732 |
+| Texto real, F1 de extração (305 ementas) | 0,808 | 0,605 | 0,663 | 0,707 | 0,409 |
+| Tempo por documento numa NVIDIA L4 | 0,058 s | 0,057 s | 0,001 s | 11,7 s | 0,113 s |
 
 O [estresse difícil](wiki/experimentos/2026-09-22_estresse-dificil.md) segue o estilo da
 organização, que é o formato anunciado para o conjunto cego, com frases escritas por um LLM
 que nenhum modelo viu no treino e ruído de OCR forte. Ali o fine-tune é a diferença: o
 melhor extrator sem treino fica abaixo até da régua. Em texto real (ementas do STF, STJ e
-TJRJ) a ordem se inverte e o Gama mostra o próprio limite: especializou no estilo da
-organização e, fora dele, marca fragmentos soltos. Por isso a união com a régua fica
-disponível como opção ([D-007](wiki/decisoes/D-007_sem-ensemble.md)). Desenho, números
-por tipo e leitura completa no [benchmark](wiki/experimentos/2026-09-23_bench-extratores-crus.md).
+TJRJ), o modelo sozinho mostra o próprio limite: especializou no estilo da organização e,
+fora dele, marca fragmentos soltos ("Rel", "2011", "DJe"). Mas ele sabe quando hesita:
+nenhum de 34.171 acertos no estilo da organização tem confiança abaixo de 0,98, e os
+fragmentos ficam abaixo disso. A guarda da solução troca o span inseguro (< 0,95) pelo da
+régua e descarta a referência vaga colada a um precedente; no estilo da organização não muda
+nenhum documento, e em texto real leva o Gama de 0,605 a 0,808
+([D-008](wiki/decisoes/D-008_guarda-do-extrator.md)). Desenho, números por tipo e leitura
+no [benchmark](wiki/experimentos/2026-09-23_bench-extratores-crus.md) e na
+[otimização medida](wiki/experimentos/2026-09-23_otimizacao-medida.md).
 
 ## Como funciona
 
@@ -64,6 +69,9 @@ documento .txt
   │
   ├─ extrator Gama      mmBERT-base fine-tunado, classificação de tokens BIO (JURIS, LEI, VAGA);
   │                     lê o documento inteiro numa passada. Sem pesos montados, cai para a régua.
+  │
+  ├─ guarda             onde o modelo hesita (confiança < 0,95), vale o span da régua; referência
+  │                     vaga colada a um precedente sai. No estilo da organização, não muda nada.
   │
   ├─ normalização       desfaz o OCR letra→dígito (l→1, S→5, O→0, G→6, g→9), só no núcleo numérico
   │

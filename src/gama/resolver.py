@@ -117,9 +117,20 @@ def _sem_ordinal(cadeia: tuple) -> tuple:
     return tuple(c.rstrip("0123456789") for c in cadeia)
 
 
+def _cabe_em(lida: tuple, ficha: tuple) -> bool:
+    """A cadeia lida é subsequência da cadeia da ficha, cada elo lido sendo prefixo do elo
+    da ficha: "Ag. Int." que o leitor pulou, ou "Ernbarg0s dc Divergêneia" lido como "E"
+    diante de "EDv", ainda cabem."""
+    i = 0
+    for elo in ficha:
+        if i < len(lida) and elo.startswith(lida[i]):
+            i += 1
+    return i == len(lida)
+
+
 def _desempatar_por_cadeia(trecho: str, candidatos: list, idx: Indice):
     """Fichas que dividem o numero (ED, AgR e principal do mesmo processo) se
-    separam pela cadeia de classe da citacao. Tres niveis, do mais estrito ao
+    separam pela cadeia de classe da citacao. Quatro niveis, do mais estrito ao
     mais frouxo; so decide se sobrar exatamente um candidato."""
     cit = cadeia_de_classe(trecho)
     if not cit:
@@ -129,7 +140,25 @@ def _desempatar_por_cadeia(trecho: str, candidatos: list, idx: Indice):
         iguais = [d for d in candidatos if chave_de(idx.cadeia.get(d, ())) == alvo]
         if len(iguais) == 1:
             return iguais[0]
-    return None
+    # Quarto nivel: a cadeia lida com ruido ou abreviacao que o leitor nao reconhece. Entre
+    # as fichas em que ela cabe, a de mesmo comprimento ("AgRG" lido como "Ag" ainda conta
+    # um elo). Os unicos erros de resolucao do estresse eram deste tipo (N2).
+    cabem = [d for d in candidatos if _cabe_em(cit, idx.cadeia.get(d, ()))]
+    if len(cabem) > 1:
+        cabem = [d for d in cabem if len(idx.cadeia.get(d, ())) == len(cit)] or cabem
+    return cabem[0] if len(cabem) == 1 else None
+
+
+_CNJ = re.compile(r"\d{7}\s*-\s*\d{2}\s*\.\s*\d{4}")
+
+
+def _chave_do_processo(trecho: str) -> str:
+    """Núcleo numérico do trecho. Número CNJ tem 20 dígitos: com mais que isso, é a classe
+    grudada pelo OCR ("AgR-A1 0603026-69.2018...", 'AI' virou 'A1'), e ficam os 20 últimos."""
+    nucleo = nucleo_numerico(trecho)
+    if len(nucleo) > 20 and _CNJ.search(trecho):
+        return nucleo[-20:].lstrip("0")
+    return nucleo
 
 
 def resolver(span: Span, idx: Indice) -> Resolucao:
@@ -160,7 +189,7 @@ def resolver(span: Span, idx: Indice) -> Resolucao:
     # cnj | processo. O número sai do TEXTO do span (nucleo_numerico), não de um
     # núcleo entregue pelo extrator: assim a régua e o extrator neural passam pelo
     # mesmo caminho, e o neural só precisa acertar a borda.
-    candidatos = idx.candidatos_processo(nucleo_numerico(span.trecho) or span.digitos)
+    candidatos = idx.candidatos_processo(_chave_do_processo(span.trecho) or span.digitos)
     if len(candidatos) > 1:
         escolhido = _desempatar_por_cadeia(span.trecho, candidatos, idx)
         if escolhido is not None:

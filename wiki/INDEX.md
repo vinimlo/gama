@@ -15,9 +15,10 @@ que o bruto.
   preditas como `real`, o erro grave.
 - Regras que restringem a solução: só pesos abertos com revisão fixa; execução
   offline; 1 GPU 24 GB, 8 vCPUs, 32 GB RAM; média ≤ 60 s/documento.
-- Solução: extrator neural Gama (mmBERT-base fine-tunado, BIO) → normalização do
-  OCR no núcleo numérico → índice canônico construído do SQLite → classe + confiança
-  medida por balde. A régua (regex) é o fallback sem pesos.
+- Solução: extrator neural Gama (mmBERT-base fine-tunado, BIO) com a guarda (régua onde o
+  modelo hesita, [D-008](decisoes/D-008_guarda-do-extrator.md)) → normalização do OCR no
+  núcleo numérico → índice canônico construído do SQLite → classe + confiança medida por
+  balde. A régua (regex) é o fallback sem pesos.
 - LLMs abertos (DeepSeek-V4-Pro, Kimi-K3, GLM-5.3): só no desenvolvimento, para
   expandir bancos de frases e anotar texto real. Nenhum em tempo de execução.
 
@@ -76,6 +77,7 @@ que o bruto.
 - [D-004](decisoes/D-004_gerador-por-moldes.md): goldenset remontado dos moldes da organização; LLM só expande bancos
 - [D-006](decisoes/D-006_calibracao-decide-o-topo.md): confiança = probabilidade de acerto medida por balde
 - [D-007](decisoes/D-007_sem-ensemble.md): sem ensemble; a união com a régua fica como opção
+- [D-008](decisoes/D-008_guarda-do-extrator.md): guarda do extrator (régua só onde o modelo hesita) e desempate por cadeia compatível
 
 ## Experimentos
 

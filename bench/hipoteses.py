@@ -24,6 +24,7 @@ import json
 import pathlib
 import random
 
+from gama.extratores.guarda import guardar
 from gama.indice import construir
 from gama.normalizar import nucleo_numerico
 from gama.pipeline import aparar
@@ -129,6 +130,7 @@ FILTROS = {
     "vaga_colada2+troca_regua0.9": em_serie(vaga_colada(2), troca_regua(0.9)),
     "vaga_colada2+troca_regua0.95": em_serie(vaga_colada(2), troca_regua(0.95)),
     "conf0.9+min10": em_serie(por_span(_conf(0.9)), por_span(_minimo(10))),
+    "producao": guardar,                     # src/gama/extratores/guarda.py: o que vai na entrega
 }
 
 

@@ -44,6 +44,32 @@
     "extrator": "gama",
     "dispositivo": "cpu (container, 4 vCPUs)"
    }
+  },
+  "gama_guarda": {
+   "gama": {
+    "gama": {
+     "extrator": "gama",
+     "modelo": "vinimlo/gama@ad06ffd",
+     "torch": "2.14.0+cu126",
+     "dispositivo": "NVIDIA L4"
+    },
+    "gama_dev": {
+     "extrator": "gama",
+     "dispositivo": "cpu (container, 4 vCPUs)"
+    }
+   },
+   "regua": {
+    "regua": {
+     "extrator": "regua",
+     "modelo": "regras",
+     "torch": "2.14.0+cu126",
+     "dispositivo": "NVIDIA L4"
+    },
+    "regua_dev": {
+     "extrator": "regua",
+     "dispositivo": "cpu (container, 4 vCPUs)"
+    }
+   }
   }
  },
  "resultados": {
@@ -123,7 +149,7 @@
      }
     },
     "oficial": {
-     "final": 0.84865,
+     "final": 0.8488,
      "n1": {
       "score": 1.0455,
       "f1": {
@@ -134,7 +160,7 @@
       "tau": 0.0
      },
      "n2": {
-      "score": 0.7502,
+      "score": 0.7505,
       "f1": {
        "real": 0.876,
        "inventada": 0.663,
@@ -265,7 +291,7 @@
      }
     },
     "oficial": {
-     "final": 0.81051,
+     "final": 0.81065,
      "n1": {
       "score": 0.8897,
       "f1": {
@@ -276,9 +302,9 @@
       "tau": 0.0
      },
      "n2": {
-      "score": 0.7709,
+      "score": 0.7711,
       "f1": {
-       "real": 0.892,
+       "real": 0.893,
        "inventada": 0.756,
        "incompleta": 0.47
       },
@@ -384,7 +410,7 @@
      }
     },
     "oficial": {
-     "final": 1.09974,
+     "final": 1.09999,
      "n1": {
       "score": 1.1,
       "f1": {
@@ -395,9 +421,9 @@
       "tau": 0.0
      },
      "n2": {
-      "score": 1.0996,
+      "score": 1.1,
       "f1": {
-       "real": 0.999,
+       "real": 1.0,
        "inventada": 1.0,
        "incompleta": 1.0
       },
@@ -421,6 +447,125 @@
        "f1": 0.7472,
        "tp": 541,
        "fp": 313,
+       "fn": 53
+      }
+     }
+    }
+   }
+  },
+  "gama_guarda": {
+   "dev": {
+    "documentos": 26,
+    "s_por_doc": 1.576,
+    "extracao": {
+     "f1": 1.0,
+     "por_tipo": {
+      "JURIS": {
+       "f1": 1.0,
+       "tp": 132,
+       "fp": 0,
+       "fn": 0
+      },
+      "LEI": {
+       "f1": 1.0,
+       "tp": 28,
+       "fp": 0,
+       "fn": 0
+      },
+      "VAGA": {
+       "f1": 1.0,
+       "tp": 32,
+       "fp": 0,
+       "fn": 0
+      }
+     }
+    },
+    "oficial": {
+     "final": 1.1,
+     "n1": {
+      "score": 1.1,
+      "f1": {
+       "real": 1.0,
+       "inventada": 1.0,
+       "incompleta": 1.0
+      },
+      "tau": 0.0
+     },
+     "n2": {
+      "score": 1.1,
+      "f1": {
+       "real": 1.0,
+       "inventada": 1.0,
+       "incompleta": 1.0
+      },
+      "tau": 0.0
+     }
+    }
+   },
+   "estresse": {
+    "documentos": 600,
+    "s_por_doc": 0.075,
+    "extracao": {
+     "f1": 1.0,
+     "por_tipo": {
+      "JURIS": {
+       "f1": 1.0,
+       "tp": 3003,
+       "fp": 0,
+       "fn": 0
+      },
+      "LEI": {
+       "f1": 1.0,
+       "tp": 730,
+       "fp": 0,
+       "fn": 0
+      },
+      "VAGA": {
+       "f1": 1.0,
+       "tp": 714,
+       "fp": 0,
+       "fn": 0
+      }
+     }
+    },
+    "oficial": {
+     "final": 1.09999,
+     "n1": {
+      "score": 1.1,
+      "f1": {
+       "real": 1.0,
+       "inventada": 1.0,
+       "incompleta": 1.0
+      },
+      "tau": 0.0
+     },
+     "n2": {
+      "score": 1.1,
+      "f1": {
+       "real": 1.0,
+       "inventada": 1.0,
+       "incompleta": 1.0
+      },
+      "tau": 0.0
+     }
+    }
+   },
+   "reais": {
+    "documentos": 305,
+    "s_por_doc": 0.0258,
+    "extracao": {
+     "f1": 0.8076,
+     "por_tipo": {
+      "JURIS": {
+       "f1": 0.7607,
+       "tp": 372,
+       "fp": 115,
+       "fn": 119
+      },
+      "LEI": {
+       "f1": 0.8433,
+       "tp": 541,
+       "fp": 148,
        "fn": 53
       }
      }

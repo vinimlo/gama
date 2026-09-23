@@ -27,6 +27,11 @@ dentro das regras do desafio (pesos abertos, revisão fixa, 1 GPU de 24 GB)?
 
 ## Resultado
 
+Números com o resolver de 23/09 de manhã. Depois do desempate por cadeia compatível
+([D-008](../decisoes/D-008_guarda-do-extrator.md)), o estresse passou a 1,09999 (Gama),
+0,84880 (régua) e 0,81065 (Qwen3-8B); o GLiNER não mudou. `bench/resultados.json` e o
+gráfico do README trazem os números atuais.
+
 | Conjunto | Gama v1.2 | Régua | Qwen3-8B | GLiNER |
 |---|---|---|---|---|
 | Dev, métrica oficial (26 docs) | 1,10000 | 1,09848 | não medido | não medido |

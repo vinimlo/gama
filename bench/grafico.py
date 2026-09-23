@@ -24,7 +24,8 @@ TEMAS = {
                "borda": "rgba(255,255,255,0.10)"},
 }
 LINHAS = [  # (chave, nome, descrição)
-    ("gama", "Gama v1.2", "mmBERT fine-tunado"),
+    ("gama_guarda", "Gama v1.2 + guarda", "como roda na solução"),
+    ("gama", "Gama v1.2", "o modelo sozinho"),
     ("regua", "Régua", "regex, sem modelo"),
     ("qwen", "Qwen3-8B", "LLM, zero-shot"),
     ("gliner", "GLiNER multi v2.1", "NER, zero-shot"),
@@ -32,14 +33,15 @@ LINHAS = [  # (chave, nome, descrição)
 PAINEIS = [  # (título, subtítulo, extrai valor, domínio, marcas, casas decimais)
     ("Estresse difícil · métrica oficial", "600 documentos com redação nunca treinada, N1 + N2",
      lambda r: r.get("estresse", {}).get("oficial", {}).get("final"), 1.1,
-     [(0, "0"), (0.5, "0,5"), (1.0, "1,0")], 4),
+     [(0, "0"), (0.5, "0,5"), (1.0, "1,0")], 5),
     ("Texto real · F1 de extração", "305 ementas reais do STF, STJ e TJRJ",
      lambda r: r.get("reais", {}).get("extracao", {}).get("f1"), 1.0,
      [(0, "0"), (0.5, "0,5"), (1.0, "1,0")], 3),
 ]
 RODAPE = [
-    "Mesmo resolver e mesma métrica oficial para os quatro. GLiNER e Qwen3-8B têm pesos abertos e rodam em zero-shot,",
+    "Mesmo resolver e mesma métrica oficial para todos. GLiNER e Qwen3-8B têm pesos abertos e rodam em zero-shot,",
     "sem ajuste nos conjuntos avaliados. O Gama foi treinado só com documentos sintéticos, nunca com os avaliados.",
+    "Guarda: onde o modelo hesita (confiança < 0,95) vale a régua, e referência vaga colada a um precedente sai.",
 ]
 
 W, M, ROTULO, VAO = 880, 28, 168, 44
@@ -67,7 +69,7 @@ def desenhar(res: dict, t: dict) -> str:
          f'role="img" aria-labelledby="t d" font-family="{FONTE}">',
          '<title id="t">Gama contra extratores sem treino</title>',
          '<desc id="d">' + escape("; ".join(
-             f"{nome}: estresse {num(v1, 4) if v1 is not None else 'sem dado'}, texto real "
+             f"{nome}: estresse {num(v1, 5) if v1 is not None else 'sem dado'}, texto real "
              f"{num(v2) if v2 is not None else 'sem dado'}"
              for k, nome, _ in LINHAS
              for v1, v2 in [(PAINEIS[0][2](res.get(k, {})), PAINEIS[1][2](res.get(k, {})))])) + '</desc>',
@@ -76,11 +78,11 @@ def desenhar(res: dict, t: dict) -> str:
          f'<text x="{M}" y="40" font-size="17" font-weight="600" fill="{t["tinta"]}">'
          'Gama contra extratores sem treino</text>',
          f'<text x="{M}" y="62" font-size="12.5" fill="{t["tinta2"]}">'
-         'Quanto maior a barra, melhor. Barra do Gama em destaque.</text>']
+         'Quanto maior a barra, melhor. Barras do Gama em destaque.</text>']
 
     for i, (k, nome, desc) in enumerate(LINHAS):
         yc = Y_LINHAS + i * ALTURA_LINHA + ALTURA_LINHA / 2
-        peso = "600" if k == "gama" else "400"
+        peso = "600" if k.startswith("gama") else "400"
         s.append(f'<text x="{M + ROTULO - 14}" y="{yc - 3:.1f}" text-anchor="end" font-size="13" '
                  f'font-weight="{peso}" fill="{t["tinta"]}">{escape(nome)}</text>')
         s.append(f'<text x="{M + ROTULO - 14}" y="{yc + 12:.1f}" text-anchor="end" font-size="11" '
@@ -107,10 +109,10 @@ def desenhar(res: dict, t: dict) -> str:
                          f'fill="{t["muda"]}">sem dado</text>')
                 continue
             comp = max(1.0, min(v, dom) / dom * util)
-            cor = t["destaque"] if k == "gama" else t["outro"]
+            cor = t["destaque"] if k.startswith("gama") else t["outro"]
             s.append(f'<g><title>{escape(nome)} · {escape(titulo)}: {num(v, casas)}</title>'
                      + barra(x0, y, comp, BARRA, cor) + '</g>')
-            peso = "600" if k == "gama" else "400"
+            peso = "600" if k.startswith("gama") else "400"
             s.append(f'<text x="{x0 + comp + 6:.1f}" y="{y + BARRA / 2 + 4:.1f}" font-size="12" '
                      f'font-weight="{peso}" fill="{t["tinta"]}" style="font-variant-numeric: tabular-nums">'
                      f'{num(v, casas)}</text>')
