@@ -41,6 +41,7 @@ lote 8, lr 5e-5, semente 13, 1× A100 80 GB.
 |---|---|---|---|
 | 22/09 | | não se aplica (régua, sem modelo) | 1,09830 (fase de treino, dev) |
 | 23/09 | | `vinimlo/gama@ad06ffd` (v1.2) | 1,09999 (fase de treino, dev; local 1,0999975) |
+| 23/09 | `077d761` | `vinimlo/gama@5f924ca` (v1.3) | 1,09999 (fase de treino, dev; CSV idêntico ao do v1.2) |
 
 As submissões da fase de treino pontuam contra o dev set e não contam para o ranking. A
 submissão final cita o commit deste repositório que produziu as saídas.
