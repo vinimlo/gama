@@ -62,6 +62,21 @@ nenhum documento, e em texto real leva o Gama de 0,605 a 0,808
 no [benchmark](wiki/experimentos/2026-09-23_bench-extratores-crus.md) e na
 [otimização medida](wiki/experimentos/2026-09-23_otimizacao-medida.md).
 
+### Gama v1.3: a mesma saída, menor e mais rápido
+
+A solução usa o Gama v1.3: as 12 primeiras das 22 camadas do v1.2, treinadas para imitar as
+probabilidades do v1.2 (destilação). No estilo da organização o JSON final é o mesmo do v1.2
+em todos os 4.626 documentos medidos; em texto real ele acerta um pouco mais
+([D-009](wiki/decisoes/D-009_gama-v1-3-destilado.md), [destilação](wiki/experimentos/2026-09-23_destilacao.md)).
+Os números das tabelas acima são do v1.2.
+
+| | v1.2 | v1.3 |
+|---|---|---|
+| Dev, estresse difícil, final_v1 (4.626 documentos), métrica oficial | 1,10000 / 1,09999 / 1,09999 | iguais, JSON idêntico documento a documento |
+| Texto real com a guarda, 172 ementas de um teste intocado | 0,820 | 0,839 (+0,019; IC95 +0,003 a +0,033) |
+| Tempo por documento, L4 (estresse) / CPU (dev), medidos lado a lado | 0,071 s / 1,62 s | 0,046 s / 0,93 s |
+| Parâmetros / pesos | 307,5M / 1,23 GB | 257,4M / 1,03 GB |
+
 ## Como funciona
 
 ```
@@ -100,7 +115,8 @@ exato por construção, porque sabemos onde pusemos cada citação.
 LLMs de pesos abertos (DeepSeek-V4-Pro, Kimi-K3, GLM-5.3) só expandem os bancos de frases.
 Nunca escrevem a citação nem decidem rótulo, e nenhum deles roda na solução avaliada. Um
 injetor de ruído calibrado no nível 2 da organização completa o conjunto. O Gama v1.2 foi
-treinado em 6.000 documentos, 3 épocas, semente 13.
+treinado em 6.000 documentos, 3 épocas, semente 13. O v1.3 é destilado dele, nos
+mesmos documentos e em 1.818 ementas reais sem rótulo, onde só vale a imitação do v1.2.
 
 O gerador também serviu de teste para o resolver: cada citação renderizada tem rótulo
 conhecido, então toda discordância é bug. Foi assim que achamos, por exemplo, uma súmula
@@ -116,6 +132,7 @@ Cada escolha que fechou uma porta tem registro próprio, com contexto, conta e m
 - [D-004](wiki/decisoes/D-004_gerador-por-moldes.md): o goldenset remonta os moldes da organização em vez de pedir a um LLM que redija documentos.
 - [D-006](wiki/decisoes/D-006_calibracao-decide-o-topo.md): a confiança é a taxa de acerto medida por balde, porque no topo do ranking quem desempata é o bônus de calibração.
 - [D-007](wiki/decisoes/D-007_sem-ensemble.md): sem ensemble; a união com a régua fica como opção para texto fora do estilo da organização.
+- [D-009](wiki/decisoes/D-009_gama-v1-3-destilado.md): o extrator é o v1.2 destilado em 12 camadas, porque entrega o mesmo JSON no estilo da organização, acerta mais em texto real e roda mais rápido.
 
 ## Como rodar
 
@@ -150,14 +167,14 @@ docker run --rm --gpus all --network none \
 
 O stderr informa `extrator: neural`. Se o volume dos pesos faltar, aparece um aviso e o
 pipeline segue com a régua, porque uma saída válida vale mais que uma submissão vazia. Sem
-GPU visível o extrator roda em CPU, em cerca de 3 s por documento, dentro do teto de 60 s.
+GPU visível o extrator roda em CPU, em cerca de 1 s por documento, dentro do teto de 60 s.
 
 ## Reprodutibilidade
 
 | Item | Onde está |
 |---|---|
 | Código | este repositório; cada submissão cita o commit que produziu as saídas |
-| Modelo | [`vinimlo/gama`](https://huggingface.co/vinimlo/gama), revisão fixa no [MODELO.md](MODELO.md); base [`jhu-clsp/mmBERT-base`](https://huggingface.co/jhu-clsp/mmBERT-base) (MIT), também com revisão fixa |
+| Modelo | [`vinimlo/gama`](https://huggingface.co/vinimlo/gama), revisão fixa no [MODELO.md](MODELO.md); destilado do v1.2, que parte de [`jhu-clsp/mmBERT-base`](https://huggingface.co/jhu-clsp/mmBERT-base) (MIT), também com revisão fixa |
 | Ambiente | `Dockerfile` (Python 3.12, torch 2.14.0) e `requirements.txt` com versões fixadas |
 | Comando | o bloco acima |
 | Determinismo | inferência em `eval()` sem amostragem, algoritmos determinísticos do torch, `PYTHONHASHSEED=0`; a saída é a mesma em GPU e em CPU |
@@ -171,6 +188,16 @@ em HF Jobs, lê o goldenset numa revisão fixa do Hub e publica os pesos:
 hf jobs uv run --flavor a10g-large --secrets HF_TOKEN treino/treinar.py \
   --dados vinimlo/gama-goldenset --revisao <sha> \
   --modelo-base jhu-clsp/mmBERT-base --saida vinimlo/gama
+```
+
+O v1.3 sai do v1.2 por destilação (`treino/destilar.py`, mesmo formato; revisões no
+[MODELO.md](MODELO.md)):
+
+```bash
+hf jobs uv run --flavor a100-large --timeout 3h --secrets HF_TOKEN treino/destilar.py \
+  --dados vinimlo/gama-goldenset --revisao <sha> \
+  --professor vinimlo/gama --professor-rev <sha do v1.2> \
+  --aluno podado --camadas 0,1,2,3,4,5,6,7,8,9,10,11 --saida vinimlo/gama
 ```
 
 ## Estrutura

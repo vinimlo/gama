@@ -78,6 +78,7 @@ que o bruto.
 - [D-006](decisoes/D-006_calibracao-decide-o-topo.md): confiança = probabilidade de acerto medida por balde
 - [D-007](decisoes/D-007_sem-ensemble.md): sem ensemble; a união com a régua fica como opção
 - [D-008](decisoes/D-008_guarda-do-extrator.md): guarda do extrator (régua só onde o modelo hesita) e desempate por cadeia compatível
+- [D-009](decisoes/D-009_gama-v1-3-destilado.md): Gama v1.3, o v1.2 destilado em 12 camadas; mesmo JSON no estilo da organização
 
 ## Experimentos
 
@@ -88,7 +89,7 @@ que o bruto.
 - [Texto real](experimentos/2026-09-22_texto-real.md): ementas reais, fora do estilo da organização
 - [Benchmark contra extratores sem treino](experimentos/2026-09-23_bench-extratores-crus.md): Gama × régua × GLiNER × Qwen3-8B zero-shot
 - [Otimização medida](experimentos/2026-09-23_otimizacao-medida.md): filtro de fragmentos, desempate de cadeia, vieses do texto real, CPU, meia precisão
-- [Destilação](experimentos/2026-09-23_destilacao.md): alunos de 13 camadas e mmBERT-small; a destilação segura o texto real, o aluno de 13 camadas empata no estilo da organização
+- [Destilação](experimentos/2026-09-23_destilacao.md): alunos de 13 camadas e mmBERT-small; a destilação segura o texto real, o aluno de 13 camadas empata no estilo da organização; o de 12 primeiras camadas sai idêntico e vira o v1.3
 
 ## Conceitos
 
