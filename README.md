@@ -20,7 +20,7 @@ Tudo medido com a métrica oficial (`vendor/kaggle_metric.py`, cópia exata da q
 servidor): `macroF1 · (1 − 0,5·τ) · (1 + 0,10·(1 − Brier))`, com o nível 2 pesando o dobro.
 O teto prático é 1,10000.
 
-| Conjunto | Gama v1.2 | Régua (regex, sem modelo) |
+| Conjunto | Gama v1.3 | Régua (regex, sem modelo) |
 |---|---|---|
 | Dev da organização, 26 documentos, 192 citações | 1,10000 | 1,09848 |
 | Kaggle, fase de treino (o mesmo dev, pontuado no servidor) | 1,09999 | 1,09830 |
@@ -34,7 +34,7 @@ organização que nunca viu. O que separa os candidatos é o que vem a seguir.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="bench/grafico-escuro.svg">
-  <img alt="Estresse difícil, métrica oficial: Gama com a guarda 1,09999, Gama sozinho 1,09999, régua 0,84880, Qwen3-8B 0,81065, GLiNER 0,32732. Texto real, F1 de extração: Gama com a guarda 0,808, Gama sozinho 0,605, régua 0,663, Qwen3-8B 0,707, GLiNER 0,409." src="bench/grafico-claro.svg">
+  <img alt="Estresse difícil, métrica oficial: Gama com a guarda 1,09999, Gama sozinho 1,09999, régua 0,84880, Qwen3-8B 0,81065, GLiNER 0,32732. Texto real, F1 de extração: Gama com a guarda 0,818, Gama sozinho 0,620, régua 0,663, Qwen3-8B 0,707, GLiNER 0,409." src="bench/grafico-claro.svg">
 </picture>
 
 Para medir o que o fine-tune rende, comparamos o Gama com o que dava para conseguir sem
@@ -42,11 +42,11 @@ treinar nada dentro das regras do desafio: a régua, o GLiNER multi v2.1 e o Qwe
 dois últimos com pesos abertos e em zero-shot. Os quatro passam pelo mesmo resolver e pela
 mesma métrica.
 
-| | Gama v1.2 com a guarda | Gama v1.2 sozinho | Régua | Qwen3-8B | GLiNER |
+| | Gama v1.3 com a guarda | Gama v1.3 sozinho | Régua | Qwen3-8B | GLiNER |
 |---|---|---|---|---|---|
 | Estresse difícil, métrica oficial (600 documentos) | 1,09999 | 1,09999 | 0,84880 | 0,81065 | 0,32732 |
-| Texto real, F1 de extração (305 ementas) | 0,808 | 0,605 | 0,663 | 0,707 | 0,409 |
-| Tempo por documento numa NVIDIA L4 | 0,058 s | 0,057 s | 0,001 s | 11,7 s | 0,113 s |
+| Texto real, F1 de extração (305 ementas) | 0,818 | 0,620 | 0,663 | 0,707 | 0,409 |
+| Tempo por documento numa NVIDIA L4 | 0,037 s | 0,035 s | 0,001 s | 11,7 s | 0,113 s |
 
 O [estresse difícil](wiki/experimentos/2026-09-22_estresse-dificil.md) segue o estilo da
 organização, que é o formato anunciado para o conjunto cego, com frases escritas por um LLM
@@ -54,10 +54,11 @@ que nenhum modelo viu no treino e ruído de OCR forte. Ali o fine-tune é a dife
 melhor extrator sem treino fica abaixo até da régua. Em texto real (ementas do STF, STJ e
 TJRJ), o modelo sozinho mostra o próprio limite: especializou no estilo da organização e,
 fora dele, marca fragmentos soltos ("Rel", "2011", "DJe"). Mas ele sabe quando hesita:
-nenhum de 34.171 acertos no estilo da organização tem confiança abaixo de 0,98, e os
+nenhum de 34.171 acertos no estilo da organização tem confiança abaixo de 0,98 (medido no
+v1.2), e os
 fragmentos ficam abaixo disso. A guarda da solução troca o span inseguro (< 0,95) pelo da
 régua e descarta a referência vaga colada a um precedente; no estilo da organização não muda
-nenhum documento, e em texto real leva o Gama de 0,605 a 0,808
+nenhum documento, e em texto real leva o Gama de 0,620 a 0,818 (no v1.2, de 0,605 a 0,808)
 ([D-008](wiki/decisoes/D-008_guarda-do-extrator.md)). Desenho, números por tipo e leitura
 no [benchmark](wiki/experimentos/2026-09-23_bench-extratores-crus.md) e na
 [otimização medida](wiki/experimentos/2026-09-23_otimizacao-medida.md).
@@ -68,13 +69,13 @@ A solução usa o Gama v1.3: as 12 primeiras das 22 camadas do v1.2, treinadas p
 probabilidades do v1.2 (destilação). No estilo da organização o JSON final é o mesmo do v1.2
 em todos os 4.626 documentos medidos; em texto real ele acerta um pouco mais
 ([D-009](wiki/decisoes/D-009_gama-v1-3-destilado.md), [destilação](wiki/experimentos/2026-09-23_destilacao.md)).
-Os números das tabelas acima são do v1.2.
+Tempos desta tabela medidos no mesmo job, com os dois modelos lado a lado.
 
 | | v1.2 | v1.3 |
 |---|---|---|
 | Dev, estresse difícil, final_v1 (4.626 documentos), métrica oficial | 1,10000 / 1,09999 / 1,09999 | iguais, JSON idêntico documento a documento |
 | Texto real com a guarda, 172 ementas de um teste intocado | 0,820 | 0,839 (+0,019; IC95 +0,003 a +0,033) |
-| Tempo por documento, L4 (estresse) / CPU (dev), medidos lado a lado | 0,071 s / 1,62 s | 0,046 s / 0,93 s |
+| Tempo por documento, L4 (estresse) / CPU (dev) | 0,071 s / 1,62 s | 0,046 s / 0,93 s |
 | Parâmetros / pesos | 307,5M / 1,23 GB | 257,4M / 1,03 GB |
 
 ## Como funciona

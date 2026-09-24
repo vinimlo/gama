@@ -24,8 +24,8 @@ TEMAS = {
                "borda": "rgba(255,255,255,0.10)"},
 }
 LINHAS = [  # (chave, nome, descrição)
-    ("gama_guarda", "Gama v1.2 + guarda", "como roda na solução"),
-    ("gama", "Gama v1.2", "o modelo sozinho"),
+    ("gama_guarda", "Gama v1.3 + guarda", "como roda na solução"),
+    ("gama", "Gama v1.3", "o modelo sozinho"),
     ("regua", "Régua", "regex, sem modelo"),
     ("qwen", "Qwen3-8B", "LLM, zero-shot"),
     ("gliner", "GLiNER multi v2.1", "NER, zero-shot"),

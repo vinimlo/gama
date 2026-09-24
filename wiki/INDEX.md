@@ -36,7 +36,7 @@ que o bruto.
 - No topo, a calibração decide. Com F1 = 1,0, a ordem sai do bônus de Brier. Ver
   [D-006](decisoes/D-006_calibracao-decide-o-topo.md).
 - Sem treino não chega lá. No estresse, o melhor extrator zero-shot (Qwen3-8B) marca
-  0,811 e o Gama 1,0997. Ver [benchmark](experimentos/2026-09-23_bench-extratores-crus.md).
+  0,811 e o Gama 1,09999. Ver [benchmark](experimentos/2026-09-23_bench-extratores-crus.md).
 - O Gama especializou no estilo da organização. Em ementas reais fica atrás da régua e
   do Qwen3-8B zero-shot, marcando fragmentos soltos. Ver
   [benchmark](experimentos/2026-09-23_bench-extratores-crus.md) e
@@ -44,8 +44,12 @@ que o bruto.
 - O Gama sabe quando está inseguro. Nenhum de 34.171 acertos no estilo da organização (dev,
   estresse, v1) tem confiança abaixo de 0,98; os fragmentos em ementa real ficam abaixo.
   Tirar VAGA colada a outro span e trocar span abaixo de 0,95 pelo da régua leva o texto
-  real de 0,605 a 0,808 sem mudar um documento no estilo da organização. Ver
-  [otimização medida](experimentos/2026-09-23_otimizacao-medida.md).
+  real de 0,605 a 0,808 no v1.2 (de 0,620 a 0,818 no v1.3) sem mudar um documento no estilo
+  da organização. Ver [otimização medida](experimentos/2026-09-23_otimizacao-medida.md).
+- Menor sem mudar a saída. As 12 primeiras camadas do Gama, destiladas dele, dão o mesmo JSON
+  final nos 4.626 documentos do estilo da organização e rodam 1,5 vez mais rápido; é o v1.3.
+  Ver [destilação](experimentos/2026-09-23_destilacao.md) e
+  [D-009](decisoes/D-009_gama-v1-3-destilado.md).
 - No estilo da organização, o que resta é resolução. Os únicos erros do estresse são
   desempate de cadeia ("Ag. Int.", embargos com ruído de OCR); duas regras gerais levam o
   estresse a 1,09999. Ver [otimização medida](experimentos/2026-09-23_otimizacao-medida.md).

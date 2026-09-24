@@ -35,8 +35,8 @@ SONDAS = [
 ]
 FALHA_CONHECIDA_DA_REGUA = {"m->rn Sumula", "m->rn Tema", "l->1 Especial",
                             "l->1 relatoria", "l->1 Rel."}
-# Gama v1.2 (vinimlo/gama@ad06ffd) passa nas seis — o v1 falhava em "Terna 725", fechado
-# no v1.2 com ruído dirigido à palavra-chave. Conjunto vazio: qualquer falha é
+# Gama v1.2 (vinimlo/gama@ad06ffd) e v1.3 (@5f924ca) passam nas seis — o v1 falhava em
+# "Terna 725", fechado no v1.2 com ruído dirigido à palavra-chave. Conjunto vazio: qualquer falha é
 # regressão.
 FALHA_CONHECIDA_DO_NEURAL: set = set()
 

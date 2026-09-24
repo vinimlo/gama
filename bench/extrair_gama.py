@@ -15,7 +15,7 @@
 # torch = { index = "pytorch-cu126" }
 # ///
 # -*- coding: utf-8 -*-
-"""Gama v1.2 e régua sobre estresse + reais, na L4, com o torch da imagem avaliada (cu126).
+"""Gama (pesos na revisão do MODELO.md) e régua sobre estresse + reais, na L4, com o torch da imagem avaliada (cu126).
 
 Usa o pacote `gama` publicado junto com as entradas do benchmark (`bench/codigo/`) e os
 pesos na revisão do MODELO.md. Grava o Span completo (tipo, forma, dígitos, confiança),

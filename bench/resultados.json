@@ -36,7 +36,7 @@
   "gama": {
    "gama": {
     "extrator": "gama",
-    "modelo": "vinimlo/gama@ad06ffd",
+    "modelo": "vinimlo/gama@5f924ca",
     "torch": "2.14.0+cu126",
     "dispositivo": "NVIDIA L4"
    },
@@ -49,7 +49,7 @@
    "gama": {
     "gama": {
      "extrator": "gama",
-     "modelo": "vinimlo/gama@ad06ffd",
+     "modelo": "vinimlo/gama@5f924ca",
      "torch": "2.14.0+cu126",
      "dispositivo": "NVIDIA L4"
     },
@@ -124,7 +124,7 @@
    },
    "estresse": {
     "documentos": 600,
-    "s_por_doc": 0.0015,
+    "s_por_doc": 0.0016,
     "extracao": {
      "f1": 0.8582,
      "por_tipo": {
@@ -337,7 +337,7 @@
   "gama": {
    "dev": {
     "documentos": 26,
-    "s_por_doc": 1.5752,
+    "s_por_doc": 0.9497,
     "extracao": {
      "f1": 1.0,
      "por_tipo": {
@@ -385,7 +385,7 @@
    },
    "estresse": {
     "documentos": 600,
-    "s_por_doc": 0.0734,
+    "s_por_doc": 0.045,
     "extracao": {
      "f1": 1.0,
      "por_tipo": {
@@ -433,21 +433,21 @@
    },
    "reais": {
     "documentos": 305,
-    "s_por_doc": 0.0254,
+    "s_por_doc": 0.0165,
     "extracao": {
-     "f1": 0.6054,
+     "f1": 0.6201,
      "por_tipo": {
       "JURIS": {
-       "f1": 0.4749,
-       "tp": 374,
-       "fp": 710,
-       "fn": 117
+       "f1": 0.4889,
+       "tp": 373,
+       "fp": 662,
+       "fn": 118
       },
       "LEI": {
-       "f1": 0.7472,
-       "tp": 541,
-       "fp": 313,
-       "fn": 53
+       "f1": 0.7596,
+       "tp": 545,
+       "fp": 296,
+       "fn": 49
       }
      }
     }
@@ -456,7 +456,7 @@
   "gama_guarda": {
    "dev": {
     "documentos": 26,
-    "s_por_doc": 1.576,
+    "s_por_doc": 0.9505,
     "extracao": {
      "f1": 1.0,
      "por_tipo": {
@@ -504,7 +504,7 @@
    },
    "estresse": {
     "documentos": 600,
-    "s_por_doc": 0.075,
+    "s_por_doc": 0.0466,
     "extracao": {
      "f1": 1.0,
      "por_tipo": {
@@ -552,21 +552,21 @@
    },
    "reais": {
     "documentos": 305,
-    "s_por_doc": 0.0258,
+    "s_por_doc": 0.0169,
     "extracao": {
-     "f1": 0.8076,
+     "f1": 0.818,
      "por_tipo": {
       "JURIS": {
-       "f1": 0.7607,
-       "tp": 372,
-       "fp": 115,
-       "fn": 119
+       "f1": 0.7746,
+       "tp": 366,
+       "fp": 88,
+       "fn": 125
       },
       "LEI": {
-       "f1": 0.8433,
-       "tp": 541,
-       "fp": 148,
-       "fn": 53
+       "f1": 0.8502,
+       "tp": 542,
+       "fp": 139,
+       "fn": 52
       }
      }
     }

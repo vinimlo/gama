@@ -77,3 +77,26 @@ F1 de extração por tipo:
    [otimização medida](2026-09-23_otimizacao-medida.md) mostra que a confiança do próprio
    modelo separa esses fragmentos: filtrado, o Gama vai a 0,808 no texto real, sem mudar
    nada no estilo da organização.
+
+## Gama v1.3
+
+O benchmark foi refeito com o v1.3 (`vinimlo/gama@5f924ca`, [D-009](../decisoes/D-009_gama-v1-3-destilado.md)),
+no mesmo harness: job L4 `6ab48b19` com `bench/extrair_gama.py`, spans em
+`bench/saida/gama.jsonl` do dataset (revisão `684563c`), dev em CPU local. A régua foi
+extraída de novo no mesmo job e saiu idêntica (0 spans diferentes em 905 documentos); Qwen3-8B
+e GLiNER não mudam.
+
+| | Gama v1.2 | Gama v1.3 |
+|---|---|---|
+| Estresse difícil, métrica oficial, sozinho e com a guarda | 1,09999 | 1,09999 |
+| Estresse difícil, spans crus diferentes do v1.2 (600 docs) | | 0 |
+| Texto real, F1 de extração, sozinho (305 ementas) | 0,605 | 0,620 |
+| Texto real, F1 de extração, com a guarda | 0,808 | 0,818 |
+| Texto real, falsos positivos de JURIS, sozinho | 710 | 662 |
+| Tempo por documento, L4 (905 docs), sozinho / com a guarda | 0,057 s / 0,058 s | 0,035 s / 0,037 s |
+| Tempo por documento, CPU no dev | 1,58 s | 0,95 s |
+
+Os spans crus do v1.3 diferem dos do v1.2 em 154 das 305 ementas reais, fora do molde, e
+em nenhum documento do estresse. O quadro geral não muda: sozinho, o Gama continua atrás da
+régua e do Qwen3-8B em texto real (0,620 contra 0,663 e 0,707); com a guarda, na frente.
+O Qwen3-8B custa agora cerca de 330 vezes o tempo do Gama por documento.
