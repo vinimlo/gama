@@ -102,3 +102,14 @@ As mesmas que o professor passou antes de ir para a submissão:
 | Tabela de calibração | medida (D-006) | igual por construção: o JSON final, com a confiança publicada, é o mesmo em 4.625 de 4.626 documentos, e no restante a citação cai no mesmo balde |
 | GPU igual a CPU (100 documentos do estresse, metade N2) | idêntico | idêntico, confiança com diferença zero |
 | Imagem de entrega sem rede, no dev | 1,10000 | 1,10000, `extrator: neural`, 1,09 s por documento em CPU |
+
+## Checagens de entrega do aluno base 12 camadas
+
+As mesmas, com os pesos na revisão fixa (`vinimlo/gama-aluno-a-base12@f49e37b`):
+
+| Checagem | Professor | Base 12 camadas |
+|---|---|---|
+| Sondas de ruído do extrator (`tests/test_sondas_ruido.py`) | 6 de 6 | 6 de 6, os mesmos casos |
+| Tabela de calibração | medida (D-006) | igual por construção: o JSON final, com a confiança publicada, é o mesmo nos 4.626 documentos |
+| GPU igual a CPU (100 documentos do estresse, metade N2) | idêntico | spans idênticos; confiança com diferença máxima de 6,6e-9, nenhuma cruza os cortes de 0,95 (guarda) e 0,98 (faixa da calibração) |
+| Imagem de entrega sem rede, no dev (4 vCPUs, 4 GB) | 1,10000, 1,62 s por documento | 1,10000, `extrator: neural`, 0,99 s por documento; JSON idêntico ao do professor nos 26 documentos |
