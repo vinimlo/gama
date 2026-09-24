@@ -133,6 +133,7 @@ Cada escolha que fechou uma porta tem registro próprio, com contexto, conta e m
 - [D-004](wiki/decisoes/D-004_gerador-por-moldes.md): o goldenset remonta os moldes da organização em vez de pedir a um LLM que redija documentos.
 - [D-006](wiki/decisoes/D-006_calibracao-decide-o-topo.md): a confiança é a taxa de acerto medida por balde, porque no topo do ranking quem desempata é o bônus de calibração.
 - [D-007](wiki/decisoes/D-007_sem-ensemble.md): sem ensemble; a união com a régua fica como opção para texto fora do estilo da organização.
+- [D-008](wiki/decisoes/D-008_guarda-do-extrator.md): onde o modelo hesita (confiança < 0,95) vale a régua, porque no estilo da organização ele nunca hesita e fora dele é aí que erra; o resolver desempata pela cadeia de classe compatível.
 - [D-009](wiki/decisoes/D-009_gama-v1-3-destilado.md): o extrator é o v1.2 destilado em 12 camadas, porque entrega o mesmo JSON no estilo da organização, acerta mais em texto real e roda mais rápido.
 
 ## Como rodar
