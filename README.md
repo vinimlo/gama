@@ -34,19 +34,21 @@ organização que nunca viu. O que separa os candidatos é o que vem a seguir.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="bench/grafico-escuro.svg">
-  <img alt="Estresse difícil, métrica oficial: Gama com a guarda 1,09999, Gama sozinho 1,09999, régua 0,84880, Qwen3-8B 0,81065, GLiNER 0,32732. Texto real, F1 de extração: Gama com a guarda 0,818, Gama sozinho 0,620, régua 0,663, Qwen3-8B 0,707, GLiNER 0,409." src="bench/grafico-claro.svg">
+  <img alt="Estresse difícil, métrica oficial: Gama com a guarda 1,09999, Gama sozinho 1,09999, régua 0,84880, Qwen3-8B 0,81065, GLiNER 2.5 0,44445. Texto real, F1 de extração: Gama com a guarda 0,818, Gama sozinho 0,620, régua 0,663, Qwen3-8B 0,707, GLiNER 2.5 0,608." src="bench/grafico-claro.svg">
 </picture>
 
 Para medir o que o fine-tune rende, comparamos o Gama com o que dava para conseguir sem
-treinar nada dentro das regras do desafio: a régua, o GLiNER multi v2.1 e o Qwen3-8B, os
+treinar nada dentro das regras do desafio: a régua, o GLiNER 2.5 multi e o Qwen3-8B, os
 dois últimos com pesos abertos e em zero-shot. Os quatro passam pelo mesmo resolver e pela
-mesma métrica.
+mesma métrica. Até 29/09 a comparação usava o GLiNER multi v2.1 (0,32732 e 0,409); a versão
+2.5 é melhor nos dois conjuntos e continua em último, com o lado a lado em
+[GLiNER 2.5](wiki/experimentos/2026-09-29_gliner-2-5.md).
 
-| | Gama v1.3 com a guarda | Gama v1.3 sozinho | Régua | Qwen3-8B | GLiNER |
+| | Gama v1.3 com a guarda | Gama v1.3 sozinho | Régua | Qwen3-8B | GLiNER 2.5 |
 |---|---|---|---|---|---|
-| Estresse difícil, métrica oficial (600 documentos) | 1,09999 | 1,09999 | 0,84880 | 0,81065 | 0,32732 |
-| Texto real, F1 de extração (305 ementas) | 0,818 | 0,620 | 0,663 | 0,707 | 0,409 |
-| Tempo por documento numa NVIDIA L4 | 0,037 s | 0,035 s | 0,001 s | 11,7 s | 0,113 s |
+| Estresse difícil, métrica oficial (600 documentos) | 1,09999 | 1,09999 | 0,84880 | 0,81065 | 0,44445 |
+| Texto real, F1 de extração (305 ementas) | 0,818 | 0,620 | 0,663 | 0,707 | 0,608 |
+| Tempo por documento numa NVIDIA L4 | 0,037 s | 0,035 s | 0,001 s | 11,7 s | 0,110 s |
 
 O [estresse difícil](wiki/experimentos/2026-09-22_estresse-dificil.md) segue o estilo da
 organização, que é o formato anunciado para o conjunto cego, com frases escritas por um LLM
@@ -70,14 +72,19 @@ ementas escolheram os limiares e as 172 só confirmam:
 |---|---|---|---|
 | Gama v1.3 | 0,620 / 0,635 | 0,818 / 0,839 | 1,09999 |
 | BERTimbau, receita do v1.2 | 0,697 / 0,705 | 0,813 / 0,826 | 1,09999 |
-| GLiNER multi v2.1 treinado | 0,792 / 0,752 | 0,796 / 0,761 | 1,09631 |
+| GLiNER 2.5 multi treinado | 0,808 / 0,824 | 0,816 / 0,837 | 1,09615 |
 | mmBERT com o encoder congelado, só a saída treinada | 0,243 / 0,247 | 0,350 / 0,353 | 0,90182 |
 
 Sozinhos, BERTimbau e GLiNER treinados passam o Gama em texto real, com IC95 acima de zero.
-Com a guarda, nenhum passa o v1.3. O BERTimbau não se distingue dele, e o GLiNER não se
-distingue nas 305 e perde nas 172 (−0,079, IC95 −0,148 a −0,015). A guarda quase não ajuda
-o GLiNER, porque o score dele fica acima de 0,99 até nos erros. No Gama ela funciona porque a
-confiança separa erro de acerto. Na nossa leitura, é isso que faz o sistema.
+Com a guarda, nenhum passa o v1.3. O GLiNER 2.5 chega lá por outro caminho: sem guarda
+nenhuma, fica a −0,010 do v1.3 com a guarda nas 305 (IC95 −0,041 a +0,022) e a −0,015 nas
+172 (−0,059 a +0,029). Ele já generaliza fora do molde, e a guarda quase não o ajuda (+0,009
+a +0,013), porque a maior parte dos erros dele sai com score acima de 0,99. O Gama especializa
+no molde e compensa sabendo quando hesita: é a confiança dele que o leva de 0,620 a 0,818. No
+estilo da organização, que é o que o desafio mede, o Gama segue na frente (1,09999 contra
+1,09615, 10 erros do GLiNER em 4.447 citações). Isso não é equivalência em texto real: uma
+semente por modelo, a receita da biblioteca do GLiNER e IC95 de cerca de 0,04. Com a v2.1
+treinada o GLiNER perdia nas 172; a troca de versão mudou essa conclusão.
 
 O encoder congelado vai longe no estilo da organização e desaba em texto real. O fine-tune
 rende pela adaptação do encoder. O "mmBERT cru", com a camada de rótulos sem treino, também

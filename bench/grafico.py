@@ -28,7 +28,7 @@ LINHAS = [  # (chave, nome, descrição)
     ("gama", "Gama v1.3", "o modelo sozinho"),
     ("regua", "Régua", "regex, sem modelo"),
     ("qwen", "Qwen3-8B", "LLM, zero-shot"),
-    ("gliner", "GLiNER multi v2.1", "NER, zero-shot"),
+    ("gliner", "GLiNER 2.5 multi", "NER, zero-shot"),
 ]
 PAINEIS = [  # (título, subtítulo, extrai valor, domínio, marcas, casas decimais)
     ("Estresse difícil · métrica oficial", "600 documentos com redação nunca treinada, N1 + N2",

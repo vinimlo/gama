@@ -14,11 +14,49 @@
   },
   "gliner": {
    "gliner": {
-    "extrator": "gliner",
-    "modelo": "urchade/gliner_multi-v2.1@443d26d",
-    "gliner": "0.2.29",
-    "torch": "2.14.0+cu130",
-    "dispositivo": "NVIDIA L4"
+    "extrator": "gliner25",
+    "modelo": "fastino/gliner2.5-multi-v1@2ca71aa",
+    "revisao_completa": "2ca71aafb3446d9014e1c55c7ff51c9bc7209c47",
+    "classe": "BoundaryExtractor",
+    "arquitetura": "boundary",
+    "parametros": 287355159,
+    "dtype": "torch.float32",
+    "gliner2": "2.0.0",
+    "transformers": "4.57.6",
+    "torch": "2.14.0+cu126",
+    "dispositivo": "NVIDIA L4",
+    "carga_s": 5.4,
+    "janelas": "200 palavras, passo 150",
+    "lote_janelas": "um documento por chamada, até 32",
+    "overlap_policy": "padrão do checkpoint (flat, por rótulo)",
+    "rotulos": {
+     "precedente judicial com número": "JURIS",
+     "súmula ou tema de tribunal": "JURIS",
+     "artigo de lei": "LEI",
+     "referência a julgado sem número": "VAGA"
+    },
+    "entradas": "vinimlo/gama-goldenset@2fff5f6",
+    "subtokens_por_janela": {
+     "janelas": 3817,
+     "mediana": 398,
+     "p99": 453,
+     "max": 487,
+     "max_len_modelo": 4096
+    },
+    "conferencia_lote": {
+     "docs": 20,
+     "spans_diferentes": 0,
+     "so_score_diferente": 1,
+     "max_dif_score": 0.0001
+    },
+    "variante": "zs",
+    "limiar_decisao": 0.5,
+    "descricoes": null,
+    "conjuntos": [
+     "estresse",
+     "reais",
+     "novas"
+    ]
    }
   },
   "qwen": {
@@ -195,47 +233,47 @@
   "gliner": {
    "estresse": {
     "documentos": 600,
-    "s_por_doc": 0.1465,
+    "s_por_doc": 0.143,
     "extracao": {
-     "f1": 0.4531,
+     "f1": 0.5101,
      "por_tipo": {
       "JURIS": {
-       "f1": 0.4773,
-       "tp": 973,
-       "fp": 101,
-       "fn": 2030
+       "f1": 0.6423,
+       "tp": 1615,
+       "fp": 411,
+       "fn": 1388
       },
       "LEI": {
-       "f1": 0.5694,
-       "tp": 550,
-       "fp": 652,
-       "fn": 180
+       "f1": 0.4167,
+       "tp": 519,
+       "fp": 1242,
+       "fn": 211
       },
       "VAGA": {
-       "f1": 0.0,
-       "tp": 0,
-       "fp": 0,
-       "fn": 714
+       "f1": 0.0024,
+       "tp": 1,
+       "fp": 136,
+       "fn": 713
       }
      }
     },
     "oficial": {
-     "final": 0.32732,
+     "final": 0.44445,
      "n1": {
-      "score": 0.3805,
+      "score": 0.4773,
       "f1": {
-       "real": 0.418,
-       "inventada": 0.632,
+       "real": 0.699,
+       "inventada": 0.618,
        "incompleta": 0.0
       },
       "tau": 0.0
      },
      "n2": {
-      "score": 0.3008,
+      "score": 0.428,
       "f1": {
-       "real": 0.285,
-       "inventada": 0.545,
-       "incompleta": 0.0
+       "real": 0.618,
+       "inventada": 0.56,
+       "incompleta": 0.004
       },
       "tau": 0.0
      }
@@ -243,21 +281,21 @@
    },
    "reais": {
     "documentos": 305,
-    "s_por_doc": 0.0465,
+    "s_por_doc": 0.0444,
     "extracao": {
-     "f1": 0.4093,
+     "f1": 0.6078,
      "por_tipo": {
       "JURIS": {
-       "f1": 0.5784,
-       "tp": 236,
-       "fp": 89,
-       "fn": 255
+       "f1": 0.7161,
+       "tp": 343,
+       "fp": 124,
+       "fn": 148
       },
       "LEI": {
-       "f1": 0.2994,
-       "tp": 188,
-       "fp": 474,
-       "fn": 406
+       "f1": 0.5316,
+       "tp": 362,
+       "fp": 406,
+       "fn": 232
       }
      }
     }

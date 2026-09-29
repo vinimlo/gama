@@ -57,9 +57,11 @@ que o bruto.
   seis sementes dão o mesmo JSON no dev e 1,09999 no estresse com a guarda. Ver
   [controles](experimentos/2026-09-29_controles.md).
 - Com a guarda, nenhum concorrente treinado nos mesmos dados passou o v1.3; sem ela, BERTimbau
-  (0,697) e GLiNER treinado (0,792) passam o Gama sozinho (0,620) nas 305. O que faz o sistema
-  é a confiança do Gama separar erro de acerto: o score do GLiNER treinado fica acima de 0,99
-  até nos erros, e a guarda quase não o ajuda. Com o encoder congelado, o mmBERT marca 0,902 no
+  (0,697) e GLiNER 2.5 treinado (0,808) passam o Gama sozinho (0,620) nas 305. O GLiNER 2.5
+  treinado, mesmo sem guarda, não se distingue do v1.3 com a guarda em texto real, e fica
+  atrás no estilo da organização (1,09615). O Gama chega lá pela confiança, que separa erro de
+  acerto e sustenta a guarda; o GLiNER, generalizando sozinho. Ver
+  [GLiNER 2.5](experimentos/2026-09-29_gliner-2-5.md). Com o encoder congelado, o mmBERT marca 0,902 no
   estresse e 0,243 em texto real, então o fine-tune rende pela adaptação do encoder. Ver
   [controles](experimentos/2026-09-29_controles.md).
 - No estilo da organização, o que resta é resolução. Os únicos erros do estresse são
@@ -107,6 +109,7 @@ que o bruto.
 - [Otimização medida](experimentos/2026-09-23_otimizacao-medida.md): filtro de fragmentos, desempate de cadeia, vieses do texto real, CPU, meia precisão
 - [Destilação](experimentos/2026-09-23_destilacao.md): alunos de 13 camadas e mmBERT-small; a destilação segura o texto real, o aluno de 13 camadas empata no estilo da organização; o de 12 primeiras camadas sai idêntico e vira o v1.3
 - [Controles](experimentos/2026-09-29_controles.md): encoder congelado, GLiNER e BERTimbau treinados nos mesmos dados, sementes do v1.2 e do v1.3, auditoria dos trechos do Qwen e confiança fora do molde
+- [GLiNER 2.5 multi](experimentos/2026-09-29_gliner-2-5.md): a versão 2.5 no lugar da v2.1 no benchmark, no fine-tune, na reserva da guarda e no verificador de candidatos
 
 ## Conceitos
 

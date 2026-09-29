@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="880" height="434" viewBox="0 0 880 434" role="img" aria-labelledby="t d" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
 <title id="t">Gama contra extratores sem treino</title>
-<desc id="d">Gama v1.3 + guarda: estresse 1,09999, texto real 0,818; Gama v1.3: estresse 1,09999, texto real 0,620; Régua: estresse 0,84880, texto real 0,663; Qwen3-8B: estresse 0,81065, texto real 0,707; GLiNER multi v2.1: estresse 0,32732, texto real 0,409</desc>
+<desc id="d">Gama v1.3 + guarda: estresse 1,09999, texto real 0,818; Gama v1.3: estresse 1,09999, texto real 0,620; Régua: estresse 0,84880, texto real 0,663; Qwen3-8B: estresse 0,81065, texto real 0,707; GLiNER 2.5 multi: estresse 0,44445, texto real 0,608</desc>
 <rect x="0.5" y="0.5" width="879" height="433" rx="10" fill="#1a1a19" stroke="rgba(255,255,255,0.10)"/>
 <text x="28" y="40" font-size="17" font-weight="600" fill="#ffffff">Gama contra extratores sem treino</text>
 <text x="28" y="62" font-size="12.5" fill="#c3c2b7">Quanto maior a barra, melhor. Barras do Gama em destaque.</text>
@@ -12,7 +12,7 @@
 <text x="182" y="255.0" text-anchor="end" font-size="11" fill="#898781">regex, sem modelo</text>
 <text x="182" y="282.0" text-anchor="end" font-size="13" font-weight="400" fill="#ffffff">Qwen3-8B</text>
 <text x="182" y="297.0" text-anchor="end" font-size="11" fill="#898781">LLM, zero-shot</text>
-<text x="182" y="324.0" text-anchor="end" font-size="13" font-weight="400" fill="#ffffff">GLiNER multi v2.1</text>
+<text x="182" y="324.0" text-anchor="end" font-size="13" font-weight="400" fill="#ffffff">GLiNER 2.5 multi</text>
 <text x="182" y="339.0" text-anchor="end" font-size="11" fill="#898781">NER, zero-shot</text>
 <text x="196" y="104" font-size="13" font-weight="600" fill="#ffffff">Estresse difícil · métrica oficial</text>
 <text x="196" y="121" font-size="11" fill="#898781">600 documentos com redação nunca treinada, N1 + N2</text>
@@ -30,8 +30,8 @@
 <text x="398.0" y="247.0" font-size="12" font-weight="400" fill="#ffffff" style="font-variant-numeric: tabular-nums">0,84880</text>
 <g><title>Qwen3-8B · Estresse difícil · métrica oficial: 0,81065</title><path d="M196.0,275.0 h183.2 a4.0,4.0 0 0 1 4.0,4.0 v12.0 a4.0,4.0 0 0 1 -4.0,4.0 h-183.2 z" fill="#5f5e59"/></g>
 <text x="389.2" y="289.0" font-size="12" font-weight="400" fill="#ffffff" style="font-variant-numeric: tabular-nums">0,81065</text>
-<g><title>GLiNER multi v2.1 · Estresse difícil · métrica oficial: 0,32732</title><path d="M196.0,317.0 h71.6 a4.0,4.0 0 0 1 4.0,4.0 v12.0 a4.0,4.0 0 0 1 -4.0,4.0 h-71.6 z" fill="#5f5e59"/></g>
-<text x="277.6" y="331.0" font-size="12" font-weight="400" fill="#ffffff" style="font-variant-numeric: tabular-nums">0,32732</text>
+<g><title>GLiNER 2.5 multi · Estresse difícil · métrica oficial: 0,44445</title><path d="M196.0,317.0 h98.6 a4.0,4.0 0 0 1 4.0,4.0 v12.0 a4.0,4.0 0 0 1 -4.0,4.0 h-98.6 z" fill="#5f5e59"/></g>
+<text x="304.6" y="331.0" font-size="12" font-weight="400" fill="#ffffff" style="font-variant-numeric: tabular-nums">0,44445</text>
 <text x="546" y="104" font-size="13" font-weight="600" fill="#ffffff">Texto real · F1 de extração</text>
 <text x="546" y="121" font-size="11" fill="#898781">305 ementas reais do STF, STJ e TJRJ</text>
 <line x1="546.0" y1="134" x2="546.0" y2="348" stroke="#383835" stroke-width="1"/>
@@ -48,8 +48,8 @@
 <text x="720.3" y="247.0" font-size="12" font-weight="400" fill="#ffffff" style="font-variant-numeric: tabular-nums">0,663</text>
 <g><title>Qwen3-8B · Texto real · F1 de extração: 0,707</title><path d="M546.0,275.0 h175.7 a4.0,4.0 0 0 1 4.0,4.0 v12.0 a4.0,4.0 0 0 1 -4.0,4.0 h-175.7 z" fill="#5f5e59"/></g>
 <text x="731.7" y="289.0" font-size="12" font-weight="400" fill="#ffffff" style="font-variant-numeric: tabular-nums">0,707</text>
-<g><title>GLiNER multi v2.1 · Texto real · F1 de extração: 0,409</title><path d="M546.0,317.0 h100.0 a4.0,4.0 0 0 1 4.0,4.0 v12.0 a4.0,4.0 0 0 1 -4.0,4.0 h-100.0 z" fill="#5f5e59"/></g>
-<text x="656.0" y="331.0" font-size="12" font-weight="400" fill="#ffffff" style="font-variant-numeric: tabular-nums">0,409</text>
+<g><title>GLiNER 2.5 multi · Texto real · F1 de extração: 0,608</title><path d="M546.0,317.0 h150.4 a4.0,4.0 0 0 1 4.0,4.0 v12.0 a4.0,4.0 0 0 1 -4.0,4.0 h-150.4 z" fill="#5f5e59"/></g>
+<text x="706.4" y="331.0" font-size="12" font-weight="400" fill="#ffffff" style="font-variant-numeric: tabular-nums">0,608</text>
 <text x="28" y="394" font-size="11" fill="#c3c2b7">Mesmo resolver e mesma métrica oficial para todos. GLiNER e Qwen3-8B têm pesos abertos e rodam em zero-shot,</text>
 <text x="28" y="410" font-size="11" fill="#c3c2b7">sem ajuste nos conjuntos avaliados. O Gama foi treinado só com documentos sintéticos, nunca com os avaliados.</text>
 <text x="28" y="426" font-size="11" fill="#c3c2b7">Guarda: onde o modelo hesita (confiança &lt; 0,95) vale a régua, e referência vaga colada a um precedente sai.</text>

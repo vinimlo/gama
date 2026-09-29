@@ -24,7 +24,8 @@ fluência, que é a alucinação que o desafio existe para pegar.
 | [`jhu-clsp/mmBERT-base`](https://huggingface.co/jhu-clsp/mmBERT-base) | MIT | extrator (escolhido), fine-tune BIO | contexto de 8 mil tokens: documento numa passada, 0,077 s/doc na L4 |
 | [`neuralmind/bert-base-portuguese-cased`](https://huggingface.co/neuralmind/bert-base-portuguese-cased) (BERTimbau) | MIT | extrator alternativo, mesmo protocolo | empata com o mmBERT nas dobras e no estresse; 512 tokens exigem janelas |
 | DeepSeek-V4-Pro, Kimi-K3, GLM-5.3 (abertos) | licenças verificadas | só desenvolvimento: expandir bancos de frases, anotar texto real | grandes demais para o envelope; nunca em tempo de execução |
-| [`urchade/gliner_multi-v2.1`](https://huggingface.co/urchade/gliner_multi-v2.1) (GLiNER) | Apache-2.0 | comparação zero-shot no [benchmark](../experimentos/2026-09-23_bench-extratores-crus.md) | 0,327 no estresse, 0,409 em texto real; não reconhece referência vaga (0 de 714) |
+| [`fastino/gliner2.5-multi-v1`](https://huggingface.co/fastino/gliner2.5-multi-v1) (GLiNER 2.5) | Apache-2.0 | comparação zero-shot no benchmark e fine-tune nos mesmos dados ([GLiNER 2.5](../experimentos/2026-09-29_gliner-2-5.md)) | zero-shot: 0,444 no estresse, 0,608 em texto real; treinado: 1,09615 no estresse, 0,808 em texto real sem guarda |
+| [`urchade/gliner_multi-v2.1`](https://huggingface.co/urchade/gliner_multi-v2.1) (GLiNER v2.1, substituído pela 2.5) | Apache-2.0 | comparação zero-shot no [benchmark](../experimentos/2026-09-23_bench-extratores-crus.md) | 0,327 no estresse, 0,409 em texto real; não reconhece referência vaga (0 de 714) |
 | Qwen3-8B | Apache-2.0 | comparação zero-shot no benchmark | 0,811 no estresse, 0,707 em texto real; 11,7 s por documento na L4 |
 
 O empate entre mmBERT e BERTimbau está em
@@ -43,6 +44,7 @@ a guarda. F1 de extração em texto real, 305 ementas de validação e 172 de co
 |---|---|---|
 | Gama v1.3 | 0,620 / 0,635 | 0,818 / 0,839 |
 | BERTimbau, receita do v1.2 com `max_len` 512 | 0,697 / 0,705 | 0,813 / 0,826 |
+| GLiNER 2.5 multi treinado | 0,808 / 0,824 | 0,816 / 0,837 |
 | GLiNER multi v2.1 treinado | 0,792 / 0,752 | 0,796 / 0,761 |
 | mmBERT com o encoder congelado, só a saída treinada | 0,243 / 0,247 | 0,350 / 0,353 |
 
@@ -52,10 +54,12 @@ o encoder congelado com a saída treinada, e ele responde quanto o fine-tune acr
 No estresse ele chega a 0,902, acima da régua e do Qwen3-8B; em texto real cai para 0,243,
 contra 0,605 do v1.2 cru treinado pela mesma receita. Rende a adaptação do encoder.
 
-Treinado, o GLiNER encosta no teto do estilo da organização (1,09631 no estresse, 6 erros em
-4.447 spans) e passa o Gama sozinho em texto real, mas com a guarda não se distingue do v1.3
-nas 305 e perde nas 172. A guarda quase não o ajuda. O score dele fica acima de 0,99 até nos
-erros, e sem hesitação a régua não tem por onde entrar.
+Treinado, o GLiNER encosta no teto do estilo da organização (v2.1: 1,09631, 6 erros em 4.447
+spans; 2.5: 1,09615, 10 erros) e passa o Gama sozinho em texto real. A v2.1 com a guarda não
+se distingue do v1.3 nas 305 e perde nas 172. A 2.5 não se distingue do v1.3 com a guarda
+mesmo sem guarda nenhuma, nos dois conjuntos. Nas duas versões a guarda quase não ajuda: o
+score fica acima de 0,99 na maior parte dos erros, e sem hesitação a régua não tem por onde
+entrar. Detalhes em [GLiNER 2.5](../experimentos/2026-09-29_gliner-2-5.md).
 
 O BERTimbau empata no teto de novo e, sozinho, passa o Gama em texto real pela precisão. Com a
 guarda, não dá para distingui-lo do v1.2 nem do v1.3. Na L4 ele roda em 0,066 s por
