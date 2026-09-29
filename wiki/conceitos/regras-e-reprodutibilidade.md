@@ -26,7 +26,7 @@ executá-los".
 | Envelope de 1 GPU de 24 GB, ~8 vCPUs, 32 GB | 0,07 s por documento numa L4 de 24 GB; 1,6 a 3 s por documento só em CPU; pesos de 1,2 GB |
 | Bundle: repositório, README, modelos, ambiente, comando exato | este repositório, `Dockerfile`, `requirements.txt`, `make predizer` e o comando no README |
 | Decodificação determinística | `eval()`, sem amostragem, algoritmos determinísticos do torch; duas execuções na L4 deram os mesmos spans byte a byte |
-| Qualquer dataset público no treino | treino só com documentos sintéticos gerados aqui; ementas reais de `celsowm/jurisprudencias_br` (CC-BY-4.0) só para avaliação |
+| Qualquer dataset público no treino | documentos sintéticos gerados aqui e, na destilação do v1.3, 1.818 ementas sem rótulo de [`celsowm/jurisprudencias_br`](https://huggingface.co/datasets/celsowm/jurisprudencias_br) (público, CC-BY-4.0); as ementas anotadas ficam só na avaliação. Ver [ementas reais](ementas-reais.md) |
 | Nada de extrair ou inferir o conjunto de teste privado | nenhum dado do cego entra no desenvolvimento |
 | Nada de rotulagem manual ou predição humana sobre dados de teste (regras-base do Kaggle, 4.b) | a submissão roda com a configuração congelada; nenhuma escolha de modo é feita depois de ver o cego |
 

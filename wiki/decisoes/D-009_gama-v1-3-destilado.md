@@ -13,8 +13,9 @@ ganho fora do molde justifica a troca.
 
 A solução passa a usar o Gama v1.3 (`vinimlo/gama@5f924ca`, tag `v1.3`): as 12 primeiras
 das 22 camadas do v1.2, com embeddings e cabeça herdados, treinadas para imitar as
-probabilidades do v1.2 (`treino/destilar.py`). São os mesmos pesos medidos como
-`vinimlo/gama-aluno-a-base12@f49e37b`. A guarda, o resolver e a calibração não mudam.
+probabilidades do v1.2 (`treino/destilar.py`). São os mesmos pesos medidos como aluno
+base 12 camadas (revisão `f49e37b` do repositório de experimento, apagado do Hub depois da
+escolha). A guarda, o resolver e a calibração não mudam.
 
 A poda das camadas de cima segue [Sajjad et al., 2004.03844](https://arxiv.org/abs/2004.03844):
 as camadas de baixo pesam mais, e tirar as de cima foi a melhor estratégia de poda que eles

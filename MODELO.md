@@ -31,7 +31,7 @@ lote 8, lr 5e-5, semente 13, 1× A100 80 GB.
 | Versão | Revisão | O que mudou | Estresse difícil (erros de borda, 4.447 spans) | Sondas |
 |---|---|---|---|---|
 | v1 | `2aba5d1` | 4.000 docs, org + LLM v1 | 2 | 5/6 (falha "Terna") |
-| v1.1 | rejeitada; pesos apagados (treino: `final_v2` do dataset) | Tema de 1 a 2.999 | 2 | 4/6 (regrediu) |
+| v1.1 | rejeitada; pesos apagados (treino: `final_v2`, fora da versão atual do dataset e presente na revisão `ec430c0`) | Tema de 1 a 2.999 | 2 | 4/6 (regrediu) |
 | v1.2 | `ad06ffd` | ruído dirigido à palavra-chave, 6.000 docs | 0 | 6/6 ("Reclarnação" no limite, IoU 0,5) |
 | v1.3 | `5f924ca` | 12 primeiras camadas do v1.2, destiladas dele; JSON final igual ao do v1.2 em 4.626 docs | 0 | 6/6, os mesmos casos do v1.2 |
 

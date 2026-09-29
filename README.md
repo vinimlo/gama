@@ -53,15 +53,30 @@ organização, que é o formato anunciado para o conjunto cego, com frases escri
 que nenhum modelo viu no treino e ruído de OCR forte. Ali o fine-tune é a diferença: o
 melhor extrator sem treino fica abaixo até da régua. Em texto real (ementas do STF, STJ e
 TJRJ), o modelo sozinho mostra o próprio limite: especializou no estilo da organização e,
-fora dele, marca fragmentos soltos ("Rel", "2011", "DJe"). Mas ele sabe quando hesita:
-nenhum de 34.171 acertos no estilo da organização tem confiança abaixo de 0,98 (medido no
-v1.2), e os
-fragmentos ficam abaixo disso. A guarda da solução troca o span inseguro (< 0,95) pelo da
-régua e descarta a referência vaga colada a um precedente; no estilo da organização não muda
-nenhum documento, e em texto real leva o Gama de 0,620 a 0,818 (no v1.2, de 0,605 a 0,808)
-([D-008](wiki/decisoes/D-008_guarda-do-extrator.md)). Desenho, números por tipo e leitura
-no [benchmark](wiki/experimentos/2026-09-23_bench-extratores-crus.md) e na
+fora dele, marca fragmentos soltos ("Rel", "2011", "DJe"). A [guarda](#a-guarda) conserta
+isso sem mudar nenhum documento no estilo da organização e leva o Gama de 0,620 a 0,818 em
+texto real (no v1.2, de 0,605 a 0,808). Desenho, números por tipo e leitura no
+[benchmark](wiki/experimentos/2026-09-23_bench-extratores-crus.md) e na
 [otimização medida](wiki/experimentos/2026-09-23_otimizacao-medida.md).
+
+### Duas comparações que ficaram de fora
+
+O mmBERT original não está no gráfico porque, sozinho, ele não extrai nada. O
+`jhu-clsp/mmBERT-base` foi pré-treinado para adivinhar palavra mascarada e não tem a camada
+que marca onde começa uma citação. Para pontuá-lo seria preciso pendurar essa camada com
+pesos aleatórios, e o resultado mediria ruído, não um concorrente. A coluna "Gama v1.3
+sozinho" já é o mmBERT fine-tunado, só que sem a guarda. O controle que diria quanto o
+fine-tune acrescenta à base é outro: o encoder congelado, com só a camada de rótulos
+treinada por cima. Esse não rodamos.
+
+E um GLiNER fine-tunado? No estilo da organização não sobra o que ganhar. O teto é 1,1 e o
+Gama marca 1,09999; nas [dobras](wiki/experimentos/2026-09-22_validacao-por-dobras.md),
+mmBERT e BERTimbau treinados pela mesma receita empataram nesse teto. Um terceiro
+concorrente ali não mudaria a escolha e ainda traria outra biblioteca para a organização
+reproduzir offline, por isso não treinamos. Em texto real a conversa muda, porque ainda há
+margem. O GLiNER trabalha com spans, o que combina com a tarefa, e em zero-shot não achou
+nenhuma das 714 referências vagas do estresse, coisa que um fine-tune poderia ensinar. Se
+ele passaria dos 0,818 do Gama com a guarda, não sabemos. Não medimos.
 
 ### Gama v1.3: a mesma saída, menor e mais rápido
 
@@ -104,7 +119,60 @@ e de que tipo ela é. Quem decide se ela existe é o acervo, por consulta exata.
 decidisse `real` ou `inventada` por conta própria estaria chutando com fluência, que é
 justamente a alucinação que o desafio quer pegar.
 
-### Treino só com dados sintéticos
+### A guarda
+
+A guarda é o passo entre o extrator e a normalização. Ela existe porque o Gama foi treinado
+no estilo da organização e, fora dele, erra de um jeito previsível. Numa ementa com "...;
+STJ, REsp 1.999.624/PR, Rel. Min. Fulano, julgado em 10/05/2022", o modelo sozinho acha o
+precedente, mas pode marcar também "Rel. Min. Fulano, julgado em 10/05/2022" como se fosse
+uma referência vaga do molde. Ou solta pedaços como "Rel", "2011" e "DJe" como citação. Nas
+305 ementas do benchmark, esses dois erros somavam centenas de falsos positivos.
+
+O que permite consertar sem estragar o resto é a confiança. Cada span sai do modelo com a
+média, sobre os tokens que ele rotulou como citação, da probabilidade que deu ao rótulo
+escolhido. No estilo da organização o modelo não hesita. Com o v1.2, nenhum dos 34.171
+acertos medidos (dev, estresse difícil e 4.000 sintéticos que ele não treinou) ficou abaixo
+de 0,98; com o v1.3, o menor dos 4.447 acertos do estresse difícil fica em 0,9993. Os
+falsos positivos do v1.3 em ementa têm confiança mediana de 0,83.
+
+São duas regras, nesta ordem (`src/gama/extratores/guarda.py`):
+
+1. Referência vaga a até 2 caracteres de outro span sai. No molde, a referência vaga é uma
+   frase própria ("julgado do STJ proferido em 2021 pela relatoria de ...") e a mais próxima
+   de outra citação fica a 4 caracteres, depois de um ponto. Colada a um precedente, ela é o
+   rabo dele.
+2. Span com confiança abaixo de 0,95 sai. No lugar entra o span da régua que cruza aquele
+   trecho, se a régua achou algum e se ele não cruza um span confiante do modelo. Se a régua
+   não achou nada ali, o trecho fica sem citação.
+
+No estilo da organização nenhuma das duas dispara. Nos 4.626 documentos medidos, a saída
+com e sem guarda é a mesma, então a nota oficial não muda por construção. Em texto real a
+história é outra:
+
+| Nas 305 ementas do benchmark (v1.2) | F1 de extração |
+|---|---|
+| Modelo sozinho | 0,605 |
+| Só a regra 1 | 0,684 |
+| Só a regra 2 | 0,777 |
+| As duas | 0,808 |
+
+Com o v1.3 o salto é de 0,620 para 0,818. Como a guarda foi escolhida olhando essas
+ementas, conferimos de dois jeitos que o ganho não é sobreajuste. Escolhendo a regra numa
+metade das ementas e medindo na outra, dez vezes, a escolha foi sempre a mesma, com ganho
+médio de +0,20. E num teste de 172 ementas sorteadas depois, fora de tudo o que já tinha
+sido usado, o ganho foi +0,205 (IC95 +0,154 a +0,246).
+
+A guarda não é um ensemble. A união com a régua, que acrescentava a régua em todo lugar,
+custava 61 falsos positivos no nível 2 do estresse
+([D-007](wiki/decisoes/D-007_sem-ensemble.md)). A guarda só chama a régua onde o modelo
+hesita, e no estilo da organização ele não hesita. O risco que sobra é um conjunto cego com
+ruído mais pesado que o nosso estresse derrubar a confiança de uma citação legítima. Aí a
+régua assume aquele trecho, e o que se perde é só o que ela também não achar. A imagem
+avaliada usa o extrator com a guarda (`--extrator neural`); o modelo sozinho continua
+disponível como `--extrator neural-cru`. Decisão completa em
+[D-008](wiki/decisoes/D-008_guarda-do-extrator.md).
+
+### Treino com documentos sintéticos
 
 A organização gera os documentos do desafio por moldes: 62% das frases se repetem entre
 documentos, cada documento usa uma única data e a quebra de linha segue uma regra que
@@ -117,7 +185,40 @@ LLMs de pesos abertos (DeepSeek-V4-Pro, Kimi-K3, GLM-5.3) só expandem os bancos
 Nunca escrevem a citação nem decidem rótulo, e nenhum deles roda na solução avaliada. Um
 injetor de ruído calibrado no nível 2 da organização completa o conjunto. O Gama v1.2 foi
 treinado em 6.000 documentos, 3 épocas, semente 13. O v1.3 é destilado dele, nos
-mesmos documentos e em 1.818 ementas reais sem rótulo, onde só vale a imitação do v1.2.
+mesmos documentos e em 1.818 [ementas reais](#ementas-reais) sem rótulo, onde só vale a
+imitação do v1.2.
+
+### Ementas reais
+
+O dev set e o gerador falam a mesma língua, a dos moldes da organização. Um modelo pode
+tirar nota máxima nos dois sem nunca ter lido uma ementa de verdade. Para saber o que
+acontece fora do molde, precisávamos de texto jurídico real, público e com uma licença que
+nos deixasse publicar o que fizéssemos com ele.
+
+Quem resolveu isso foi o [`celsowm/jurisprudencias_br`](https://huggingface.co/datasets/celsowm/jurisprudencias_br),
+que o Celso F. publica no Hugging Face: cerca de 781 mil decisões do STF, do STJ e do TJRJ,
+coletadas pelo [Juriscraper](https://github.com/celsowm/juriscraper), ferramenta dele, sob
+CC-BY-4.0. Foi nesse texto que o Gama mostrou o ponto fraco. Sem ele, a gente só ia
+descobrir no conjunto cego, se descobrisse.
+
+Sorteamos 2.454 ementas por tribunal, cada uma com a proveniência gravada (fonte, licença,
+revisão, tribunal e classe), e elas entraram no projeto de três formas:
+
+| Uso | Ementas | O que mediram ou mudaram |
+|---|---|---|
+| Benchmark de texto real | 305, com 1.085 citações | Mostraram o modelo sozinho marcando fragmentos ("Rel", "2011", "DJe") e deram origem à guarda, que leva o v1.3 de 0,620 a 0,818 |
+| Teste intocado | 172, com 682 citações | Sorteadas depois, fora de tudo o que já tinha sido usado, para confirmar a guarda longe das ementas em que ela foi escolhida: +0,205 (IC95 +0,154 a +0,246) |
+| Destilação do v1.3 | 1.818, sem rótulo | O resto, sem texto repetido. O aluno só imita as probabilidades do v1.2 e ninguém anota nada. No teste intocado, 0,839 contra 0,820 do v1.2 |
+
+O gabarito das 305 e das 172 saiu de duas LLMs anotando cada ementa (DeepSeek-V4-Pro e
+Kimi-K3), com as divergências resolvidas por critério escrito e por um terceiro voto
+(GLM-5.3). É um ouro de máquina adjudicado, não anotação humana independente.
+
+Uma coisa essas ementas nunca foram: base de resolução. O acervo do desafio é fechado, e um
+processo real vindo daqui que coincidisse com um número inventado pela organização viraria
+`real` na nossa saída, com a penalidade τ em cima. Elas ensinam e medem onde a citação
+está; quem diz se ela existe continua sendo só o acervo. Proveniência, amostragem e limites
+em [ementas reais](wiki/conceitos/ementas-reais.md).
 
 O gerador também serviu de teste para o resolver: cada citação renderizada tem rótulo
 conhecido, então toda discordância é bug. Foi assim que achamos, por exemplo, uma súmula
@@ -182,6 +283,7 @@ GPU visível o extrator roda em CPU, em cerca de 1 s por documento, dentro do te
 | Determinismo | inferência em `eval()` sem amostragem, algoritmos determinísticos do torch, `PYTHONHASHSEED=0`; a saída é a mesma em GPU e em CPU |
 | Rede | nenhuma chamada em tempo de execução (`HF_HUB_OFFLINE=1`) |
 | Dados | fora da imagem e fora do repositório; chegam por volume |
+| Dados de treino | [`vinimlo/gama-goldenset`](https://huggingface.co/datasets/vinimlo/gama-goldenset), revisão no [MODELO.md](MODELO.md): documentos sintéticos (MIT) e ementas de [`celsowm/jurisprudencias_br`](https://huggingface.co/datasets/celsowm/jurisprudencias_br) (CC-BY-4.0) |
 
 O treino é um script UV (`treino/treinar.py`, dependências fixadas no cabeçalho) que roda
 em HF Jobs, lê o goldenset numa revisão fixa do Hub e publica os pesos:
@@ -209,7 +311,7 @@ src/gama/     pipeline: extração, normalização, índice, resolver, classific
 avaliacao/    harness da métrica oficial, catálogo de erros, calibração, inspeção sem gabarito
 geracao/      gerador sintético pelos moldes da organização e expansão dos bancos por LLM
 treino/       fine-tune, validação por dobras, ensaio no hardware-alvo
-reais/        robustez em texto real: ingestão, anotação prata, adjudicação
+reais/        ementas do celsowm/jurisprudencias_br: ingestão, anotação, adjudicação, sorteio do teste
 vendor/       código da organização, intocado (métrica e conversor oficiais)
 tests/        regressões do resolver, sondas de ruído, determinismo
 bench/        benchmark contra extratores sem treino (GLiNER, Qwen3-8B, régua)
@@ -231,7 +333,9 @@ Quatro invariantes quebram em silêncio se forem violadas:
 ## Licença
 
 MIT, ver [LICENSE](LICENSE). A exceção é `vendor/`, cópia do código da organização do
-desafio (métrica e conversor oficiais), que segue os termos dela.
+desafio (métrica e conversor oficiais), que segue os termos dela. As ementas reais não
+estão neste repositório: ficam no dataset, com a CC-BY-4.0 do `celsowm/jurisprudencias_br`
+e a proveniência de cada registro.
 
 ## Equipe
 

@@ -105,7 +105,9 @@ As mesmas que o professor passou antes de ir para a submissão:
 
 ## Checagens de entrega do aluno base 12 camadas
 
-As mesmas, com os pesos na revisão fixa (`vinimlo/gama-aluno-a-base12@f49e37b`):
+As mesmas, com os pesos na revisão fixa `f49e37b` do repositório de experimento do aluno. Os
+alunos foram apagados do Hub depois da escolha; os pesos do base 12 camadas são os do
+`vinimlo/gama@5f924ca` (v1.3), e os números de todos os alunos ficam em `bench/alunos.json`:
 
 | Checagem | Professor | Base 12 camadas |
 |---|---|---|

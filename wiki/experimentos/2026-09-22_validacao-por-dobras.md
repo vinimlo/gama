@@ -11,7 +11,8 @@ da organização cujas frases ele não viu? E a expansão por LLM ajuda ou atrap
 - Variantes: org (só bancos da org) × llm (org + expansão v1: DeepSeek e Kimi).
 - Avaliação: pipeline inteiro (extrator → resolver → classificação) nos 13 documentos da
   dobra d, métrica oficial (`vendor/kaggle_metric.py` via harness).
-- Dataset `vinimlo/gama-goldenset@93c7b5f`; modelos `vinimlo/gama-d{d}-{v}`.
+- Dataset `vinimlo/gama-goldenset@93c7b5f`; modelos `vinimlo/gama-d{d}-{v}`, apagados do Hub
+  depois da escolha e retreináveis com o dataset nessa revisão e `treino/treinar.py`.
 
 ## Resultado
 
