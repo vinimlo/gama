@@ -89,9 +89,13 @@ Tempos desta tabela medidos no mesmo job, com os dois modelos lado a lado.
 | | v1.2 | v1.3 |
 |---|---|---|
 | Dev, estresse difícil, final_v1 (4.626 documentos), métrica oficial | 1,10000 / 1,09999 / 1,09999 | iguais, JSON idêntico documento a documento |
-| Texto real com a guarda, 172 ementas de um teste intocado | 0,820 | 0,839 (+0,019; IC95 +0,003 a +0,033) |
+| Texto real com a guarda, 172 ementas separadas antes da escolha da guarda | 0,820 | 0,839 (+0,019; IC95 +0,003 a +0,033) |
 | Tempo por documento, L4 (estresse) / CPU (dev) | 0,071 s / 1,62 s | 0,046 s / 0,93 s |
 | Parâmetros / pesos | 307,5M / 1,23 GB | 257,4M / 1,03 GB |
+
+As 172 ementas foram separadas antes da escolha da guarda e mediram a guarda uma vez só. Depois
+elas também serviram para comparar os alunos e escolher o v1.3, então para a diferença entre
+v1.2 e v1.3 são dado de desenvolvimento, não um teste independente.
 
 ## Como funciona
 
@@ -208,7 +212,7 @@ revisão, tribunal e classe), e elas entraram no projeto de três formas:
 |---|---|---|
 | Benchmark de texto real | 305, com 1.085 citações | Mostraram o modelo sozinho marcando fragmentos ("Rel", "2011", "DJe") e deram origem à guarda, que leva o v1.3 de 0,620 a 0,818 |
 | Teste intocado | 172, com 682 citações | Sorteadas depois, fora de tudo o que já tinha sido usado, para confirmar a guarda longe das ementas em que ela foi escolhida: +0,205 (IC95 +0,154 a +0,246) |
-| Destilação do v1.3 | 1.818, sem rótulo | O resto, sem texto repetido. O aluno só imita as probabilidades do v1.2 e ninguém anota nada. No teste intocado, 0,839 contra 0,820 do v1.2 |
+| Destilação do v1.3 | 1.818, sem rótulo | O resto, sem texto repetido. O aluno só imita as probabilidades do v1.2 e ninguém anota nada. Nas 172 do teste, 0,839 contra 0,820 do v1.2, medida que também serviu para escolher o v1.3 |
 
 O gabarito das 305 e das 172 saiu de duas LLMs anotando cada ementa (DeepSeek-V4-Pro e
 Kimi-K3), com as divergências resolvidas por critério escrito e por um terceiro voto
