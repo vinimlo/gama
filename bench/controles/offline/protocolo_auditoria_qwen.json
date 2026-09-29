@@ -1,0 +1,30 @@
+{
+ "experimento": "offline / H5",
+ "definido_em": "2026-09-29T15:28-03:00",
+ "estado_ao_definir": "nenhuma resposta bruta do Qwen existe gravada (bench/extrair_qwen.py guarda só os spans alinhados e a contagem 'nao_alinhados' por documento; o log do job 6ab3cf4f51992417dfcd789e só tem progresso). Este protocolo foi escrito antes de re-rodar o Qwen e antes de ver qualquer trecho não alinhado.",
+ "pergunta": "Dos 583 trechos que o Qwen3-8B zero-shot devolveu e que bench/extrair_qwen.py não conseguiu alinhar ao texto, quantos são falha de reconhecimento e quantos são falha de interface (reprodução, alinhamento, formato)? Diagnóstico apenas: nenhuma previsão é corrigida e o score publicado não muda.",
+ "rerodada": {
+  "codigo": "bench/extrair_qwen.py intacto (sha256 96005a883a6b81c873c997b57648b853af3f5d1972590929da97c8168b8649d2), embutido no job por base64 e executado sem mudança; o invólucro só registra, na ordem, a resposta bruta que main() entrega a ler_json e a lista que entrega a alinhar",
+  "configuracao": "a da rodada registrada (job 6ab3cf4f51992417dfcd789e): a100-large, --lote 32, Qwen/Qwen3-8B@b968826d9c46dd6066d109eabc6255188de91218, bf16, gulosa, enable_thinking=False, max_new_tokens=1536, torch 2.14.0 (PyPI), transformers 5.17.0, entrada bench/entrada_remota.jsonl (905 docs)",
+  "conferencia_de_reproducao": "por documento: spans e nao_alinhados da rerodada iguais aos de saidas/bench/qwen.jsonl"
+ },
+ "populacao": "todos os trechos não alinhados da rerodada nos documentos em que a rerodada reproduz o registrado (spans e nao_alinhados idênticos). Se todos os 905 reproduzem, a população é exatamente a dos 583 publicados. Ordem da população: ordem dos documentos em bench/entrada_remota.jsonl, depois a posição do item na lista 'citacoes' da resposta.",
+ "amostra": {"tamanho": 120, "semente": 20260929, "procedimento": "random.Random(20260929).sample(populacao, 120), sem reposição; estratos não são usados"},
+ "categorias": [
+  {"id": "formato_invalido", "nome": "formato inválido",
+   "regra": "o item da lista 'citacoes' não é um objeto com 'trecho' textual não vazio e 'tipo' em {JURIS, LEI, VAGA} (após upper()). É exatamente o primeiro ramo de descarte de alinhar(). Decidido por código."},
+  {"id": "ocorrencia_errada_alinhamento", "nome": "ocorrência errada / alinhamento",
+   "regra": "item bem formado cujo padrão de alinhar() (tokens do trecho unidos por \\s+) casa com o texto em pelo menos uma posição, mas toda ocorrência cruza um span já alinhado antes dele (repetição do mesmo trecho, trecho contido num span maior já aceito, ou ocorrência consumida por outro item). O texto existe; quem descartou foi a política de alinhamento. Decidido por código."},
+  {"id": "truncado", "nome": "truncado",
+   "regra": "o padrão não casa em lugar nenhum e o trecho reproduz literalmente o começo (ou o fim) de uma passagem do texto, mas para no meio de uma palavra ou número, ou marca o corte com reticências ('...', '…'), de modo que só o corte impede o alinhamento. Se houver outra alteração além do corte, vale 'reescrita / normalizada'."},
+  {"id": "reescrita_normalizada", "nome": "citação reconhecida mas reescrita / normalizada",
+   "regra": "o padrão não casa em lugar nenhum, mas o trecho corresponde a uma passagem identificável do texto que é citação jurídica (tipo JURIS, LEI ou VAGA na convenção do gabarito; o ouro é a referência e o revisor decide onde o ouro das ementas reais for omisso) e o modelo mudou caracteres: símbolo normalizado (º/°/o, nº/n.), ruído de OCR corrigido, hífen ou quebra dentro de palavra desfeita, espaço inserido ou removido dentro de um token, abreviatura expandida ou reduzida, palavras omitidas ou acrescentadas, ou pedaços não contíguos juntados."},
+  {"id": "nao_e_citacao", "nome": "não é citação",
+   "regra": "o padrão não casa em lugar nenhum e o trecho corresponde a uma passagem identificável do texto que não é citação jurídica na convenção do gabarito (referência genérica sem fonte, nome de parte, data, órgão julgador isolado, ementa ou ementa temática, etc.). Tem precedência sobre 'reescrita' e 'truncado': se o que o modelo tentou copiar não é citação, a categoria é esta."},
+  {"id": "inexistente", "nome": "trecho inexistente no texto",
+   "regra": "o padrão não casa em lugar nenhum e não há passagem do texto a que o trecho corresponda, nem com normalização (caixa, acento, pontuação, espaço, OCR) nem por semelhança aproximada: citação inventada, copiada dos exemplos do prompt ou vinda de outro documento."}
+ ],
+ "ordem_de_decisao": "formato_invalido -> ocorrencia_errada_alinhamento (as duas por código) -> para o restante, o revisor escolhe uma das quatro últimas com as regras acima; nao_e_citacao tem precedência sobre reescrita e truncado; truncado só quando o corte é a única alteração.",
+ "ferramentas_de_apoio": "para cada item, o script calcula (sem decidir): se o padrão casa e onde; busca após normalização (NFKD sem acento, casefold, º°ª -> o/a, sem pontuação nem espaço) com mapeamento de volta aos offsets; melhor janela aproximada do texto por difflib; cruzamento da passagem com spans do ouro; igualdade com os exemplos do prompt. Essas pistas geram uma sugestão; a categoria final é a do revisor, com nota curta, e a concordância sugestão x final é reportada.",
+ "saida": "bench/controles/offline/auditoria_qwen.json: contagem por categoria (e por conjunto), 2 exemplos por categoria, a lista completa dos 120 com categoria e nota, a conferência de reprodução e o custo do job."
+}

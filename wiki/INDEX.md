@@ -50,6 +50,18 @@ que o bruto.
   final nos 4.626 documentos do estilo da organização e rodam 1,5 vez mais rápido; é o v1.3.
   Ver [destilação](experimentos/2026-09-23_destilacao.md) e
   [D-009](decisoes/D-009_gama-v1-3-destilado.md).
+- A vantagem do v1.3 sobre o v1.2 não passa da variação entre sementes. Retreinado com outras
+  sementes, o v1.2 com a guarda vai de 0,760 a 0,830 nas 305 ementas; o +0,019 nas 172 é do
+  par publicado. O que se sustenta é mais estreito: o v1.3 fica acima do próprio professor nas
+  172 nas três sementes da destilação, numa análise feita depois. No estilo da organização as
+  seis sementes dão o mesmo JSON no dev e 1,09999 no estresse com a guarda. Ver
+  [controles](experimentos/2026-09-29_controles.md).
+- Com a guarda, nenhum concorrente treinado nos mesmos dados passou o v1.3; sem ela, BERTimbau
+  (0,697) e GLiNER treinado (0,792) passam o Gama sozinho (0,620) nas 305. O que faz o sistema
+  é a confiança do Gama separar erro de acerto: o score do GLiNER treinado fica acima de 0,99
+  até nos erros, e a guarda quase não o ajuda. Com o encoder congelado, o mmBERT marca 0,902 no
+  estresse e 0,243 em texto real, então o fine-tune rende pela adaptação do encoder. Ver
+  [controles](experimentos/2026-09-29_controles.md).
 - No estilo da organização, o que resta é resolução. Os únicos erros do estresse são
   desempate de cadeia ("Ag. Int.", embargos com ruído de OCR); duas regras gerais levam o
   estresse a 1,09999. Ver [otimização medida](experimentos/2026-09-23_otimizacao-medida.md).
@@ -94,6 +106,7 @@ que o bruto.
 - [Benchmark contra extratores sem treino](experimentos/2026-09-23_bench-extratores-crus.md): Gama × régua × GLiNER × Qwen3-8B zero-shot
 - [Otimização medida](experimentos/2026-09-23_otimizacao-medida.md): filtro de fragmentos, desempate de cadeia, vieses do texto real, CPU, meia precisão
 - [Destilação](experimentos/2026-09-23_destilacao.md): alunos de 13 camadas e mmBERT-small; a destilação segura o texto real, o aluno de 13 camadas empata no estilo da organização; o de 12 primeiras camadas sai idêntico e vira o v1.3
+- [Controles](experimentos/2026-09-29_controles.md): encoder congelado, GLiNER e BERTimbau treinados nos mesmos dados, sementes do v1.2 e do v1.3, auditoria dos trechos do Qwen e confiança fora do molde
 
 ## Conceitos
 

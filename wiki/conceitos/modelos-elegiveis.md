@@ -32,20 +32,40 @@ O empate entre mmBERT e BERTimbau está em
 [estresse difícil](../experimentos/2026-09-22_estresse-dificil.md). O critério de
 desempate foi prático: o mmBERT lê o documento inteiro de uma vez.
 
-## Comparações que não fizemos
+## Controles com treino
 
-O mmBERT original sem fine-tune não entra em comparação nenhuma. Ele foi pré-treinado para
-prever palavra mascarada e não tem cabeça de rótulos BIO; pontuá-lo exigiria uma cabeça
-nova com pesos aleatórios, o que mede ruído. O Gama sem a guarda (`--extrator neural-cru`)
-é o mmBERT fine-tunado e aparece no benchmark como "Gama sozinho". O controle que isolaria
-o ganho do fine-tune sobre a base, encoder congelado com só a cabeça treinada, não foi
-rodado.
+A primeira rodada comparou o Gama só com extratores sem treino. Os
+[controles de 29/09](../experimentos/2026-09-29_controles.md) treinaram concorrentes nos
+mesmos 5.410 documentos sintéticos do v1.2 e mediram todos pelo mesmo harness, sozinhos e com
+a guarda. F1 de extração em texto real, 305 ementas de validação e 172 de confirmação:
 
-O GLiNER não foi fine-tunado. No estilo da organização dois encoders treinados já
-empatavam no teto, e um terceiro não tinha o que ganhar ali; ele ainda traria a biblioteca
-`gliner` para a organização reproduzir offline. Em texto real a pergunta continua aberta:
-ali o Gama sozinho marca 0,620 e com a guarda 0,818, e um GLiNER treinado nos mesmos dados
-nunca foi medido.
+| Modelo | Sozinho, 305 / 172 | Com a guarda (0,95), 305 / 172 |
+|---|---|---|
+| Gama v1.3 | 0,620 / 0,635 | 0,818 / 0,839 |
+| BERTimbau, receita do v1.2 com `max_len` 512 | 0,697 / 0,705 | 0,813 / 0,826 |
+| GLiNER multi v2.1 treinado | 0,792 / 0,752 | 0,796 / 0,761 |
+| mmBERT com o encoder congelado, só a saída treinada | 0,243 / 0,247 | 0,350 / 0,353 |
+
+O mmBERT original sem cabeça de rótulos também foi pontuado, só como diagnóstico, com uma
+cabeça nova sem treino. Deu F1 de 0,0005. Mede o sorteio dos pesos. O controle útil é
+o encoder congelado com a saída treinada, e ele responde quanto o fine-tune acrescenta à base.
+No estresse ele chega a 0,902, acima da régua e do Qwen3-8B; em texto real cai para 0,243,
+contra 0,605 do v1.2 cru treinado pela mesma receita. Rende a adaptação do encoder.
+
+Treinado, o GLiNER encosta no teto do estilo da organização (1,09631 no estresse, 6 erros em
+4.447 spans) e passa o Gama sozinho em texto real, mas com a guarda não se distingue do v1.3
+nas 305 e perde nas 172. A guarda quase não o ajuda. O score dele fica acima de 0,99 até nos
+erros, e sem hesitação a régua não tem por onde entrar.
+
+O BERTimbau empata no teto de novo e, sozinho, passa o Gama em texto real pela precisão. Com a
+guarda, não dá para distingui-lo do v1.2 nem do v1.3. Na L4 ele roda em 0,066 s por
+documento no estresse, mais rápido que o v1.2 (0,075 s) e mais lento que o v1.3 (0,046 s). O
+desempate prático de antes, ler o documento inteiro de uma vez, só vira velocidade depois da
+destilação.
+
+Os três concorrentes têm uma semente cada, e o gabarito do texto real é de LLM adjudicado.
+Nenhuma comparação foi feita com gabarito humano. Na nossa leitura, a escolha do mmBERT se
+sustenta pelo que a confiança dele permite à guarda. Sozinho, ele não é o melhor extrator.
 
 ## Jev Decision Index
 

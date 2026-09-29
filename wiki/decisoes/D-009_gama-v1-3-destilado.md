@@ -53,5 +53,15 @@ que segura a qualidade fora do molde.
 - O ganho no texto real é pequeno e só pesa se o cego trouxer texto fora do molde.
 - A nota medida não muda: no estilo da organização a saída é a mesma do v1.2.
 
+## Revisão em 29/09
+
+Os [controles](../experimentos/2026-09-29_controles.md) retreinaram as duas receitas com as
+sementes 7 e 21. Com a guarda, o v1.2 vai de 0,760 a 0,830 nas 305 ementas e o v1.3,
+destilado do mesmo professor, fica entre 0,812 e 0,818. Os +0,019 do v1.3 nas 172 não passam
+da variação entre sementes do v1.2, então não sustentam que o aluno acerta mais em texto
+real. A decisão se mantém pelo critério dela, que nunca dependeu desse ganho: o mesmo JSON no
+estilo da organização, as mesmas checagens de entrega e o tempo. No dev as seis sementes dão
+o mesmo JSON.
+
 Voltar ao v1.2 só por falha de reprodução nas checagens de entrega, nunca por comparar
 saídas no conjunto cego (regra 4.b do Kaggle).

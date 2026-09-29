@@ -1,0 +1,2451 @@
+{
+ "experimento": "offline/H5",
+ "pergunta": "Dos 583 trechos que o Qwen3-8B zero-shot devolveu e que bench/extrair_qwen.py não conseguiu alinhar ao texto, quantos são falha de reconhecimento e quantos são falha de interface (reprodução, alinhamento, formato)? Diagnóstico apenas: nenhuma previsão é corrigida e o score publicado não muda.",
+ "protocolo": "bench/controles/offline/protocolo_auditoria_qwen.json (definido antes de ver os trechos)",
+ "categorias": [
+  {
+   "id": "formato_invalido",
+   "nome": "formato inválido",
+   "regra": "o item da lista 'citacoes' não é um objeto com 'trecho' textual não vazio e 'tipo' em {JURIS, LEI, VAGA} (após upper()). É exatamente o primeiro ramo de descarte de alinhar(). Decidido por código."
+  },
+  {
+   "id": "ocorrencia_errada_alinhamento",
+   "nome": "ocorrência errada / alinhamento",
+   "regra": "item bem formado cujo padrão de alinhar() (tokens do trecho unidos por \\s+) casa com o texto em pelo menos uma posição, mas toda ocorrência cruza um span já alinhado antes dele (repetição do mesmo trecho, trecho contido num span maior já aceito, ou ocorrência consumida por outro item). O texto existe; quem descartou foi a política de alinhamento. Decidido por código."
+  },
+  {
+   "id": "truncado",
+   "nome": "truncado",
+   "regra": "o padrão não casa em lugar nenhum e o trecho reproduz literalmente o começo (ou o fim) de uma passagem do texto, mas para no meio de uma palavra ou número, ou marca o corte com reticências ('...', '…'), de modo que só o corte impede o alinhamento. Se houver outra alteração além do corte, vale 'reescrita / normalizada'."
+  },
+  {
+   "id": "reescrita_normalizada",
+   "nome": "citação reconhecida mas reescrita / normalizada",
+   "regra": "o padrão não casa em lugar nenhum, mas o trecho corresponde a uma passagem identificável do texto que é citação jurídica (tipo JURIS, LEI ou VAGA na convenção do gabarito; o ouro é a referência e o revisor decide onde o ouro das ementas reais for omisso) e o modelo mudou caracteres: símbolo normalizado (º/°/o, nº/n.), ruído de OCR corrigido, hífen ou quebra dentro de palavra desfeita, espaço inserido ou removido dentro de um token, abreviatura expandida ou reduzida, palavras omitidas ou acrescentadas, ou pedaços não contíguos juntados."
+  },
+  {
+   "id": "nao_e_citacao",
+   "nome": "não é citação",
+   "regra": "o padrão não casa em lugar nenhum e o trecho corresponde a uma passagem identificável do texto que não é citação jurídica na convenção do gabarito (referência genérica sem fonte, nome de parte, data, órgão julgador isolado, ementa ou ementa temática, etc.). Tem precedência sobre 'reescrita' e 'truncado': se o que o modelo tentou copiar não é citação, a categoria é esta."
+  },
+  {
+   "id": "inexistente",
+   "nome": "trecho inexistente no texto",
+   "regra": "o padrão não casa em lugar nenhum e não há passagem do texto a que o trecho corresponda, nem com normalização (caixa, acento, pontuação, espaço, OCR) nem por semelhança aproximada: citação inventada, copiada dos exemplos do prompt ou vinda de outro documento."
+  }
+ ],
+ "rerodada": {
+  "reproducao": {
+   "documentos": 905,
+   "identicos": 905,
+   "diferentes": 0,
+   "diferentes_ids": [],
+   "nao_alinhados_publicado": 583,
+   "nao_alinhados_rerodada": 583,
+   "nao_alinhados_em_docs_identicos": 583
+  },
+  "rerodada_coerente_com_registro_bruto": true,
+  "populacao": 583,
+  "populacao_por_conjunto": {
+   "estresse": 340,
+   "reais": 243
+  },
+  "populacao_por_causa_codigo": {
+   "sem_casamento_literal": 526,
+   "ocorrencia_errada_alinhamento": 56,
+   "formato_invalido": 1
+  },
+  "populacao_copias_literais_de_exemplo_do_prompt": 149,
+  "populacao_com_reticencias": 0,
+  "populacao_formato_invalido": [
+   {
+    "conjunto": "estresse",
+    "id": "syn_n2_00323",
+    "posicao": 5,
+    "item": {
+     "trecho": "Tema 2.32b de repercussão geral",
+     "tipo": "Tema"
+    },
+    "causa_codigo": "formato_invalido"
+   }
+  ],
+  "json_invalidos_rerodada": 0,
+  "tokens_saida_max": 1320,
+  "meta_bruto": {
+   "experimento": "offline/H5",
+   "extrator": "qwen",
+   "modelo": "Qwen/Qwen3-8B@b968826",
+   "extrair_qwen_sha256": "96005a883a6b81c873c997b57648b853af3f5d1972590929da97c8168b8649d2",
+   "argv_original": [
+    "--entrada",
+    "/root/.cache/huggingface/hub/datasets--vinimlo--gama-goldenset/snapshots/2fff5f670e13f77f339937cfe3da52ed0af9572d/bench/entrada_remota.jsonl",
+    "--saida",
+    "/tmp/qwen_rerun.jsonl",
+    "--lote",
+    "32"
+   ],
+   "entrada": "vinimlo/gama-goldenset@2fff5f670e13f77f339937cfe3da52ed0af9572d:bench/entrada_remota.jsonl",
+   "entrada_sha256": "76873ec5d690a9544a539f7cf93bed7cbf3b496398e1ce580e30365746dc5760",
+   "segundos_total_main": 1790.4,
+   "torch": "2.14.0+cu130",
+   "transformers": "5.17.0",
+   "accelerate": "1.15.0",
+   "dispositivo": "NVIDIA A100-SXM4-80GB"
+  },
+  "meta_rerun": {
+   "extrator": "qwen",
+   "modelo": "Qwen/Qwen3-8B@b968826",
+   "backend": "transformers bf16",
+   "transformers": "5.17.0",
+   "torch": "2.14.0+cu130",
+   "dispositivo": "NVIDIA A100-SXM4-80GB",
+   "falhas_json": 0,
+   "trechos_nao_alinhados": 583
+  },
+  "arquivos": {
+   "qwen_bruto.jsonl": "defb6b1f6f0897f87046bd64b1d8554e1cf7da5926d9b9e531a6183603332d51",
+   "qwen_rerun.jsonl": "b660673f6987665d88447397402b22597ba4b0f46a3999509067bc995348b09c",
+   "qwen.jsonl (publicado)": "63901182f5677c41fb24ca26bf0cb205734c4e3bb5ca13f8b1c464424e0fd9f1"
+  }
+ },
+ "amostra": {
+  "tamanho": 120,
+  "semente": 20260929,
+  "populacao": 583
+ },
+ "contagem": {
+  "formato_invalido": 0,
+  "ocorrencia_errada_alinhamento": 10,
+  "truncado": 0,
+  "reescrita_normalizada": 72,
+  "nao_e_citacao": 3,
+  "inexistente": 35
+ },
+ "fracao": {
+  "formato_invalido": 0.0,
+  "ocorrencia_errada_alinhamento": 0.0833,
+  "truncado": 0.0,
+  "reescrita_normalizada": 0.6,
+  "nao_e_citacao": 0.025,
+  "inexistente": 0.2917
+ },
+ "fracao_ic95_wilson": {
+  "formato_invalido": [
+   0.0,
+   0.031
+  ],
+  "ocorrencia_errada_alinhamento": [
+   0.0459,
+   0.1466
+  ],
+  "truncado": [
+   0.0,
+   0.031
+  ],
+  "reescrita_normalizada": [
+   0.5106,
+   0.6832
+  ],
+  "nao_e_citacao": [
+   0.0085,
+   0.0709
+  ],
+  "inexistente": [
+   0.2178,
+   0.3784
+  ]
+ },
+ "projecao_para_a_populacao": {
+  "formato_invalido": 0,
+  "ocorrencia_errada_alinhamento": 49,
+  "truncado": 0,
+  "reescrita_normalizada": 350,
+  "nao_e_citacao": 15,
+  "inexistente": 170
+ },
+ "contagem_por_conjunto": {
+  "estresse": {
+   "reescrita_normalizada": 46,
+   "ocorrencia_errada_alinhamento": 1,
+   "inexistente": 19
+  },
+  "reais": {
+   "reescrita_normalizada": 26,
+   "ocorrencia_errada_alinhamento": 9,
+   "inexistente": 16,
+   "nao_e_citacao": 3
+  }
+ },
+ "leitura": {
+  "interface (o modelo achou uma citação que existe no texto: reescrita, truncada ou descartada pela política de ocorrência)": 82,
+  "reconhecimento (não é citação ou não existe no texto)": 38,
+  "formato inválido": 0
+ },
+ "concordancia_sugestao_x_final": 0.9583,
+ "exploratorio_subtipos_da_reescrita": {
+  "contagem": {
+   "caixa": 24,
+   "ocr_ou_acento": 20,
+   "quebra_ou_espaco_dentro_do_token": 17,
+   "forma_da_citacao": 9,
+   "molde_do_prompt_ou_ambiguo": 2
+  },
+  "como": "definido depois de rotular (exploratório): a primeira regra que casa na nota do revisor, na ordem molde_do_prompt_ou_ambiguo > caixa > quebra_ou_espaco_dentro_do_token > ocr_ou_acento > forma_da_citacao"
+ },
+ "exemplos": {
+  "formato_invalido": [
+   {
+    "n": null,
+    "conjunto": "estresse",
+    "id": "syn_n2_00323",
+    "trecho": "Tema 2.32b de repercussão geral",
+    "tipo": "Tema",
+    "texto_do_documento": null,
+    "nota": "fora da amostra: o único item de formato inválido da população (tipo fora de JURIS/LEI/VAGA); decidido por código"
+   }
+  ],
+  "ocorrencia_errada_alinhamento": [
+   {
+    "n": 2,
+    "conjunto": "estresse",
+    "id": "syn_n1_00206",
+    "trecho": "REsp 6.453.504/RS",
+    "tipo": "JURIS",
+    "texto_do_documento": "REsp 6.453.504/RS",
+    "nota": "repete o REsp 6.453.504/RS já alinhado; o texto tem uma ocorrência só"
+   },
+   {
+    "n": 68,
+    "conjunto": "reais",
+    "id": "real_00269",
+    "trecho": "HC 100724/SC",
+    "tipo": "JURIS",
+    "texto_do_documento": "HC 100724/SC",
+    "nota": "repete o HC 100724/SC já alinhado"
+   }
+  ],
+  "truncado": [
+   {
+    "nota": "nenhum na amostra e nenhum trecho com reticências na população. Esperado: o padrão de alinhar() não exige fronteira de palavra, então um prefixo literal alinha sempre; e nenhuma resposta chegou ao teto de 1.536 tokens (máximo 1320, reencodado) nem teve JSON inválido"
+   }
+  ],
+  "reescrita_normalizada": [
+   {
+    "n": 1,
+    "conjunto": "estresse",
+    "id": "syn_n1_00114",
+    "trecho": "Artigo 144 da Lei Complementar nº 64/1990",
+    "tipo": "LEI",
+    "texto_do_documento": "artigo 144 da Lei Complementar nº 64/1990",
+    "nota": "texto 'artigo 144 da Lei Complementar nº 64/1990'; só a caixa da inicial mudou (a -> A)"
+   },
+   {
+    "n": 7,
+    "conjunto": "estresse",
+    "id": "syn_n1_00490",
+    "trecho": "precedente do STJ julgado em 2023 sob a relatoria de JESUÍNO RISSATO",
+    "tipo": "VAGA",
+    "texto_do_documento": "J proferido em 2023 pela relatoria de JESUÍNO RISSATO",
+    "nota": "VAGA do texto ('julgado do STJ proferido em 2023 pela relatoria de JESUÍNO RISSATO') reescrita no molde do exemplo do prompt ('precedente do STJ julgado em ... sob a relatoria de')"
+   }
+  ],
+  "nao_e_citacao": [
+   {
+    "n": 86,
+    "conjunto": "reais",
+    "id": "real_01426",
+    "trecho": "artigo de lei federal violada",
+    "tipo": "VAGA",
+    "texto_do_documento": "ARTIGO DE LEI FEDERAL VIOLADA",
+    "nota": "'ARTIGO DE LEI FEDERAL VIOLADA', palavra-chave da ementa sem fonte, passada para minúsculas e rotulada VAGA"
+   },
+   {
+    "n": 91,
+    "conjunto": "reais",
+    "id": "real_01428",
+    "trecho": "RECURSO ESPECIAL",
+    "tipo": "JURIS",
+    "texto_do_documento": "Recurso Especial",
+    "nota": "'Recurso Especial' sem número (nome da classe processual), passado para maiúsculas"
+   }
+  ],
+  "inexistente": [
+   {
+    "n": 3,
+    "conjunto": "estresse",
+    "id": "syn_n1_00272",
+    "trecho": "REsp nº 1.234.567/SP",
+    "tipo": "JURIS",
+    "texto_do_documento": "REsp\n2.349.636/S",
+    "nota": "exemplo do prompt copiado literalmente; o número não aparece no documento"
+   },
+   {
+    "n": 4,
+    "conjunto": "estresse",
+    "id": "syn_n1_00290",
+    "trecho": "artigo 927 do CPC",
+    "tipo": "LEI",
+    "texto_do_documento": null,
+    "nota": "exemplo do prompt ('artigo 927 do CPC'); 927 não aparece no documento"
+   }
+  ]
+ },
+ "itens": [
+  {
+   "n": 1,
+   "conjunto": "estresse",
+   "id": "syn_n1_00114",
+   "posicao": 1,
+   "trecho": "Artigo 144 da Lei Complementar nº 64/1990",
+   "tipo": "LEI",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "artigo 144 da Lei Complementar nº 64/1990",
+   "ouro_que_cruza": [
+    [
+     2866,
+     2907,
+     "LEI",
+     "artigo 144 da Lei Complementar nº 64/1990"
+    ]
+   ],
+   "nota": "texto 'artigo 144 da Lei Complementar nº 64/1990'; só a caixa da inicial mudou (a -> A)"
+  },
+  {
+   "n": 2,
+   "conjunto": "estresse",
+   "id": "syn_n1_00206",
+   "posicao": 4,
+   "trecho": "REsp 6.453.504/RS",
+   "tipo": "JURIS",
+   "categoria": "ocorrencia_errada_alinhamento",
+   "sugestao_automatica": "ocorrencia_errada_alinhamento",
+   "texto_do_documento": "REsp 6.453.504/RS",
+   "ouro_que_cruza": [
+    [
+     3007,
+     3024,
+     "JURIS",
+     "REsp 6.453.504/RS"
+    ]
+   ],
+   "nota": "repete o REsp 6.453.504/RS já alinhado; o texto tem uma ocorrência só"
+  },
+  {
+   "n": 3,
+   "conjunto": "estresse",
+   "id": "syn_n1_00272",
+   "posicao": 0,
+   "trecho": "REsp nº 1.234.567/SP",
+   "tipo": "JURIS",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": "REsp\n2.349.636/S",
+   "ouro_que_cruza": [
+    [
+     2446,
+     2473,
+     "JURIS",
+     "AgInt no AREsp\n2.349.636/SP"
+    ]
+   ],
+   "nota": "exemplo do prompt copiado literalmente; o número não aparece no documento"
+  },
+  {
+   "n": 4,
+   "conjunto": "estresse",
+   "id": "syn_n1_00290",
+   "posicao": 6,
+   "trecho": "artigo 927 do CPC",
+   "tipo": "LEI",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": null,
+   "ouro_que_cruza": null,
+   "nota": "exemplo do prompt ('artigo 927 do CPC'); 927 não aparece no documento"
+  },
+  {
+   "n": 5,
+   "conjunto": "estresse",
+   "id": "syn_n1_00486",
+   "posicao": 1,
+   "trecho": "AgInt no AREsp 123.456/RJ",
+   "tipo": "JURIS",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": "no AgInt no REsp nº 2",
+   "ouro_que_cruza": [
+    [
+     4646,
+     4673,
+     "JURIS",
+     "AgInt no REsp nº 2173718/SP"
+    ]
+   ],
+   "nota": "exemplo do prompt; número ausente do documento"
+  },
+  {
+   "n": 6,
+   "conjunto": "estresse",
+   "id": "syn_n1_00486",
+   "posicao": 5,
+   "trecho": "art. 5º, X, da Constituição Federal",
+   "tipo": "LEI",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": null,
+   "ouro_que_cruza": null,
+   "nota": "exemplo do prompt (art. 5º, X, da CF); o documento não cita o art. 5º"
+  },
+  {
+   "n": 7,
+   "conjunto": "estresse",
+   "id": "syn_n1_00490",
+   "posicao": 9,
+   "trecho": "precedente do STJ julgado em 2023 sob a relatoria de JESUÍNO RISSATO",
+   "tipo": "VAGA",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "J proferido em 2023 pela relatoria de JESUÍNO RISSATO",
+   "ouro_que_cruza": [
+    [
+     4015,
+     4081,
+     "VAGA",
+     "julgado\ndo STJ proferido em 2023 pela relatoria de JESUÍNO RISSATO"
+    ]
+   ],
+   "nota": "VAGA do texto ('julgado do STJ proferido em 2023 pela relatoria de JESUÍNO RISSATO') reescrita no molde do exemplo do prompt ('precedente do STJ julgado em ... sob a relatoria de')"
+  },
+  {
+   "n": 8,
+   "conjunto": "estresse",
+   "id": "syn_n1_00594",
+   "posicao": 2,
+   "trecho": "precedente do STF julgado em 2026 sob a relatoria de FLÁVIO DINO",
+   "tipo": "VAGA",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "precedente do STF, julgado em 2026 sob a relatoria de FLÁVIO DINO",
+   "ouro_que_cruza": [
+    [
+     2584,
+     2649,
+     "VAGA",
+     "precedente do STF, julgado em 2026 sob a relatoria de FLÁVIO DINO"
+    ]
+   ],
+   "nota": "vírgula depois de 'STF' removida"
+  },
+  {
+   "n": 9,
+   "conjunto": "estresse",
+   "id": "syn_n2_00011",
+   "posicao": 0,
+   "trecho": "REsp nº 1.234.567/SP",
+   "tipo": "JURIS",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": null,
+   "ouro_que_cruza": null,
+   "nota": "exemplo do prompt; número ausente do documento"
+  },
+  {
+   "n": 10,
+   "conjunto": "estresse",
+   "id": "syn_n2_00011",
+   "posicao": 2,
+   "trecho": "processo nº 0001234-56.2020.8.26.0000",
+   "tipo": "JURIS",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": null,
+   "ouro_que_cruza": null,
+   "nota": "exemplo do prompt (processo nº 0001234-...); ausente do documento"
+  },
+  {
+   "n": 11,
+   "conjunto": "estresse",
+   "id": "syn_n2_00011",
+   "posicao": 8,
+   "trecho": "precedente do STJ julgado em 2021 sob a relatoria de Nancy Andrighi",
+   "tipo": "VAGA",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": null,
+   "ouro_que_cruza": null,
+   "nota": "exemplo do prompt (Nancy Andrighi, 2021); a relatora não aparece no documento"
+  },
+  {
+   "n": 12,
+   "conjunto": "estresse",
+   "id": "syn_n2_00015",
+   "posicao": 8,
+   "trecho": "art. 14, III, do CDC",
+   "tipo": "LEI",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "Art. 14, III,\ndo CDC",
+   "ouro_que_cruza": [
+    [
+     826,
+     846,
+     "LEI",
+     "Art. 14, III,\ndo CDC"
+    ]
+   ],
+   "nota": "caixa trocada ('Art.' -> 'art.')"
+  },
+  {
+   "n": 13,
+   "conjunto": "estresse",
+   "id": "syn_n2_00021",
+   "posicao": 0,
+   "trecho": "REsp n. 1.116.364/PI",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "REsp  n.  1.116. 364/PI",
+   "ouro_que_cruza": [
+    [
+     1346,
+     1369,
+     "JURIS",
+     "REsp  n.  1.116. 364/PI"
+    ]
+   ],
+   "nota": "espaço dentro do número removido ('1.116. 364' -> '1.116.364')"
+  },
+  {
+   "n": 14,
+   "conjunto": "estresse",
+   "id": "syn_n2_00021",
+   "posicao": 6,
+   "trecho": "art. 5º, X, da Constituição Federal",
+   "tipo": "LEI",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": null,
+   "ouro_que_cruza": null,
+   "nota": "exemplo do prompt (art. 5º, X, da CF); ausente do documento"
+  },
+  {
+   "n": 15,
+   "conjunto": "estresse",
+   "id": "syn_n2_00021",
+   "posicao": 7,
+   "trecho": "artigo 927 do CPC",
+   "tipo": "LEI",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": null,
+   "ouro_que_cruza": null,
+   "nota": "exemplo do prompt ('artigo 927 do CPC'); ausente do documento"
+  },
+  {
+   "n": 16,
+   "conjunto": "estresse",
+   "id": "syn_n2_00059",
+   "posicao": 0,
+   "trecho": "Agravo Interno no Recurso Especial nº 1944552/RS",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "o Agravo Intemo no Recurso Especial nº 1944552/RS",
+   "ouro_que_cruza": [
+    [
+     1552,
+     1599,
+     "JURIS",
+     "Agravo Intemo no Recurso Especial nº 1944552/RS"
+    ]
+   ],
+   "nota": "ruído de OCR corrigido ('Intemo' -> 'Interno')"
+  },
+  {
+   "n": 17,
+   "conjunto": "estresse",
+   "id": "syn_n2_00131",
+   "posicao": 2,
+   "trecho": "AgInt no ARESP n° 1.882.057/RS",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "AgInt no ARESP n° 1.882.\n057/RS",
+   "ouro_que_cruza": [
+    [
+     3026,
+     3057,
+     "JURIS",
+     "AgInt no ARESP n° 1.882.\n057/RS"
+    ]
+   ],
+   "nota": "quebra de linha dentro do número desfeita ('1.882.\\n057')"
+  },
+  {
+   "n": 18,
+   "conjunto": "estresse",
+   "id": "syn_n2_00139",
+   "posicao": 2,
+   "trecho": "AgInt no REsp 1.945.211 (SE)",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "AgInt\nno  REsp Nº  1.\n945.211",
+   "ouro_que_cruza": [
+    [
+     4717,
+     4751,
+     "JURIS",
+     "AgInt\nno  REsp Nº  1.\n945.211 (SE)"
+    ]
+   ],
+   "nota": "'Nº' omitido e quebra dentro do número desfeita ('1.\\n945.211')"
+  },
+  {
+   "n": 19,
+   "conjunto": "estresse",
+   "id": "syn_n2_00147",
+   "posicao": 4,
+   "trecho": "art. 1.105 da Lei nº 13105/2D15",
+   "tipo": "LEI",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "Art. 1.105 da Lei nº 13105/2D15",
+   "ouro_que_cruza": [
+    [
+     1382,
+     1413,
+     "LEI",
+     "Art. 1.105 da Lei nº 13105/2D15"
+    ]
+   ],
+   "nota": "caixa trocada ('Art.' -> 'art.')"
+  },
+  {
+   "n": 20,
+   "conjunto": "estresse",
+   "id": "syn_n2_00161",
+   "posicao": 6,
+   "trecho": "Reclamação n° 88897 (MS)",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "Reclãmação n° 88897\n(MS",
+   "ouro_que_cruza": [
+    [
+     4590,
+     4614,
+     "JURIS",
+     "Reclãmação n° 88897\n(MS)"
+    ]
+   ],
+   "nota": "acento de OCR corrigido ('Reclãmação' -> 'Reclamação')"
+  },
+  {
+   "n": 21,
+   "conjunto": "estresse",
+   "id": "syn_n2_00163",
+   "posicao": 2,
+   "trecho": "Art. 288 da Constituição Federal",
+   "tipo": "LEI",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "Art. 288 da\nConstituição Fcderal",
+   "ouro_que_cruza": [
+    [
+     3172,
+     3204,
+     "LEI",
+     "Art. 288 da\nConstituição Fcderal"
+    ]
+   ],
+   "nota": "OCR corrigido ('Fcderal' -> 'Federal')"
+  },
+  {
+   "n": 22,
+   "conjunto": "estresse",
+   "id": "syn_n2_00171",
+   "posicao": 0,
+   "trecho": "REsp nº 1.234.567/SP",
+   "tipo": "JURIS",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": null,
+   "ouro_que_cruza": null,
+   "nota": "exemplo do prompt; número ausente do documento"
+  },
+  {
+   "n": 23,
+   "conjunto": "estresse",
+   "id": "syn_n2_00171",
+   "posicao": 1,
+   "trecho": "AgInt no AREsp 123.456/RJ",
+   "tipo": "JURIS",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": null,
+   "ouro_que_cruza": null,
+   "nota": "exemplo do prompt; número ausente do documento"
+  },
+  {
+   "n": 24,
+   "conjunto": "estresse",
+   "id": "syn_n2_00171",
+   "posicao": 2,
+   "trecho": "processo nº 0001234-56.2020.8.26.0000",
+   "tipo": "JURIS",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": null,
+   "ouro_que_cruza": null,
+   "nota": "exemplo do prompt; número ausente do documento"
+  },
+  {
+   "n": 25,
+   "conjunto": "estresse",
+   "id": "syn_n2_00171",
+   "posicao": 5,
+   "trecho": "art. 5º, X, da Constituição Federal",
+   "tipo": "LEI",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": null,
+   "ouro_que_cruza": null,
+   "nota": "exemplo do prompt (art. 5º, X, da CF); ausente do documento"
+  },
+  {
+   "n": 26,
+   "conjunto": "estresse",
+   "id": "syn_n2_00191",
+   "posicao": 0,
+   "trecho": "REcl. Nº 6b393",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "Recl.\nNº 6b393",
+   "ouro_que_cruza": [
+    [
+     1688,
+     1707,
+     "JURIS",
+     "Recl.\nNº 6b393\n(AP)"
+    ]
+   ],
+   "nota": "caixa trocada ('Recl.' -> 'REcl.')"
+  },
+  {
+   "n": 27,
+   "conjunto": "estresse",
+   "id": "syn_n2_00193",
+   "posicao": 2,
+   "trecho": "Reclamação N° 66.376 (DF)",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "Reclamação N° 66.\n376 (DF",
+   "ouro_que_cruza": [
+    [
+     1631,
+     1657,
+     "JURIS",
+     "Reclamação N° 66.\n376 (DF)"
+    ]
+   ],
+   "nota": "quebra dentro do número desfeita ('66.\\n376')"
+  },
+  {
+   "n": 28,
+   "conjunto": "estresse",
+   "id": "syn_n2_00203",
+   "posicao": 3,
+   "trecho": "Agravo Regimental no Recurso Especial Eleitoral n° 0600359-57.2020.6.24.0054",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "Agravo Regimental no Recurso Especial Elêitoral n° 0600359-57.2020.6.24.0054",
+   "ouro_que_cruza": [
+    [
+     2532,
+     2608,
+     "JURIS",
+     "Agravo Regimental no Recurso Especial Elêitoral n° 0600359-57.2020.6.24.0054"
+    ]
+   ],
+   "nota": "acento espúrio do OCR removido ('Elêitoral' -> 'Eleitoral')"
+  },
+  {
+   "n": 29,
+   "conjunto": "estresse",
+   "id": "syn_n2_00205",
+   "posicao": 2,
+   "trecho": "AgR-E-ED-ARR-205100-04.2007.5.02.0461",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "AgR-E-ED-ARR-205100- 04.2007.5.02.0461",
+   "ouro_que_cruza": [
+    [
+     1819,
+     1857,
+     "JURIS",
+     "AgR-E-ED-ARR-205100- 04.2007.5.02.0461"
+    ]
+   ],
+   "nota": "espaço dentro do número removido ('205100- 04' -> '205100-04')"
+  },
+  {
+   "n": 30,
+   "conjunto": "estresse",
+   "id": "syn_n2_00231",
+   "posicao": 4,
+   "trecho": "Agravo Intemo n0 Recurso Especial nº 2.000.406 - RJ",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "Agravo Intcmo n0 Recurso Especial nº 2.000.406 - RJ",
+   "ouro_que_cruza": [
+    [
+     2965,
+     3016,
+     "JURIS",
+     "Agravo Intcmo n0 Recurso Especial nº 2.000.406 - RJ"
+    ]
+   ],
+   "nota": "ruído de OCR trocado por outro ('Intcmo' -> 'Intemo')"
+  },
+  {
+   "n": 31,
+   "conjunto": "estresse",
+   "id": "syn_n2_00233",
+   "posicao": 5,
+   "trecho": "Tema 15T3 de repcrcussã0 geraI",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "Tcma\n15T3 de repcrcussã0 geraI",
+   "ouro_que_cruza": [
+    [
+     4043,
+     4073,
+     "JURIS",
+     "Tcma\n15T3 de repcrcussã0 geraI"
+    ]
+   ],
+   "nota": "OCR corrigido só em 'Tcma' -> 'Tema'; o resto do ruído foi copiado"
+  },
+  {
+   "n": 32,
+   "conjunto": "estresse",
+   "id": "syn_n2_00237",
+   "posicao": 3,
+   "trecho": "Rcclamação nº 34.46T/AM",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "Rcclamação nº\n34.\n46T/AM",
+   "ouro_que_cruza": [
+    [
+     2805,
+     2829,
+     "JURIS",
+     "Rcclamação nº\n34.\n46T/AM"
+    ]
+   ],
+   "nota": "quebras dentro do número desfeitas ('34.\\n46T')"
+  },
+  {
+   "n": 33,
+   "conjunto": "estresse",
+   "id": "syn_n2_00289",
+   "posicao": 0,
+   "trecho": "Recurso em Habeas Corpus Nº 851. 103 (SP)",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "Recurso ern Habeas Corpus Nº  851. 103 (S",
+   "ouro_que_cruza": [
+    [
+     961,
+     1004,
+     "JURIS",
+     "Recurso ern Habeas Corpus Nº  851. 103 (SP)"
+    ]
+   ],
+   "nota": "OCR corrigido ('ern' -> 'em')"
+  },
+  {
+   "n": 34,
+   "conjunto": "estresse",
+   "id": "syn_n2_00291",
+   "posicao": 5,
+   "trecho": "R.Esp.  Nº  4631131/SC",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "R.Esp.  Nº  4631131/\nSC",
+   "ouro_que_cruza": [
+    [
+     3373,
+     3396,
+     "JURIS",
+     "R.Esp.  Nº  4631131/\nSC"
+    ]
+   ],
+   "nota": "quebra entre '/' e 'SC' desfeita"
+  },
+  {
+   "n": 35,
+   "conjunto": "estresse",
+   "id": "syn_n2_00295",
+   "posicao": 5,
+   "trecho": "Súmula 331 do  TST",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "ula 331 do  TST",
+   "ouro_que_cruza": [
+    [
+     3907,
+     3926,
+     "JURIS",
+     "Súrnula 331 do  TST"
+    ]
+   ],
+   "nota": "OCR corrigido ('Súrnula' -> 'Súmula')"
+  },
+  {
+   "n": 36,
+   "conjunto": "estresse",
+   "id": "syn_n2_00297",
+   "posicao": 1,
+   "trecho": "STJ proferido em 2015 pela relatoria de HUMBERTO MARTINS",
+   "tipo": "VAGA",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "STJ proferido\nem\n2015 pela rclatoria de HUMBERTO MARTINS",
+   "ouro_que_cruza": [
+    [
+     2251,
+     2318,
+     "VAGA",
+     "julgado do STJ proferido\nem\n2015 pela rclatoria de HUMBERTO MARTINS"
+    ]
+   ],
+   "nota": "OCR corrigido ('rclatoria' -> 'relatoria'); começa depois de 'julgado do'"
+  },
+  {
+   "n": 37,
+   "conjunto": "estresse",
+   "id": "syn_n2_00303",
+   "posicao": 1,
+   "trecho": "Apelação No 7108870-86.2016.7.00.0000",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "Apelação No 7108870-86.2016. 7.00.0000",
+   "ouro_que_cruza": [
+    [
+     2436,
+     2474,
+     "JURIS",
+     "Apelação No 7108870-86.2016. 7.00.0000"
+    ]
+   ],
+   "nota": "espaço dentro do número removido ('2016. 7' -> '2016.7')"
+  },
+  {
+   "n": 38,
+   "conjunto": "estresse",
+   "id": "syn_n2_00319",
+   "posicao": 5,
+   "trecho": "Agravo Intemo no Recurso Especial n° 1700T60/SP",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "Agravo Intemo\nno Recurso Especlal n° 1700T60/SP",
+   "ouro_que_cruza": [
+    [
+     3080,
+     3153,
+     "JURIS",
+     "Embargos de Declaraçãô no Agravo Intemo\nno Recurso Especlal n° 1700T60/SP"
+    ]
+   ],
+   "nota": "OCR corrigido ('Especlal' -> 'Especial'); omite 'Embargos de Declaração no' do início da citação"
+  },
+  {
+   "n": 39,
+   "conjunto": "estresse",
+   "id": "syn_n2_00331",
+   "posicao": 0,
+   "trecho": "AgInt no AgREsp No 1148759 - RS",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "Ag. Int. no AgREsp No 1148759 - RS",
+   "ouro_que_cruza": [
+    [
+     805,
+     839,
+     "JURIS",
+     "Ag. Int. no AgREsp No 1148759 - RS"
+    ]
+   ],
+   "nota": "'Ag. Int.' contraído para 'AgInt'"
+  },
+  {
+   "n": 40,
+   "conjunto": "estresse",
+   "id": "syn_n2_00337",
+   "posicao": 0,
+   "trecho": "REsp nº 1.234.567/SP",
+   "tipo": "JURIS",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": "REsp n° 306157",
+   "ouro_que_cruza": [
+    [
+     3460,
+     3480,
+     "JURIS",
+     "REsp n° 3061572 (RJ)"
+    ]
+   ],
+   "nota": "exemplo do prompt; número ausente do documento"
+  },
+  {
+   "n": 41,
+   "conjunto": "estresse",
+   "id": "syn_n2_00337",
+   "posicao": 12,
+   "trecho": "art. 14 da Lei nº 8.078/1990",
+   "tipo": "LEI",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": null,
+   "ouro_que_cruza": null,
+   "nota": "exemplo do prompt (art. 14 da Lei 8.078/1990); o documento não cita art. 14 nem a lei"
+  },
+  {
+   "n": 42,
+   "conjunto": "estresse",
+   "id": "syn_n2_00341",
+   "posicao": 1,
+   "trecho": "julgado do stm proferido em 2q23 pela relatoria de carlos vuyk de aquino",
+   "tipo": "VAGA",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "julgado do STM proferido em 2Q23 pela relatoria de CARLOS VUYK DE AQUINO",
+   "ouro_que_cruza": [
+    [
+     592,
+     664,
+     "VAGA",
+     "julgado do STM proferido em 2Q23 pela relatoria de CARLOS VUYK DE AQUINO"
+    ]
+   ],
+   "nota": "VAGA inteira passada para minúsculas ('STM', 'CARLOS VUYK DE AQUINO')"
+  },
+  {
+   "n": 43,
+   "conjunto": "estresse",
+   "id": "syn_n2_00365",
+   "posicao": 2,
+   "trecho": "Art. 818, I, da CLT",
+   "tipo": "LEI",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "art. 818, I, da CLT",
+   "ouro_que_cruza": [
+    [
+     1672,
+     1691,
+     "LEI",
+     "art. 818, I, da CLT"
+    ]
+   ],
+   "nota": "caixa trocada ('art.' -> 'Art.')"
+  },
+  {
+   "n": 44,
+   "conjunto": "estresse",
+   "id": "syn_n2_00385",
+   "posicao": 1,
+   "trecho": "AgR no AREsp Nº 0600651-9420206050046",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "AgR no\nAREspe Nº 0600651-942020605004",
+   "ouro_que_cruza": [
+    [
+     2334,
+     2372,
+     "JURIS",
+     "AgR no\nAREspe Nº 0600651-9420206050046"
+    ]
+   ],
+   "nota": "'AREspe' reescrito como 'AREsp'"
+  },
+  {
+   "n": 45,
+   "conjunto": "estresse",
+   "id": "syn_n2_00399",
+   "posicao": 4,
+   "trecho": "Agravo Régimental N° 8022-30.2014.6.26.0000",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "Agravo Rcgimental\nN° 8022-30.2014.6.26.0000",
+   "ouro_que_cruza": [
+    [
+     2438,
+     2507,
+     "JURIS",
+     "Embargos de Declaracão no Agravo Rcgimental\nN° 8022-30.2014.6.26.0000"
+    ]
+   ],
+   "nota": "OCR 'Rcgimental' reescrito como 'Régimental'; omite 'Embargos de Declaração no'"
+  },
+  {
+   "n": 46,
+   "conjunto": "estresse",
+   "id": "syn_n2_00403",
+   "posicao": 6,
+   "trecho": "REspe n. 43342-43.2009.6.00.0000",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "REspe n. 43342-\n43.2009.6.00.0000",
+   "ouro_que_cruza": [
+    [
+     4279,
+     4312,
+     "JURIS",
+     "REspe n. 43342-\n43.2009.6.00.0000"
+    ]
+   ],
+   "nota": "quebra dentro do número desfeita ('43342-\\n43')"
+  },
+  {
+   "n": 47,
+   "conjunto": "estresse",
+   "id": "syn_n2_00421",
+   "posicao": 6,
+   "trecho": "Agravo Regirncntal no Agravo em Recurso Especial Eleitorãl n.  0600651-94.2020.6.05.0046",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "Agravo Regirncntal no Agravo em Recurso Especial Eleitorãl\nn.  0600651-94.2020.\n6.05.0046",
+   "ouro_que_cruza": [
+    [
+     5076,
+     5165,
+     "JURIS",
+     "Agravo Regirncntal no Agravo em Recurso Especial Eleitorãl\nn.  0600651-94.2020.\n6.05.0046"
+    ]
+   ],
+   "nota": "quebras dentro do número desfeitas ('94.2020.\\n6.05')"
+  },
+  {
+   "n": 48,
+   "conjunto": "estresse",
+   "id": "syn_n2_00433",
+   "posicao": 0,
+   "trecho": "Súmula 331/STJ",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "Súmula 211/STJ",
+   "ouro_que_cruza": [
+    [
+     2373,
+     2387,
+     "JURIS",
+     "Súmula 211/STJ"
+    ]
+   ],
+   "nota": "'5úm. 331/T5T' (no ouro) reescrito como 'Súmula 331/STJ': abreviatura expandida e OCR corrigido para o tribunal errado (TST -> STJ)"
+  },
+  {
+   "n": 49,
+   "conjunto": "estresse",
+   "id": "syn_n2_00435",
+   "posicao": 0,
+   "trecho": "Recurso em Habeas Corpus d0 STJ, de 2Q16, Rel. Min. Felix Flscher",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "Reeurso em  Habeas\nC0rpus d0 STJ, de 2Q16, Rel. Min. Felix Flscher",
+   "ouro_que_cruza": [
+    [
+     1701,
+     1767,
+     "VAGA",
+     "Reeurso em  Habeas\nC0rpus d0 STJ, de 2Q16, Rel. Min. Felix Flscher"
+    ]
+   ],
+   "nota": "OCR corrigido ('Reeurso' -> 'Recurso', 'C0rpus' -> 'Corpus')"
+  },
+  {
+   "n": 50,
+   "conjunto": "estresse",
+   "id": "syn_n2_00435",
+   "posicao": 6,
+   "trecho": "Recurso Especial nº 8.166.878 (RR)",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "Recurso Especlãl\nnº  8.166.878 (RR",
+   "ouro_que_cruza": [
+    [
+     4668,
+     4703,
+     "JURIS",
+     "Recurso Especlãl\nnº  8.166.878 (RR)"
+    ]
+   ],
+   "nota": "OCR corrigido ('Especlãl' -> 'Especial')"
+  },
+  {
+   "n": 51,
+   "conjunto": "estresse",
+   "id": "syn_n2_00443",
+   "posicao": 6,
+   "trecho": "AREsp n° 2.35b.763 (PI)",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "AREsp\nn° 2.\n35b.763 (PI",
+   "ouro_que_cruza": [
+    [
+     4965,
+     4989,
+     "JURIS",
+     "AREsp\nn° 2.\n35b.763 (PI)"
+    ]
+   ],
+   "nota": "quebra dentro do número desfeita ('2.\\n35b')"
+  },
+  {
+   "n": 52,
+   "conjunto": "estresse",
+   "id": "syn_n2_00451",
+   "posicao": 6,
+   "trecho": "ARR n° 57-24.2010.5.04.0004",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "ARR n° 57-24.2010.\n5.04.0004",
+   "ouro_que_cruza": [
+    [
+     1603,
+     1631,
+     "JURIS",
+     "ARR n° 57-24.2010.\n5.04.0004"
+    ]
+   ],
+   "nota": "quebra dentro do número desfeita ('2010.\\n5.04')"
+  },
+  {
+   "n": 53,
+   "conjunto": "estresse",
+   "id": "syn_n2_00453",
+   "posicao": 6,
+   "trecho": "Rcl No 33.409 (SP)",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "Rcl\nNo 33.\n409 (SP",
+   "ouro_que_cruza": [
+    [
+     3840,
+     3859,
+     "JURIS",
+     "Rcl\nNo 33.\n409 (SP)"
+    ]
+   ],
+   "nota": "quebra dentro do número desfeita ('33.\\n409')"
+  },
+  {
+   "n": 54,
+   "conjunto": "estresse",
+   "id": "syn_n2_00467",
+   "posicao": 0,
+   "trecho": "AgInt no AREsp 1546716/SP",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "Ag.Int. no AREsp Nº 1546716",
+   "ouro_que_cruza": [
+    [
+     788,
+     819,
+     "JURIS",
+     "Ag.Int. no AREsp Nº 1546716/ SP"
+    ]
+   ],
+   "nota": "'Ag.Int.' -> 'AgInt', 'Nº' omitido, '/ SP' -> '/SP'"
+  },
+  {
+   "n": 55,
+   "conjunto": "estresse",
+   "id": "syn_n2_00469",
+   "posicao": 1,
+   "trecho": "AgInt no AREsp 123.456/RJ",
+   "tipo": "JURIS",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": null,
+   "ouro_que_cruza": null,
+   "nota": "exemplo do prompt; número ausente do documento"
+  },
+  {
+   "n": 56,
+   "conjunto": "estresse",
+   "id": "syn_n2_00469",
+   "posicao": 6,
+   "trecho": "artigo 927 do CPC",
+   "tipo": "LEI",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": "o art. 874 do CP",
+   "ouro_que_cruza": [
+    [
+     3104,
+     3119,
+     "LEI",
+     "art. 874 do CPP"
+    ]
+   ],
+   "nota": "exemplo do prompt ('artigo 927 do CPC'); o documento cita o art. 874 do CPP, não o 927"
+  },
+  {
+   "n": 57,
+   "conjunto": "estresse",
+   "id": "syn_n2_00491",
+   "posicao": 0,
+   "trecho": "REsp nº 4.039.965-SC",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "Especial n.\n4.o39.965-SC",
+   "ouro_que_cruza": [
+    [
+     3833,
+     3865,
+     "JURIS",
+     "Recurso Especial n.\n4.o39.965-SC"
+    ]
+   ],
+   "nota": "'Recurso Especial n. 4.o39.965-SC' abreviado para 'REsp nº' e OCR corrigido ('o' -> '0')"
+  },
+  {
+   "n": 58,
+   "conjunto": "estresse",
+   "id": "syn_n2_00497",
+   "posicao": 0,
+   "trecho": "Súmula 625 do TSE",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "ula 625\ndo TSE",
+   "ouro_que_cruza": [
+    [
+     856,
+     874,
+     "JURIS",
+     "Súrnula 625\ndo TSE"
+    ]
+   ],
+   "nota": "OCR corrigido ('Súrnula' -> 'Súmula')"
+  },
+  {
+   "n": 59,
+   "conjunto": "estresse",
+   "id": "syn_n2_00499",
+   "posicao": 1,
+   "trecho": "Tema 2258 da repercussão geral",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "Tema 2258 da repcrcussão geral",
+   "ouro_que_cruza": [
+    [
+     2604,
+     2634,
+     "JURIS",
+     "Tema 2258 da repcrcussão geral"
+    ]
+   ],
+   "nota": "OCR corrigido ('repcrcussão' -> 'repercussão')"
+  },
+  {
+   "n": 60,
+   "conjunto": "estresse",
+   "id": "syn_n2_00511",
+   "posicao": 6,
+   "trecho": "TST-ARR-792-11.2011.5.05.0193",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "TST-ARR-792-\n11.2011.5.05.0193",
+   "ouro_que_cruza": [
+    [
+     4514,
+     4544,
+     "JURIS",
+     "TST-ARR-792-\n11.2011.5.05.0193"
+    ]
+   ],
+   "nota": "quebra dentro do número desfeita ('792-\\n11')"
+  },
+  {
+   "n": 61,
+   "conjunto": "estresse",
+   "id": "syn_n2_00515",
+   "posicao": 2,
+   "trecho": "ApeIação N° 7000771-60.2023.7.00.0000/RS",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "ApeIação N°\n7000771-60.2023.7.00.0000/\nRS",
+   "ouro_que_cruza": [
+    [
+     1413,
+     1454,
+     "JURIS",
+     "ApeIação N°\n7000771-60.2023.7.00.0000/\nRS"
+    ]
+   ],
+   "nota": "quebra entre '/' e 'RS' desfeita"
+  },
+  {
+   "n": 62,
+   "conjunto": "estresse",
+   "id": "syn_n2_00517",
+   "posicao": 0,
+   "trecho": "precedente do STJ julgado em 202D sob a relatoria de MAURO CAMPBELL MARQUES",
+   "tipo": "VAGA",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "precedente do STJ, julgãdo em 202D sob a relatoria de MAURO CAMPBELL\nMARQUES",
+   "ouro_que_cruza": [
+    [
+     539,
+     615,
+     "VAGA",
+     "precedente do STJ, julgãdo em 202D sob a relatoria de MAURO CAMPBELL\nMARQUES"
+    ]
+   ],
+   "nota": "vírgula removida e acento de OCR corrigido ('julgãdo')"
+  },
+  {
+   "n": 63,
+   "conjunto": "estresse",
+   "id": "syn_n2_00527",
+   "posicao": 0,
+   "trecho": "precedente do STF de 20Z6",
+   "tipo": "VAGA",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "precedênte\ndo STF de 20Z6",
+   "ouro_que_cruza": [
+    [
+     678,
+     732,
+     "VAGA",
+     "precedênte\ndo STF de 20Z6, da relatorla de FLÁVIO D1NO"
+    ]
+   ],
+   "nota": "acento de OCR removido ('precedênte'); para antes do relator, em fronteira de palavra (não é corte no meio de palavra)"
+  },
+  {
+   "n": 64,
+   "conjunto": "estresse",
+   "id": "syn_n2_00541",
+   "posicao": 5,
+   "trecho": "art. 14 da Lei nº 8.078/1990",
+   "tipo": "LEI",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": null,
+   "ouro_que_cruza": null,
+   "nota": "exemplo do prompt (art. 14 da Lei 8.078/1990); ausente do documento"
+  },
+  {
+   "n": 65,
+   "conjunto": "estresse",
+   "id": "syn_n2_00541",
+   "posicao": 9,
+   "trecho": "art. 5º, X, da Constituição Federal",
+   "tipo": "LEI",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": "art. 321 da Constituição d",
+   "ouro_que_cruza": [
+    [
+     1437,
+     1474,
+     "LEI",
+     "art. 321 da Constituição dã Repúbliea"
+    ]
+   ],
+   "nota": "exemplo do prompt (art. 5º, X, da CF); o documento cita o art. 321 da Constituição, não o 5º"
+  },
+  {
+   "n": 66,
+   "conjunto": "estresse",
+   "id": "syn_n2_00547",
+   "posicao": 3,
+   "trecho": "acórdão do STJ julgado em 201B sob relatoria dc Felix Fischer",
+   "tipo": "VAGA",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "acórdão do STJ ju1gado em 201B sob rclatoria dc Felix Fischer",
+   "ouro_que_cruza": [
+    [
+     3732,
+     3793,
+     "VAGA",
+     "acórdão do STJ ju1gado em 201B sob rclatoria dc Felix Fischer"
+    ]
+   ],
+   "nota": "OCR corrigido ('ju1gado', 'rclatoria')"
+  },
+  {
+   "n": 67,
+   "conjunto": "reais",
+   "id": "real_00041",
+   "posicao": 0,
+   "trecho": "art. 155, § 2º, I DA CONSTITUIÇÃO",
+   "tipo": "LEI",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "ART. 155, § 2º, I DA CONSTITUIÇÃO",
+   "ouro_que_cruza": [
+    [
+     840,
+     873,
+     "LEI",
+     "ART. 155, § 2º, I DA CONSTITUIÇÃO"
+    ]
+   ],
+   "nota": "caixa trocada ('ART.' -> 'art.')"
+  },
+  {
+   "n": 68,
+   "conjunto": "reais",
+   "id": "real_00269",
+   "posicao": 6,
+   "trecho": "HC 100724/SC",
+   "tipo": "JURIS",
+   "categoria": "ocorrencia_errada_alinhamento",
+   "sugestao_automatica": "ocorrencia_errada_alinhamento",
+   "texto_do_documento": "HC 100724/SC",
+   "ouro_que_cruza": [
+    [
+     1220,
+     1232,
+     "JURIS",
+     "HC 100724/SC"
+    ]
+   ],
+   "nota": "repete o HC 100724/SC já alinhado"
+  },
+  {
+   "n": 69,
+   "conjunto": "reais",
+   "id": "real_00340",
+   "posicao": 7,
+   "trecho": "art. 40, § 4º, da CF/88",
+   "tipo": "LEI",
+   "categoria": "ocorrencia_errada_alinhamento",
+   "sugestao_automatica": "ocorrencia_errada_alinhamento",
+   "texto_do_documento": "art. 40, § 4º, da CF/88",
+   "ouro_que_cruza": [
+    [
+     1619,
+     1642,
+     "LEI",
+     "art. 40, § 4º, da CF/88"
+    ]
+   ],
+   "nota": "repete o art. 40, § 4º, da CF/88 já alinhado"
+  },
+  {
+   "n": 70,
+   "conjunto": "reais",
+   "id": "real_00627",
+   "posicao": 0,
+   "trecho": "Súmula 280 do STF",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "SÚMULA\n   280 DO",
+   "ouro_que_cruza": [
+    [
+     180,
+     221,
+     "JURIS",
+     "SÚMULA\n   280 DO SUPREMO TRIBUNAL FEDERAL"
+    ]
+   ],
+   "nota": "'SÚMULA 280 DO SUPREMO TRIBUNAL FEDERAL' abreviado para 'Súmula 280 do STF'"
+  },
+  {
+   "n": 71,
+   "conjunto": "reais",
+   "id": "real_00716",
+   "posicao": 5,
+   "trecho": "processo nº 0001234-56.2020.8.26.0000",
+   "tipo": "JURIS",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": null,
+   "ouro_que_cruza": null,
+   "nota": "exemplo do prompt; ausente do documento"
+  },
+  {
+   "n": 72,
+   "conjunto": "reais",
+   "id": "real_00728",
+   "posicao": 0,
+   "trecho": "REsp nº 1.234.567/SP",
+   "tipo": "JURIS",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": null,
+   "ouro_que_cruza": null,
+   "nota": "exemplo do prompt; ausente do documento"
+  },
+  {
+   "n": 73,
+   "conjunto": "reais",
+   "id": "real_00728",
+   "posicao": 2,
+   "trecho": "processo nº 0001234-56.2020.8.26.0000",
+   "tipo": "JURIS",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": null,
+   "ouro_que_cruza": null,
+   "nota": "exemplo do prompt; ausente do documento"
+  },
+  {
+   "n": 74,
+   "conjunto": "reais",
+   "id": "real_00728",
+   "posicao": 3,
+   "trecho": "Súmula 7 do STJ",
+   "tipo": "JURIS",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": null,
+   "ouro_que_cruza": null,
+   "nota": "exemplo do prompt (Súmula 7 do STJ); o documento não cita a Súmula 7"
+  },
+  {
+   "n": 75,
+   "conjunto": "reais",
+   "id": "real_00728",
+   "posicao": 7,
+   "trecho": "art. 14 da Lei nº 8.078/1990",
+   "tipo": "LEI",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": null,
+   "ouro_que_cruza": null,
+   "nota": "exemplo do prompt; ausente do documento"
+  },
+  {
+   "n": 76,
+   "conjunto": "reais",
+   "id": "real_00728",
+   "posicao": 8,
+   "trecho": "precedente do STJ julgado em 2021 sob a relatoria de Nancy Andrighi",
+   "tipo": "VAGA",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": null,
+   "ouro_que_cruza": null,
+   "nota": "exemplo do prompt (Nancy Andrighi, 2021); ausente do documento"
+  },
+  {
+   "n": 77,
+   "conjunto": "reais",
+   "id": "real_00747",
+   "posicao": 0,
+   "trecho": "artigo 155, § 2º, inciso X, alínea \"b\", da Constituição Federal",
+   "tipo": "LEI",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "artigo 155, § 2º, inciso X, alínea “b”, da Constituição Federal",
+   "ouro_que_cruza": [
+    [
+     139,
+     202,
+     "LEI",
+     "artigo 155, § 2º, inciso X, alínea “b”, da Constituição Federal"
+    ]
+   ],
+   "nota": "aspas tipográficas trocadas por retas ('“b”' -> '\"b\"')"
+  },
+  {
+   "n": 78,
+   "conjunto": "reais",
+   "id": "real_00748",
+   "posicao": 2,
+   "trecho": "art. 37, XIV, da Constituição",
+   "tipo": "LEI",
+   "categoria": "ocorrencia_errada_alinhamento",
+   "sugestao_automatica": "ocorrencia_errada_alinhamento",
+   "texto_do_documento": "art. 37, XIV, da\n   Constituição",
+   "ouro_que_cruza": [
+    [
+     98,
+     130,
+     "LEI",
+     "art. 37, XIV, da\n   Constituição"
+    ]
+   ],
+   "nota": "contido no span 'primitivo art. 37, XIV, da Constituição' que o modelo listou e alinhou antes"
+  },
+  {
+   "n": 79,
+   "conjunto": "reais",
+   "id": "real_01030",
+   "posicao": 0,
+   "trecho": "art. 100, parágrafo único, do CPC",
+   "tipo": "LEI",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "ART. 100, PARÁGRAFO ÚNICO, DO CPC",
+   "ouro_que_cruza": [
+    [
+     81,
+     114,
+     "LEI",
+     "ART. 100, PARÁGRAFO ÚNICO, DO CPC"
+    ]
+   ],
+   "nota": "caixa trocada ('ART. 100, PARÁGRAFO ÚNICO, DO CPC' em minúsculas)"
+  },
+  {
+   "n": 80,
+   "conjunto": "reais",
+   "id": "real_01038",
+   "posicao": 1,
+   "trecho": "Súmulas 5 e 7/STJ",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "SÚMULAS 5 E 7/STJ",
+   "ouro_que_cruza": [
+    [
+     433,
+     450,
+     "JURIS",
+     "SÚMULAS 5 E 7/STJ"
+    ]
+   ],
+   "nota": "caixa trocada ('SÚMULAS 5 E 7/STJ')"
+  },
+  {
+   "n": 81,
+   "conjunto": "reais",
+   "id": "real_01038",
+   "posicao": 4,
+   "trecho": "REsp 1.640.856/RS",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "REsp 1.\n640.856/RS",
+   "ouro_que_cruza": [
+    [
+     8160,
+     8178,
+     "JURIS",
+     "REsp 1.\n640.856/RS"
+    ]
+   ],
+   "nota": "quebra dentro do número desfeita ('1.\\n640.856')"
+  },
+  {
+   "n": 82,
+   "conjunto": "reais",
+   "id": "real_01094",
+   "posicao": 0,
+   "trecho": "art. 27 do CDC",
+   "tipo": "LEI",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "ART. 27 DO CDC",
+   "ouro_que_cruza": [
+    [
+     131,
+     145,
+     "LEI",
+     "ART. 27 DO CDC"
+    ]
+   ],
+   "nota": "caixa trocada ('ART. 27 DO CDC')"
+  },
+  {
+   "n": 83,
+   "conjunto": "reais",
+   "id": "real_01125",
+   "posicao": 4,
+   "trecho": "art. 15-B do DL. 3.365/1941",
+   "tipo": "LEI",
+   "categoria": "ocorrencia_errada_alinhamento",
+   "sugestao_automatica": "ocorrencia_errada_alinhamento",
+   "texto_do_documento": "art. 15-B do DL. 3.365/1941",
+   "ouro_que_cruza": [
+    [
+     1740,
+     1767,
+     "LEI",
+     "art. 15-B do DL. 3.365/1941"
+    ]
+   ],
+   "nota": "repete o art. 15-B do DL 3.365/1941 já alinhado"
+  },
+  {
+   "n": 84,
+   "conjunto": "reais",
+   "id": "real_01139",
+   "posicao": 6,
+   "trecho": "precedente do STJ julgado em 2021 sob a relatoria de Nancy Andrighi",
+   "tipo": "VAGA",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": null,
+   "ouro_que_cruza": null,
+   "nota": "exemplo do prompt (Nancy Andrighi, 2021); ausente do documento"
+  },
+  {
+   "n": 85,
+   "conjunto": "reais",
+   "id": "real_01235",
+   "posicao": 1,
+   "trecho": "art. 5º, X, da Constituição Federal",
+   "tipo": "LEI",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": null,
+   "ouro_que_cruza": null,
+   "nota": "exemplo do prompt (art. 5º, X, da CF); ausente do documento"
+  },
+  {
+   "n": 86,
+   "conjunto": "reais",
+   "id": "real_01426",
+   "posicao": 1,
+   "trecho": "artigo de lei federal violada",
+   "tipo": "VAGA",
+   "categoria": "nao_e_citacao",
+   "sugestao_automatica": "nao_e_citacao",
+   "texto_do_documento": "ARTIGO DE LEI FEDERAL VIOLADA",
+   "ouro_que_cruza": [],
+   "nota": "'ARTIGO DE LEI FEDERAL VIOLADA', palavra-chave da ementa sem fonte, passada para minúsculas e rotulada VAGA"
+  },
+  {
+   "n": 87,
+   "conjunto": "reais",
+   "id": "real_01426",
+   "posicao": 2,
+   "trecho": "enunciado 284 da súmula/stf",
+   "tipo": "VAGA",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "nao_e_citacao",
+   "texto_do_documento": "ENUNCIADO 284 DA SÚMULA/STF",
+   "ouro_que_cruza": [],
+   "nota": "'ENUNCIADO 284 DA SÚMULA/STF' em minúsculas; é citação (Súmula 284/STF), embora o ouro desta ementa não a anote"
+  },
+  {
+   "n": 88,
+   "conjunto": "reais",
+   "id": "real_01426",
+   "posicao": 3,
+   "trecho": "artigo 54 da súmula deste superior tribunal",
+   "tipo": "VAGA",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "nao_e_citacao",
+   "texto_do_documento": "iado nº 54 da Súmula deste Superior Tribunal",
+   "ouro_que_cruza": [],
+   "nota": "'enunciado nº 54 da Súmula deste Superior Tribunal' reescrito como 'artigo 54 da súmula...' em minúsculas; é citação (Súmula 54/STJ) que o ouro não anota nesta passagem"
+  },
+  {
+   "n": 89,
+   "conjunto": "reais",
+   "id": "real_01426",
+   "posicao": 4,
+   "trecho": "enunciado sumular nº 211/stj",
+   "tipo": "VAGA",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "nao_e_citacao",
+   "texto_do_documento": "ENUNCIADO SUMULAR Nº 211/STJ",
+   "ouro_que_cruza": [],
+   "nota": "'ENUNCIADO SUMULAR Nº 211/STJ' em minúsculas (a ocorrência do corpo está no ouro; a do cabeçalho, não)"
+  },
+  {
+   "n": 90,
+   "conjunto": "reais",
+   "id": "real_01426",
+   "posicao": 5,
+   "trecho": "art. 1º do decreto 20.910/1932",
+   "tipo": "LEI",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "art. 1º do Decreto 20.910/1932",
+   "ouro_que_cruza": [
+    [
+     2196,
+     2226,
+     "LEI",
+     "art. 1º do Decreto 20.910/1932"
+    ]
+   ],
+   "nota": "caixa trocada ('Decreto' -> 'decreto')"
+  },
+  {
+   "n": 91,
+   "conjunto": "reais",
+   "id": "real_01428",
+   "posicao": 8,
+   "trecho": "RECURSO ESPECIAL",
+   "tipo": "JURIS",
+   "categoria": "nao_e_citacao",
+   "sugestao_automatica": "nao_e_citacao",
+   "texto_do_documento": "Recurso Especial",
+   "ouro_que_cruza": [],
+   "nota": "'Recurso Especial' sem número (nome da classe processual), passado para maiúsculas"
+  },
+  {
+   "n": 92,
+   "conjunto": "reais",
+   "id": "real_01428",
+   "posicao": 10,
+   "trecho": "RECURSO ESPECIAL",
+   "tipo": "JURIS",
+   "categoria": "nao_e_citacao",
+   "sugestao_automatica": "nao_e_citacao",
+   "texto_do_documento": "Recurso Especial",
+   "ouro_que_cruza": [],
+   "nota": "a segunda ocorrência de 'Recurso Especial' sem número, também em maiúsculas"
+  },
+  {
+   "n": 93,
+   "conjunto": "reais",
+   "id": "real_01497",
+   "posicao": 4,
+   "trecho": "art. 1.022 do CPC",
+   "tipo": "LEI",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "ART. 1.022 DO CPC",
+   "ouro_que_cruza": [
+    [
+     260,
+     277,
+     "LEI",
+     "ART. 1.022 DO CPC"
+    ]
+   ],
+   "nota": "caixa trocada ('ART. 1.022 DO CPC')"
+  },
+  {
+   "n": 94,
+   "conjunto": "reais",
+   "id": "real_01498",
+   "posicao": 4,
+   "trecho": "artigo 535 do Código de Processo Civil de 1973",
+   "tipo": "LEI",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "tigo art. 535 do Código de Processo Civil de 197",
+   "ouro_que_cruza": [
+    [
+     1457,
+     1501,
+     "LEI",
+     "art. 535 do Código de Processo Civil de 1973"
+    ]
+   ],
+   "nota": "'antigo art. 535 do CPC de 1973' reescrito como 'artigo 535 ...' (abreviatura expandida)"
+  },
+  {
+   "n": 95,
+   "conjunto": "reais",
+   "id": "real_01498",
+   "posicao": 10,
+   "trecho": "Súmula n. 282/STF",
+   "tipo": "LEI",
+   "categoria": "ocorrencia_errada_alinhamento",
+   "sugestao_automatica": "ocorrencia_errada_alinhamento",
+   "texto_do_documento": "Súmula n. 282/STF",
+   "ouro_que_cruza": [
+    [
+     1208,
+     1225,
+     "JURIS",
+     "Súmula n. 282/STF"
+    ]
+   ],
+   "nota": "repete a Súmula n. 282/STF já alinhada (antes com tipo LEI)"
+  },
+  {
+   "n": 96,
+   "conjunto": "reais",
+   "id": "real_01509",
+   "posicao": 2,
+   "trecho": "Súmula n. 7 desta Corte Superior de Justiça",
+   "tipo": "JURIS",
+   "categoria": "ocorrencia_errada_alinhamento",
+   "sugestao_automatica": "ocorrencia_errada_alinhamento",
+   "texto_do_documento": "Súmula n. 7 desta Corte Superior de Justiça",
+   "ouro_que_cruza": [
+    [
+     3297,
+     3340,
+     "JURIS",
+     "Súmula n. 7 desta Corte Superior de Justiça"
+    ]
+   ],
+   "nota": "o modelo listou e alinhou antes 'Súmula n. 7', que este trecho maior cruza"
+  },
+  {
+   "n": 97,
+   "conjunto": "reais",
+   "id": "real_01509",
+   "posicao": 8,
+   "trecho": "artigo 927 do CPC",
+   "tipo": "LEI",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": "ARTIGO 471 DO CPC",
+   "ouro_que_cruza": [
+    [
+     158,
+     175,
+     "LEI",
+     "ARTIGO 471 DO CPC"
+    ]
+   ],
+   "nota": "exemplo do prompt ('artigo 927 do CPC'); o documento cita o art. 471 do CPC, não o 927"
+  },
+  {
+   "n": 98,
+   "conjunto": "reais",
+   "id": "real_01512",
+   "posicao": 5,
+   "trecho": "art. 14 da Lei nº 8.078/1990",
+   "tipo": "LEI",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": null,
+   "ouro_que_cruza": null,
+   "nota": "exemplo do prompt; ausente do documento"
+  },
+  {
+   "n": 99,
+   "conjunto": "reais",
+   "id": "real_01512",
+   "posicao": 9,
+   "trecho": "AgInt no AREsp 123.456/RJ",
+   "tipo": "JURIS",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": null,
+   "ouro_que_cruza": null,
+   "nota": "exemplo do prompt; ausente do documento"
+  },
+  {
+   "n": 100,
+   "conjunto": "reais",
+   "id": "real_01530",
+   "posicao": 0,
+   "trecho": "art. 10 da Lei 7.661/1988",
+   "tipo": "LEI",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "ART. 10 DA LEI 7.661/1988",
+   "ouro_que_cruza": [
+    [
+     74,
+     99,
+     "LEI",
+     "ART. 10 DA LEI 7.661/1988"
+    ]
+   ],
+   "nota": "caixa trocada ('ART. 10 DA LEI 7.661/1988')"
+  },
+  {
+   "n": 101,
+   "conjunto": "reais",
+   "id": "real_01530",
+   "posicao": 6,
+   "trecho": "art. 4° da Lei 9.636/1998",
+   "tipo": "LEI",
+   "categoria": "ocorrencia_errada_alinhamento",
+   "sugestao_automatica": "ocorrencia_errada_alinhamento",
+   "texto_do_documento": "art. 4° da Lei 9.636/1998",
+   "ouro_que_cruza": [
+    [
+     6696,
+     6721,
+     "LEI",
+     "art. 4° da Lei 9.636/1998"
+    ]
+   ],
+   "nota": "repete o art. 4° da Lei 9.636/1998 já alinhado"
+  },
+  {
+   "n": 102,
+   "conjunto": "reais",
+   "id": "real_01564",
+   "posicao": 15,
+   "trecho": "art. 935 do CC/2002",
+   "tipo": "LEI",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "935 DO CC/2002",
+   "ouro_que_cruza": [
+    [
+     285,
+     311,
+     "LEI",
+     "ARTS. 200 E 935 DO CC/2002"
+    ]
+   ],
+   "nota": "'ARTS. 200 E 935 DO CC/2002' desmembrado em 'art. 935 do CC/2002' (pedaços não contíguos juntados, caixa trocada)"
+  },
+  {
+   "n": 103,
+   "conjunto": "reais",
+   "id": "real_01564",
+   "posicao": 21,
+   "trecho": "art. 189, 206, § 3º, IV, V, do CC/2002",
+   "tipo": "LEI",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "ARTS. 189, 206, § 3º, IV, V, DO CC/200",
+   "ouro_que_cruza": [
+    [
+     4420,
+     4459,
+     "LEI",
+     "ARTS. 189, 206, § 3º, IV, V, DO CC/2002"
+    ]
+   ],
+   "nota": "'ARTS.' -> 'art.' e caixa trocada"
+  },
+  {
+   "n": 104,
+   "conjunto": "reais",
+   "id": "real_01564",
+   "posicao": 25,
+   "trecho": "art. 36 e também no § 3° da Lei 12.529/2011",
+   "tipo": "LEI",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "Artigo 36 e também no § 3° da Lei 12.529/2",
+   "ouro_que_cruza": [
+    [
+     1408,
+     1453,
+     "LEI",
+     "Artigo 36 e também no § 3° da Lei 12.529/2011"
+    ]
+   ],
+   "nota": "'Artigo 36' abreviado para 'art. 36'"
+  },
+  {
+   "n": 105,
+   "conjunto": "reais",
+   "id": "real_01638",
+   "posicao": 0,
+   "trecho": "Súmula n.º 221-STJ",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "súmula n.º 221-STJ",
+   "ouro_que_cruza": [
+    [
+     440,
+     458,
+     "JURIS",
+     "súmula n.º 221-STJ"
+    ]
+   ],
+   "nota": "caixa trocada ('súmula' -> 'Súmula')"
+  },
+  {
+   "n": 106,
+   "conjunto": "reais",
+   "id": "real_01681",
+   "posicao": 1,
+   "trecho": "art. 5º, X, da Constituição Federal",
+   "tipo": "LEI",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": null,
+   "ouro_que_cruza": null,
+   "nota": "exemplo do prompt (art. 5º, X, da CF); ausente do documento"
+  },
+  {
+   "n": 107,
+   "conjunto": "reais",
+   "id": "real_01776",
+   "posicao": 4,
+   "trecho": "artigo 927 do CPC",
+   "tipo": "LEI",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": null,
+   "ouro_que_cruza": null,
+   "nota": "exemplo do prompt ('artigo 927 do CPC'); ausente do documento"
+  },
+  {
+   "n": 108,
+   "conjunto": "reais",
+   "id": "real_01776",
+   "posicao": 5,
+   "trecho": "art. 14 da Lei nº 8.078/1990",
+   "tipo": "LEI",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": "do pela Lei n. 8.078/90",
+   "ouro_que_cruza": [],
+   "nota": "AMBÍGUO: igual ao exemplo do prompt, mas o documento cita 'art. 14 do CDC' (no ouro; CDC = Lei 8.078/1990). Como a passagem existe, a regra manda 'reescrita'; lido como cópia do prompt, seria 'inexistente'"
+  },
+  {
+   "n": 109,
+   "conjunto": "reais",
+   "id": "real_01787",
+   "posicao": 3,
+   "trecho": "art. 535 do CPC",
+   "tipo": "LEI",
+   "categoria": "ocorrencia_errada_alinhamento",
+   "sugestao_automatica": "ocorrencia_errada_alinhamento",
+   "texto_do_documento": "art. 535 do CPC",
+   "ouro_que_cruza": [
+    [
+     364,
+     379,
+     "LEI",
+     "art. 535 do CPC"
+    ]
+   ],
+   "nota": "repete o art. 535 do CPC já alinhado"
+  },
+  {
+   "n": 110,
+   "conjunto": "reais",
+   "id": "real_01813",
+   "posicao": 4,
+   "trecho": "art. 3º DA LEI 7.347/1985",
+   "tipo": "LEI",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "ART. 3º DA LEI 7.347/1985",
+   "ouro_que_cruza": [
+    [
+     308,
+     333,
+     "LEI",
+     "ART. 3º DA LEI 7.347/1985"
+    ]
+   ],
+   "nota": "caixa trocada ('ART. 3º')"
+  },
+  {
+   "n": 111,
+   "conjunto": "reais",
+   "id": "real_01968",
+   "posicao": 4,
+   "trecho": "Tema 1.046 da repercussão geral",
+   "tipo": "JURIS",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": null,
+   "ouro_que_cruza": null,
+   "nota": "exemplo do prompt (Tema 1.046); ausente do documento"
+  },
+  {
+   "n": 112,
+   "conjunto": "reais",
+   "id": "real_01968",
+   "posicao": 8,
+   "trecho": "precedente do STJ julgado em 2021 sob a relatoria de Nancy Andrighi",
+   "tipo": "VAGA",
+   "categoria": "inexistente",
+   "sugestao_automatica": "inexistente",
+   "texto_do_documento": null,
+   "ouro_que_cruza": null,
+   "nota": "exemplo do prompt (Nancy Andrighi, 2021); ausente do documento"
+  },
+  {
+   "n": 113,
+   "conjunto": "reais",
+   "id": "real_01986",
+   "posicao": 4,
+   "trecho": "art. 927 do CPC",
+   "tipo": "LEI",
+   "categoria": "inexistente",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "e art. 935, do CP",
+   "ouro_que_cruza": [
+    [
+     757,
+     765,
+     "LEI",
+     "art. 935"
+    ]
+   ],
+   "nota": "'art. 927 do CPC', variação do exemplo 'artigo 927 do CPC'; o documento cita os arts. 932 e 935 do CC, não o 927 do CPC"
+  },
+  {
+   "n": 114,
+   "conjunto": "reais",
+   "id": "real_02119",
+   "posicao": 4,
+   "trecho": "art. 485, III, DO CPC",
+   "tipo": "LEI",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "ART. 485, III, DO CPC",
+   "ouro_que_cruza": [
+    [
+     247,
+     268,
+     "LEI",
+     "ART. 485, III, DO CPC"
+    ]
+   ],
+   "nota": "caixa trocada ('ART. 485, III')"
+  },
+  {
+   "n": 115,
+   "conjunto": "reais",
+   "id": "real_02179",
+   "posicao": 1,
+   "trecho": "súmula nº 342",
+   "tipo": "JURIS",
+   "categoria": "ocorrencia_errada_alinhamento",
+   "sugestao_automatica": "ocorrencia_errada_alinhamento",
+   "texto_do_documento": "súmula nº 342",
+   "ouro_que_cruza": [
+    [
+     137,
+     150,
+     "JURIS",
+     "súmula nº 342"
+    ]
+   ],
+   "nota": "contido no span 'Cancelamento da súmula nº 342 pelo Órgão Especial desta Corte' que o modelo listou e alinhou antes"
+  },
+  {
+   "n": 116,
+   "conjunto": "reais",
+   "id": "real_02194",
+   "posicao": 0,
+   "trecho": "REsp nº 1.168.625/MG",
+   "tipo": "JURIS",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "RESP N° 1.168.625/MG",
+   "ouro_que_cruza": [
+    [
+     631,
+     651,
+     "JURIS",
+     "RESP N° 1.168.625/MG"
+    ]
+   ],
+   "nota": "'RESP N°' -> 'REsp nº'"
+  },
+  {
+   "n": 117,
+   "conjunto": "reais",
+   "id": "real_02194",
+   "posicao": 1,
+   "trecho": "art. 34, §1º, DA LEI N° 6.830/80",
+   "tipo": "LEI",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "ART. 34, §1º, DA LEI N° 6.830/80",
+   "ouro_que_cruza": [
+    [
+     387,
+     419,
+     "LEI",
+     "ART. 34, §1º, DA LEI N° 6.830/80"
+    ]
+   ],
+   "nota": "caixa trocada ('ART. 34')"
+  },
+  {
+   "n": 118,
+   "conjunto": "reais",
+   "id": "real_02194",
+   "posicao": 4,
+   "trecho": "art. 485, III, DO CPC",
+   "tipo": "LEI",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "ART. 485, III, DO CPC",
+   "ouro_que_cruza": [
+    [
+     247,
+     268,
+     "LEI",
+     "ART. 485, III, DO CPC"
+    ]
+   ],
+   "nota": "caixa trocada ('ART. 485, III')"
+  },
+  {
+   "n": 119,
+   "conjunto": "reais",
+   "id": "real_02253",
+   "posicao": 1,
+   "trecho": "art. 485, IV, do CPC",
+   "tipo": "LEI",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "ART. 485, IV, DO CPC",
+   "ouro_que_cruza": [
+    [
+     795,
+     815,
+     "LEI",
+     "ART. 485, IV, DO CPC"
+    ]
+   ],
+   "nota": "caixa trocada ('ART. 485, IV, DO CPC' -> 'art. ... do CPC')"
+  },
+  {
+   "n": 120,
+   "conjunto": "reais",
+   "id": "real_02369",
+   "posicao": 2,
+   "trecho": "art. 5º, XXXV, da Constituição Federal",
+   "tipo": "LEI",
+   "categoria": "reescrita_normalizada",
+   "sugestao_automatica": "reescrita_normalizada",
+   "texto_do_documento": "art. 5º, XXXV, da Consti-tuição Federal",
+   "ouro_que_cruza": [
+    [
+     1394,
+     1433,
+     "LEI",
+     "art. 5º, XXXV, da Consti-tuição Federal"
+    ]
+   ],
+   "nota": "hífen de translineação removido ('Consti-tuição')"
+  }
+ ],
+ "nota": "Diagnóstico: nenhuma previsão foi corrigida e o score publicado do Qwen não muda. Os trechos que falham continuam sendo erro do sistema avaliado (adaptador incluído)."
+}

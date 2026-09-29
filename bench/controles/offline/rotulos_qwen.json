@@ -1,0 +1,486 @@
+{
+ "revisor": "agente do experimento offline (Claude), 2026-09-29, depois de fixar o protocolo e antes de compilar as contagens",
+ "criterio": "bench/controles/offline/protocolo_auditoria_qwen.json. Para cada item: trecho, passagem localizada no texto (normalizada ou aproximada), spans do ouro que ela cruza e, para cópias dos exemplos do prompt, busca do número-chave no documento inteiro. 'ocorrencia_errada_alinhamento' e 'formato_invalido' são decididos por código; as notas deles só descrevem.",
+ "rotulos": {
+  "1": [
+   "reescrita_normalizada",
+   "texto 'artigo 144 da Lei Complementar nº 64/1990'; só a caixa da inicial mudou (a -> A)"
+  ],
+  "2": [
+   "ocorrencia_errada_alinhamento",
+   "repete o REsp 6.453.504/RS já alinhado; o texto tem uma ocorrência só"
+  ],
+  "3": [
+   "inexistente",
+   "exemplo do prompt copiado literalmente; o número não aparece no documento"
+  ],
+  "4": [
+   "inexistente",
+   "exemplo do prompt ('artigo 927 do CPC'); 927 não aparece no documento"
+  ],
+  "5": [
+   "inexistente",
+   "exemplo do prompt; número ausente do documento"
+  ],
+  "6": [
+   "inexistente",
+   "exemplo do prompt (art. 5º, X, da CF); o documento não cita o art. 5º"
+  ],
+  "7": [
+   "reescrita_normalizada",
+   "VAGA do texto ('julgado do STJ proferido em 2023 pela relatoria de JESUÍNO RISSATO') reescrita no molde do exemplo do prompt ('precedente do STJ julgado em ... sob a relatoria de')"
+  ],
+  "8": [
+   "reescrita_normalizada",
+   "vírgula depois de 'STF' removida"
+  ],
+  "9": [
+   "inexistente",
+   "exemplo do prompt; número ausente do documento"
+  ],
+  "10": [
+   "inexistente",
+   "exemplo do prompt (processo nº 0001234-...); ausente do documento"
+  ],
+  "11": [
+   "inexistente",
+   "exemplo do prompt (Nancy Andrighi, 2021); a relatora não aparece no documento"
+  ],
+  "12": [
+   "reescrita_normalizada",
+   "caixa trocada ('Art.' -> 'art.')"
+  ],
+  "13": [
+   "reescrita_normalizada",
+   "espaço dentro do número removido ('1.116. 364' -> '1.116.364')"
+  ],
+  "14": [
+   "inexistente",
+   "exemplo do prompt (art. 5º, X, da CF); ausente do documento"
+  ],
+  "15": [
+   "inexistente",
+   "exemplo do prompt ('artigo 927 do CPC'); ausente do documento"
+  ],
+  "16": [
+   "reescrita_normalizada",
+   "ruído de OCR corrigido ('Intemo' -> 'Interno')"
+  ],
+  "17": [
+   "reescrita_normalizada",
+   "quebra de linha dentro do número desfeita ('1.882.\\n057')"
+  ],
+  "18": [
+   "reescrita_normalizada",
+   "'Nº' omitido e quebra dentro do número desfeita ('1.\\n945.211')"
+  ],
+  "19": [
+   "reescrita_normalizada",
+   "caixa trocada ('Art.' -> 'art.')"
+  ],
+  "20": [
+   "reescrita_normalizada",
+   "acento de OCR corrigido ('Reclãmação' -> 'Reclamação')"
+  ],
+  "21": [
+   "reescrita_normalizada",
+   "OCR corrigido ('Fcderal' -> 'Federal')"
+  ],
+  "22": [
+   "inexistente",
+   "exemplo do prompt; número ausente do documento"
+  ],
+  "23": [
+   "inexistente",
+   "exemplo do prompt; número ausente do documento"
+  ],
+  "24": [
+   "inexistente",
+   "exemplo do prompt; número ausente do documento"
+  ],
+  "25": [
+   "inexistente",
+   "exemplo do prompt (art. 5º, X, da CF); ausente do documento"
+  ],
+  "26": [
+   "reescrita_normalizada",
+   "caixa trocada ('Recl.' -> 'REcl.')"
+  ],
+  "27": [
+   "reescrita_normalizada",
+   "quebra dentro do número desfeita ('66.\\n376')"
+  ],
+  "28": [
+   "reescrita_normalizada",
+   "acento espúrio do OCR removido ('Elêitoral' -> 'Eleitoral')"
+  ],
+  "29": [
+   "reescrita_normalizada",
+   "espaço dentro do número removido ('205100- 04' -> '205100-04')"
+  ],
+  "30": [
+   "reescrita_normalizada",
+   "ruído de OCR trocado por outro ('Intcmo' -> 'Intemo')"
+  ],
+  "31": [
+   "reescrita_normalizada",
+   "OCR corrigido só em 'Tcma' -> 'Tema'; o resto do ruído foi copiado"
+  ],
+  "32": [
+   "reescrita_normalizada",
+   "quebras dentro do número desfeitas ('34.\\n46T')"
+  ],
+  "33": [
+   "reescrita_normalizada",
+   "OCR corrigido ('ern' -> 'em')"
+  ],
+  "34": [
+   "reescrita_normalizada",
+   "quebra entre '/' e 'SC' desfeita"
+  ],
+  "35": [
+   "reescrita_normalizada",
+   "OCR corrigido ('Súrnula' -> 'Súmula')"
+  ],
+  "36": [
+   "reescrita_normalizada",
+   "OCR corrigido ('rclatoria' -> 'relatoria'); começa depois de 'julgado do'"
+  ],
+  "37": [
+   "reescrita_normalizada",
+   "espaço dentro do número removido ('2016. 7' -> '2016.7')"
+  ],
+  "38": [
+   "reescrita_normalizada",
+   "OCR corrigido ('Especlal' -> 'Especial'); omite 'Embargos de Declaração no' do início da citação"
+  ],
+  "39": [
+   "reescrita_normalizada",
+   "'Ag. Int.' contraído para 'AgInt'"
+  ],
+  "40": [
+   "inexistente",
+   "exemplo do prompt; número ausente do documento"
+  ],
+  "41": [
+   "inexistente",
+   "exemplo do prompt (art. 14 da Lei 8.078/1990); o documento não cita art. 14 nem a lei"
+  ],
+  "42": [
+   "reescrita_normalizada",
+   "VAGA inteira passada para minúsculas ('STM', 'CARLOS VUYK DE AQUINO')"
+  ],
+  "43": [
+   "reescrita_normalizada",
+   "caixa trocada ('art.' -> 'Art.')"
+  ],
+  "44": [
+   "reescrita_normalizada",
+   "'AREspe' reescrito como 'AREsp'"
+  ],
+  "45": [
+   "reescrita_normalizada",
+   "OCR 'Rcgimental' reescrito como 'Régimental'; omite 'Embargos de Declaração no'"
+  ],
+  "46": [
+   "reescrita_normalizada",
+   "quebra dentro do número desfeita ('43342-\\n43')"
+  ],
+  "47": [
+   "reescrita_normalizada",
+   "quebras dentro do número desfeitas ('94.2020.\\n6.05')"
+  ],
+  "48": [
+   "reescrita_normalizada",
+   "'5úm. 331/T5T' (no ouro) reescrito como 'Súmula 331/STJ': abreviatura expandida e OCR corrigido para o tribunal errado (TST -> STJ)"
+  ],
+  "49": [
+   "reescrita_normalizada",
+   "OCR corrigido ('Reeurso' -> 'Recurso', 'C0rpus' -> 'Corpus')"
+  ],
+  "50": [
+   "reescrita_normalizada",
+   "OCR corrigido ('Especlãl' -> 'Especial')"
+  ],
+  "51": [
+   "reescrita_normalizada",
+   "quebra dentro do número desfeita ('2.\\n35b')"
+  ],
+  "52": [
+   "reescrita_normalizada",
+   "quebra dentro do número desfeita ('2010.\\n5.04')"
+  ],
+  "53": [
+   "reescrita_normalizada",
+   "quebra dentro do número desfeita ('33.\\n409')"
+  ],
+  "54": [
+   "reescrita_normalizada",
+   "'Ag.Int.' -> 'AgInt', 'Nº' omitido, '/ SP' -> '/SP'"
+  ],
+  "55": [
+   "inexistente",
+   "exemplo do prompt; número ausente do documento"
+  ],
+  "56": [
+   "inexistente",
+   "exemplo do prompt ('artigo 927 do CPC'); o documento cita o art. 874 do CPP, não o 927"
+  ],
+  "57": [
+   "reescrita_normalizada",
+   "'Recurso Especial n. 4.o39.965-SC' abreviado para 'REsp nº' e OCR corrigido ('o' -> '0')"
+  ],
+  "58": [
+   "reescrita_normalizada",
+   "OCR corrigido ('Súrnula' -> 'Súmula')"
+  ],
+  "59": [
+   "reescrita_normalizada",
+   "OCR corrigido ('repcrcussão' -> 'repercussão')"
+  ],
+  "60": [
+   "reescrita_normalizada",
+   "quebra dentro do número desfeita ('792-\\n11')"
+  ],
+  "61": [
+   "reescrita_normalizada",
+   "quebra entre '/' e 'RS' desfeita"
+  ],
+  "62": [
+   "reescrita_normalizada",
+   "vírgula removida e acento de OCR corrigido ('julgãdo')"
+  ],
+  "63": [
+   "reescrita_normalizada",
+   "acento de OCR removido ('precedênte'); para antes do relator, em fronteira de palavra (não é corte no meio de palavra)"
+  ],
+  "64": [
+   "inexistente",
+   "exemplo do prompt (art. 14 da Lei 8.078/1990); ausente do documento"
+  ],
+  "65": [
+   "inexistente",
+   "exemplo do prompt (art. 5º, X, da CF); o documento cita o art. 321 da Constituição, não o 5º"
+  ],
+  "66": [
+   "reescrita_normalizada",
+   "OCR corrigido ('ju1gado', 'rclatoria')"
+  ],
+  "67": [
+   "reescrita_normalizada",
+   "caixa trocada ('ART.' -> 'art.')"
+  ],
+  "68": [
+   "ocorrencia_errada_alinhamento",
+   "repete o HC 100724/SC já alinhado"
+  ],
+  "69": [
+   "ocorrencia_errada_alinhamento",
+   "repete o art. 40, § 4º, da CF/88 já alinhado"
+  ],
+  "70": [
+   "reescrita_normalizada",
+   "'SÚMULA 280 DO SUPREMO TRIBUNAL FEDERAL' abreviado para 'Súmula 280 do STF'"
+  ],
+  "71": [
+   "inexistente",
+   "exemplo do prompt; ausente do documento"
+  ],
+  "72": [
+   "inexistente",
+   "exemplo do prompt; ausente do documento"
+  ],
+  "73": [
+   "inexistente",
+   "exemplo do prompt; ausente do documento"
+  ],
+  "74": [
+   "inexistente",
+   "exemplo do prompt (Súmula 7 do STJ); o documento não cita a Súmula 7"
+  ],
+  "75": [
+   "inexistente",
+   "exemplo do prompt; ausente do documento"
+  ],
+  "76": [
+   "inexistente",
+   "exemplo do prompt (Nancy Andrighi, 2021); ausente do documento"
+  ],
+  "77": [
+   "reescrita_normalizada",
+   "aspas tipográficas trocadas por retas ('“b”' -> '\"b\"')"
+  ],
+  "78": [
+   "ocorrencia_errada_alinhamento",
+   "contido no span 'primitivo art. 37, XIV, da Constituição' que o modelo listou e alinhou antes"
+  ],
+  "79": [
+   "reescrita_normalizada",
+   "caixa trocada ('ART. 100, PARÁGRAFO ÚNICO, DO CPC' em minúsculas)"
+  ],
+  "80": [
+   "reescrita_normalizada",
+   "caixa trocada ('SÚMULAS 5 E 7/STJ')"
+  ],
+  "81": [
+   "reescrita_normalizada",
+   "quebra dentro do número desfeita ('1.\\n640.856')"
+  ],
+  "82": [
+   "reescrita_normalizada",
+   "caixa trocada ('ART. 27 DO CDC')"
+  ],
+  "83": [
+   "ocorrencia_errada_alinhamento",
+   "repete o art. 15-B do DL 3.365/1941 já alinhado"
+  ],
+  "84": [
+   "inexistente",
+   "exemplo do prompt (Nancy Andrighi, 2021); ausente do documento"
+  ],
+  "85": [
+   "inexistente",
+   "exemplo do prompt (art. 5º, X, da CF); ausente do documento"
+  ],
+  "86": [
+   "nao_e_citacao",
+   "'ARTIGO DE LEI FEDERAL VIOLADA', palavra-chave da ementa sem fonte, passada para minúsculas e rotulada VAGA"
+  ],
+  "87": [
+   "reescrita_normalizada",
+   "'ENUNCIADO 284 DA SÚMULA/STF' em minúsculas; é citação (Súmula 284/STF), embora o ouro desta ementa não a anote"
+  ],
+  "88": [
+   "reescrita_normalizada",
+   "'enunciado nº 54 da Súmula deste Superior Tribunal' reescrito como 'artigo 54 da súmula...' em minúsculas; é citação (Súmula 54/STJ) que o ouro não anota nesta passagem"
+  ],
+  "89": [
+   "reescrita_normalizada",
+   "'ENUNCIADO SUMULAR Nº 211/STJ' em minúsculas (a ocorrência do corpo está no ouro; a do cabeçalho, não)"
+  ],
+  "90": [
+   "reescrita_normalizada",
+   "caixa trocada ('Decreto' -> 'decreto')"
+  ],
+  "91": [
+   "nao_e_citacao",
+   "'Recurso Especial' sem número (nome da classe processual), passado para maiúsculas"
+  ],
+  "92": [
+   "nao_e_citacao",
+   "a segunda ocorrência de 'Recurso Especial' sem número, também em maiúsculas"
+  ],
+  "93": [
+   "reescrita_normalizada",
+   "caixa trocada ('ART. 1.022 DO CPC')"
+  ],
+  "94": [
+   "reescrita_normalizada",
+   "'antigo art. 535 do CPC de 1973' reescrito como 'artigo 535 ...' (abreviatura expandida)"
+  ],
+  "95": [
+   "ocorrencia_errada_alinhamento",
+   "repete a Súmula n. 282/STF já alinhada (antes com tipo LEI)"
+  ],
+  "96": [
+   "ocorrencia_errada_alinhamento",
+   "o modelo listou e alinhou antes 'Súmula n. 7', que este trecho maior cruza"
+  ],
+  "97": [
+   "inexistente",
+   "exemplo do prompt ('artigo 927 do CPC'); o documento cita o art. 471 do CPC, não o 927"
+  ],
+  "98": [
+   "inexistente",
+   "exemplo do prompt; ausente do documento"
+  ],
+  "99": [
+   "inexistente",
+   "exemplo do prompt; ausente do documento"
+  ],
+  "100": [
+   "reescrita_normalizada",
+   "caixa trocada ('ART. 10 DA LEI 7.661/1988')"
+  ],
+  "101": [
+   "ocorrencia_errada_alinhamento",
+   "repete o art. 4° da Lei 9.636/1998 já alinhado"
+  ],
+  "102": [
+   "reescrita_normalizada",
+   "'ARTS. 200 E 935 DO CC/2002' desmembrado em 'art. 935 do CC/2002' (pedaços não contíguos juntados, caixa trocada)"
+  ],
+  "103": [
+   "reescrita_normalizada",
+   "'ARTS.' -> 'art.' e caixa trocada"
+  ],
+  "104": [
+   "reescrita_normalizada",
+   "'Artigo 36' abreviado para 'art. 36'"
+  ],
+  "105": [
+   "reescrita_normalizada",
+   "caixa trocada ('súmula' -> 'Súmula')"
+  ],
+  "106": [
+   "inexistente",
+   "exemplo do prompt (art. 5º, X, da CF); ausente do documento"
+  ],
+  "107": [
+   "inexistente",
+   "exemplo do prompt ('artigo 927 do CPC'); ausente do documento"
+  ],
+  "108": [
+   "reescrita_normalizada",
+   "AMBÍGUO: igual ao exemplo do prompt, mas o documento cita 'art. 14 do CDC' (no ouro; CDC = Lei 8.078/1990). Como a passagem existe, a regra manda 'reescrita'; lido como cópia do prompt, seria 'inexistente'"
+  ],
+  "109": [
+   "ocorrencia_errada_alinhamento",
+   "repete o art. 535 do CPC já alinhado"
+  ],
+  "110": [
+   "reescrita_normalizada",
+   "caixa trocada ('ART. 3º')"
+  ],
+  "111": [
+   "inexistente",
+   "exemplo do prompt (Tema 1.046); ausente do documento"
+  ],
+  "112": [
+   "inexistente",
+   "exemplo do prompt (Nancy Andrighi, 2021); ausente do documento"
+  ],
+  "113": [
+   "inexistente",
+   "'art. 927 do CPC', variação do exemplo 'artigo 927 do CPC'; o documento cita os arts. 932 e 935 do CC, não o 927 do CPC"
+  ],
+  "114": [
+   "reescrita_normalizada",
+   "caixa trocada ('ART. 485, III')"
+  ],
+  "115": [
+   "ocorrencia_errada_alinhamento",
+   "contido no span 'Cancelamento da súmula nº 342 pelo Órgão Especial desta Corte' que o modelo listou e alinhou antes"
+  ],
+  "116": [
+   "reescrita_normalizada",
+   "'RESP N°' -> 'REsp nº'"
+  ],
+  "117": [
+   "reescrita_normalizada",
+   "caixa trocada ('ART. 34')"
+  ],
+  "118": [
+   "reescrita_normalizada",
+   "caixa trocada ('ART. 485, III')"
+  ],
+  "119": [
+   "reescrita_normalizada",
+   "caixa trocada ('ART. 485, IV, DO CPC' -> 'art. ... do CPC')"
+  ],
+  "120": [
+   "reescrita_normalizada",
+   "hífen de translineação removido ('Consti-tuição')"
+  ]
+ }
+}

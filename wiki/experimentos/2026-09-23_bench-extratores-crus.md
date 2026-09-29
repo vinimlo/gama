@@ -55,9 +55,11 @@ F1 de extração por tipo:
 1. No estilo da organização, o fine-tune é a diferença. No estresse o Gama marca 1,0997;
    o melhor extrator sem treino, o Qwen3-8B, fica em 0,811, abaixo até da régua (0,849).
    O Qwen perde mais na referência vaga (F1 0,547; 425 das 714 não achadas) e no ruído: dos
-   5.515 trechos que ele devolveu, 583 não existem no texto como foram escritos, 283 deles
-   em N2 contra 57 em N1. O padrão sugere que ele devolve a citação corrigida em vez de
-   copiada, e aí o trecho não se alinha. Tudo isso a 11,7 s por documento na L4, cerca de
+   5.515 trechos que ele devolveu, 583 não se alinham ao texto, 283 deles em N2 contra 57
+   em N1: 526 não aparecem literalmente, 56 existem mas caem na regra de ocorrência e 1 vem
+   em formato inválido. A auditoria dos [controles](2026-09-29_controles.md) achou que 149
+   dos 583 são cópias dos exemplos do prompt e que, numa amostra de 120, 60% são citações
+   reescritas: ele reconhece a citação e devolve outra grafia, e aí o trecho não se alinha. Tudo isso a 11,7 s por documento na L4, cerca de
    200 vezes o tempo do Gama.
 2. Em texto real a ordem se inverte: o Qwen3-8B é o melhor (0,707), à frente da régua
    (0,663) e do Gama (0,605). Um LLM genérico lê formatos que nunca viu; o Gama foi

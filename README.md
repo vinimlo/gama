@@ -59,30 +59,47 @@ texto real (no v1.2, de 0,605 a 0,808). Desenho, números por tipo e leitura no
 [benchmark](wiki/experimentos/2026-09-23_bench-extratores-crus.md) e na
 [otimização medida](wiki/experimentos/2026-09-23_otimizacao-medida.md).
 
-### Duas comparações que ficaram de fora
+### Contra modelos treinados nos mesmos dados
 
-O mmBERT original não está no gráfico porque, sozinho, ele não extrai nada. O
-`jhu-clsp/mmBERT-base` foi pré-treinado para adivinhar palavra mascarada e não tem a camada
-que marca onde começa uma citação. Para pontuá-lo seria preciso pendurar essa camada com
-pesos aleatórios, e o resultado mediria ruído, não um concorrente. A coluna "Gama v1.3
-sozinho" já é o mmBERT fine-tunado, só que sem a guarda. O controle que diria quanto o
-fine-tune acrescenta à base é outro: o encoder congelado, com só a camada de rótulos
-treinada por cima. Esse não rodamos.
+O gráfico compara o Gama com extratores sem treino. Para separar o que vem do fine-tune do que
+vem da escolha do modelo, treinamos concorrentes nos mesmos 5.410 documentos sintéticos do
+v1.2 e medimos todos pelo mesmo harness, sozinhos e com a guarda. Em texto real, as 305
+ementas escolheram os limiares e as 172 só confirmam:
 
-E um GLiNER fine-tunado? No estilo da organização não sobra o que ganhar. O teto é 1,1 e o
-Gama marca 1,09999; nas [dobras](wiki/experimentos/2026-09-22_validacao-por-dobras.md),
-mmBERT e BERTimbau treinados pela mesma receita empataram nesse teto. Um terceiro
-concorrente ali não mudaria a escolha e ainda traria outra biblioteca para a organização
-reproduzir offline, por isso não treinamos. Em texto real a conversa muda, porque ainda há
-margem. O GLiNER trabalha com spans, o que combina com a tarefa, e em zero-shot não achou
-nenhuma das 714 referências vagas do estresse, coisa que um fine-tune poderia ensinar. Se
-ele passaria dos 0,818 do Gama com a guarda, não sabemos. Não medimos.
+| | Texto real sozinho, 305 / 172 | Texto real com a guarda, 305 / 172 | Estresse difícil sozinho, métrica oficial |
+|---|---|---|---|
+| Gama v1.3 | 0,620 / 0,635 | 0,818 / 0,839 | 1,09999 |
+| BERTimbau, receita do v1.2 | 0,697 / 0,705 | 0,813 / 0,826 | 1,09999 |
+| GLiNER multi v2.1 treinado | 0,792 / 0,752 | 0,796 / 0,761 | 1,09631 |
+| mmBERT com o encoder congelado, só a saída treinada | 0,243 / 0,247 | 0,350 / 0,353 | 0,90182 |
+
+Sozinhos, BERTimbau e GLiNER treinados passam o Gama em texto real, com IC95 acima de zero.
+Com a guarda, nenhum passa o v1.3. O BERTimbau não se distingue dele, e o GLiNER não se
+distingue nas 305 e perde nas 172 (−0,079, IC95 −0,148 a −0,015). A guarda quase não ajuda
+o GLiNER, porque o score dele fica acima de 0,99 até nos erros. No Gama ela funciona porque a
+confiança separa erro de acerto. Na nossa leitura, é isso que faz o sistema.
+
+O encoder congelado vai longe no estilo da organização e desaba em texto real. O fine-tune
+rende pela adaptação do encoder. O "mmBERT cru", com a camada de rótulos sem treino, também
+foi medido, só como diagnóstico: F1 de 0,0005. Ruído, como esperado.
+
+Retreinamos ainda o v1.2 e o v1.3 com as sementes 7 e 21. Com a guarda, o v1.2 vai de 0,760 a
+0,830 nas 305; o v1.3, destilado do mesmo professor, fica entre 0,812 e 0,818. Os +0,019 do
+v1.3 sobre o v1.2 na tabela abaixo são do par publicado. Não passam da variação entre
+sementes. No estilo da organização as seis sementes dão o mesmo JSON no dev e 1,09999 no
+estresse com a guarda.
+
+Falta o teste que mais importa. Todo número de texto real aqui usa um gabarito de LLM
+adjudicado, e cada concorrente teve uma semente só; o que ainda não existe é um conjunto novo
+de ementas, com gabarito humano, que não tenha participado de nenhuma escolha. Desenho,
+intervalos, custos e limites em [controles](wiki/experimentos/2026-09-29_controles.md).
 
 ### Gama v1.3: a mesma saída, menor e mais rápido
 
 A solução usa o Gama v1.3: as 12 primeiras das 22 camadas do v1.2, treinadas para imitar as
 probabilidades do v1.2 (destilação). No estilo da organização o JSON final é o mesmo do v1.2
-em todos os 4.626 documentos medidos; em texto real ele acerta um pouco mais
+em todos os 4.626 documentos medidos; em texto real fica no mesmo nível, com menos variação
+entre sementes ([controles](wiki/experimentos/2026-09-29_controles.md))
 ([D-009](wiki/decisoes/D-009_gama-v1-3-destilado.md), [destilação](wiki/experimentos/2026-09-23_destilacao.md)).
 Tempos desta tabela medidos no mesmo job, com os dois modelos lado a lado.
 
@@ -239,7 +256,7 @@ Cada escolha que fechou uma porta tem registro próprio, com contexto, conta e m
 - [D-006](wiki/decisoes/D-006_calibracao-decide-o-topo.md): a confiança é a taxa de acerto medida por balde, porque no topo do ranking quem desempata é o bônus de calibração.
 - [D-007](wiki/decisoes/D-007_sem-ensemble.md): sem ensemble; a união com a régua fica como opção para texto fora do estilo da organização.
 - [D-008](wiki/decisoes/D-008_guarda-do-extrator.md): onde o modelo hesita (confiança < 0,95) vale a régua, porque no estilo da organização ele nunca hesita e fora dele é aí que erra; o resolver desempata pela cadeia de classe compatível.
-- [D-009](wiki/decisoes/D-009_gama-v1-3-destilado.md): o extrator é o v1.2 destilado em 12 camadas, porque entrega o mesmo JSON no estilo da organização, acerta mais em texto real e roda mais rápido.
+- [D-009](wiki/decisoes/D-009_gama-v1-3-destilado.md): o extrator é o v1.2 destilado em 12 camadas, porque entrega o mesmo JSON no estilo da organização e roda mais rápido; em texto real fica no mesmo nível do v1.2.
 
 ## Como rodar
 
