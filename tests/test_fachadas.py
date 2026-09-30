@@ -130,3 +130,11 @@ def test_extrair():
     from gama.extratores.regua import ExtratorRegua
     t = "CAB\n\n\nO AgInt no REsp 1.234.567/SP e a Súmula 7."
     assert extrair.extrair(t) == ExtratorRegua().extrair(t)
+
+
+def test_ruido():
+    import random
+    from gama import ruido
+    t = "o AgInt no REsp 1.741.784/PR e a Súmula 211"
+    assert ruido.aplicar_ruido(t, [(2, 28)], random.Random(3), 0.9) == ruido.InjetorDeRuido(
+        random.Random(3), 0.9).aplicar(t, [(2, 28)])

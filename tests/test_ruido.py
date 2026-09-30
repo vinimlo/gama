@@ -10,8 +10,13 @@ import pytest
 
 from avaliacao.cobertura import nucleo
 from avaliacao.convencoes import forma
-from gama.ruido import DIGITO_PARA_LETRA, aplicar_ruido
+from gama.ruido import DIGITO_PARA_LETRA, InjetorDeRuido
 from gama.normalizar import OCR_PARA_DIGITO
+
+
+def aplicar_ruido(texto, spans, rng, intensidade=0.3):
+    return InjetorDeRuido(rng, intensidade).aplicar(texto, spans)
+
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 DADOS = RAIZ / "dados"
@@ -128,3 +133,27 @@ def test_invariantes_sem_dados(semente):
             if forma(antes) == "cnj":
                 numero = depois[next(i for i, c in enumerate(depois) if c.isdigit()):]
                 assert not any(c.isalpha() for c in numero), depois
+
+
+def test_nucleos_cnj_tem_precedencia_e_so_dentro_dos_spans():
+    texto = "o 0600316-49.2020.6.16.0182 e o REsp 1.741.784 e fora 12345 e 0600316-49.2020.6.16.0183"
+    spans = [(2, 27), (32, 47)]
+    assert [(texto[a:b], t) for a, b, t in InjetorDeRuido.nucleos(texto, spans)] == [
+        ("0600316-49.2020.6.16.0182", "cnj"), ("1.741.784", "classico")]
+
+
+def test_intensidade_negativa_nao_altera():
+    assert InjetorDeRuido(random.Random(1), -1).aplicar("REsp 1.741.784", [(0, 14)]) == ("REsp 1.741.784", [(0, 14)])
+
+
+def test_injetor_guarda_o_rng_e_a_intensidade():
+    rng = random.Random(4)
+    i = InjetorDeRuido(rng, 0.7)
+    assert (i.rng, i.p) == (rng, 0.7)
+
+
+@pytest.mark.parametrize("semente", range(40))
+def test_rn_vira_m_consumindo_os_dois(semente):
+    texto = "Turma interna, carne e o Tema da Turma interna"
+    novo, (span,) = aplicar_ruido(texto, [(25, 46)], random.Random(semente), 1.5)
+    assert "mn" not in novo and novo[span[0]:span[1]].strip() == novo[span[0]:span[1]]
