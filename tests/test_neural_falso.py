@@ -86,3 +86,21 @@ def test_texto_sem_tokens(monkeypatch):
 def test_deterministico(monkeypatch):
     n, *_ = _neural(monkeypatch)
     assert n.extrair(TEXTO) == n.extrair(TEXTO)
+
+
+def test_esquema_e_formas_injetados(monkeypatch):
+    from gama.extratores.bio import EsquemaBIO
+    from gama.formas import DetectorDeForma
+
+    class SoLei(EsquemaBIO):
+        def decodificar(self, offsets, rotulos, texto):
+            return [(a, b, "LEI") for a, b, _ in super().decodificar(offsets, rotulos, texto)]
+
+    class Marca(DetectorDeForma):
+        def span(self, texto, inicio, fim, rotulo, confianca=None):
+            s = super().span(texto, inicio, fim, rotulo, confianca)
+            return s.__class__(s.inicio, s.fim, s.trecho, s.tipo, "marcada", s.digitos, s.confianca)
+
+    n, *_ = _neural(monkeypatch, esquema=SoLei(), formas=Marca())
+    spans = n.extrair("o REsp 1 e")
+    assert [(s.trecho, s.tipo, s.forma) for s in spans] == [("REsp 1", "lei", "marcada")]
