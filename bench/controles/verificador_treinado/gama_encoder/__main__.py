@@ -33,6 +33,7 @@ import sys
 import time
 
 from bench.controles import avaliar
+from gama.span import aparar_todos
 from bench.controles.verificador import __main__ as vcli
 from bench.controles.verificador import nucleo as vn
 
@@ -110,7 +111,6 @@ def cmd_dev(a) -> None:
     """Só local. Nada do dev sai da máquina: textos, spans e scores ficam em dev/."""
     from gama.extratores import carregar
     from gama.indice import construir
-    from gama.pipeline import aparar
     from bench import conjuntos, pontuar
     from bench.controles.verificador_treinado.dados import nucleo as dn
 
@@ -121,8 +121,7 @@ def cmd_dev(a) -> None:
     textos, gold = conjuntos.carregar("dev")
     neural, regua = carregar("neural-cru", "/models"), carregar("regua")
     # o extrator de produção com as MESMAS instâncias (um Gama só na memória do container, 4 GB)
-    prod_ext = ExtratorGuardado.__new__(ExtratorGuardado)
-    prod_ext.neural, prod_ext.regua = neural, regua
+    prod_ext = ExtratorGuardado(neural, regua)
     docs, regs, prod, iguais_producao = {}, [], {}, 0
     t_ext = 0.0
     for d, t in textos.items():
@@ -130,15 +129,15 @@ def cmd_dev(a) -> None:
         g_raw, r_raw = neural.extrair(t), regua.extrair(t)
         t_ext += time.perf_counter() - t0
         lista = lambda ss: [[s.inicio, s.fim, s.tipo, s.forma, s.digitos, s.confianca] for s in ss]  # noqa: E731
-        G = avaliar._aparados([avaliar._span(t, s) for s in lista(g_raw)], t)      # como o harness lê
-        R = avaliar._aparados([avaliar._span(t, s) for s in lista(r_raw)], t)
+        G = aparar_todos([avaliar._span(t, s) for s in lista(g_raw)], t)      # como o harness lê
+        R = aparar_todos([avaliar._span(t, s) for s in lista(r_raw)], t)
         rs = dn.candidatos_doc("dev", d, t, G, R)
         regs += rs
         docs[d] = ([vn.Cand(r["cid"], "gama", r["_span"]) for r in rs if r["origem"] == "gama"],
                    [vn.Cand(r["cid"], "regua", r["_span"]) for r in rs if r["origem"] == "regua"])
         prod[d] = vn.politica_v0(*docs[d], vn.FORTE)
         # a saída do extrator de produção (ExtratorGuardado, aparado) = guarda@0,95 sobre os candidatos
-        ext = [s for s in (aparar(x, t) for x in prod_ext.extrair(t)) if s]
+        ext = aparar_todos(prod_ext.extrair(t), t)
         iguais_producao += vn._chave(ext) == vn._chave(prod[d])
     del neural, prod_ext
     gc.collect()

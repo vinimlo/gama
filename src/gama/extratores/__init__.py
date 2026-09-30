@@ -14,7 +14,8 @@ def carregar(nome: str, modelos: str | None = None) -> Extrator:
         return ExtratorRegua()
     if nome == "neural":
         from .guarda import ExtratorGuardado
-        return ExtratorGuardado(modelos)
+        from .neural import ExtratorNeural
+        return ExtratorGuardado(ExtratorNeural(modelos), ExtratorRegua())
     if nome == "neural-cru":
         from .neural import ExtratorNeural
         return ExtratorNeural(modelos)
