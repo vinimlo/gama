@@ -22,6 +22,7 @@ from .classificar import classificar
 from .extratores import carregar
 from .indice import construir
 from .resolver import resolver
+from .span import aparar, aparar_todos  # noqa: F401  (aparar: scripts do treino importam daqui)
 
 SCHEMA = "1.2"
 DB_PADRAO = "/app/dados/desafio1_bracis.db"
@@ -50,20 +51,6 @@ def sem_sobreposicao(citacoes: list) -> list:
     return mantidas
 
 
-def aparar(span, texto: str):
-    """Borda na convenção do gabarito para QUALQUER extrator (a régua também): sem espaço
-    Unicode nas pontas, sem .,;: no fim (revisão independente, rodada 2, achado 1). None se sobrar nada."""
-    from dataclasses import replace
-    a, b = span.inicio, span.fim
-    while a < b and texto[a].isspace():
-        a += 1
-    while b > a and (texto[b - 1].isspace() or texto[b - 1] in ".,;:"):
-        b -= 1
-    if b <= a:
-        return None
-    return span if (a, b) == (span.inicio, span.fim) else replace(span, inicio=a, fim=b, trecho=texto[a:b])
-
-
 def processar(texto: str, idx, extrator=None) -> list:
     """Documento -> lista de citacoes ja classificadas.
 
@@ -71,7 +58,7 @@ def processar(texto: str, idx, extrator=None) -> list:
     Sem extrator explicito, usa a regua (baseline).
     """
     extrator = extrator or carregar("regua")
-    spans = [s for s in (aparar(x, texto) for x in extrator.extrair(texto)) if s]
+    spans = aparar_todos(extrator.extrair(texto), texto)
     return sem_sobreposicao([classificar(span, resolver(span, idx)) for span in spans])
 
 

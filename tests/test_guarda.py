@@ -6,7 +6,7 @@ import sys
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
 
-from gama.extratores.guarda import guardar  # noqa: E402
+from gama.extratores.guarda import ExtratorGuardado, guardar  # noqa: E402
 from gama.span import Span  # noqa: E402
 
 
@@ -54,3 +54,22 @@ def test_confianca_no_limite_fica():
     t = "Súmula 7 do STJ."
     s = _s(t, "Súmula 7 do STJ", forma="sumula", conf=0.95)
     assert guardar([s], []) == [s]
+
+
+class _Fixo:
+    def __init__(self, spans):
+        self.spans = spans
+
+    def extrair(self, texto):
+        return self.spans
+
+
+def test_extrator_guardado_apara_antes_de_guardar():
+    """Borda com espaço e vírgula sai antes das regras; a régua entra no lugar do fragmento."""
+    t = "Nos termos do art. 927, parágrafo único, do Código Civil, e REsp 1.234.567/SP."
+    fragmento = _s(t, "927, ", tipo="lei", forma="artigo", conf=0.83)
+    juris = _s(t, " REsp 1.234.567/SP.")
+    regua = _s(t, "art. 927, parágrafo único, do Código Civil,", tipo="lei", forma="artigo", conf=None)
+    ext = ExtratorGuardado(_Fixo([fragmento, juris]), _Fixo([regua]))
+    assert [s.trecho for s in ext.extrair(t)] == [
+        "art. 927, parágrafo único, do Código Civil", "REsp 1.234.567/SP"]

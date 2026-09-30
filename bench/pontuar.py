@@ -30,8 +30,8 @@ from gama.extratores import carregar as carregar_extrator
 from gama.extratores.guarda import guardar
 from gama.formas import span_de
 from gama.indice import construir
-from gama.pipeline import SCHEMA, aparar, processar
-from gama.span import Span
+from gama.pipeline import SCHEMA, processar
+from gama.span import Span, aparar_todos
 from treino.avaliar_dobras import pontuar as pontuar_oficial
 
 from . import conjuntos
@@ -77,10 +77,8 @@ def spans_com_guarda() -> tuple[dict, dict]:
         if k not in regua or k not in textos:
             continue
         t = textos[k]
-
-        def aparados(ss, t=t):
-            return [s for s in (aparar(para_span(t, x), t) for x in ss) if s]
-        ss = guardar(aparados(lg["spans"]), aparados(regua[k]["spans"]))
+        ss = guardar(aparar_todos([para_span(t, x) for x in lg["spans"]], t),
+                     aparar_todos([para_span(t, x) for x in regua[k]["spans"]], t))
         linhas[k] = {"segundos": lg["segundos"] + regua[k]["segundos"],
                      "spans": [[s.inicio, s.fim, s.tipo, s.forma, s.digitos, s.confianca] for s in ss]}
     return {"gama": mg, "regua": mr}, linhas
@@ -195,7 +193,7 @@ def main() -> int:
                 print(f"{extrator} {nome}: faltam {len(faltam)} documentos, conjunto pulado", flush=True)
                 continue
             spans = {d: [para_span(textos[d], s) for s in linhas[(nome, d)]["spans"]] for d in textos}
-            pred = {d: [(s.inicio, s.fim, rotulo(s)) for s in (aparar(x, textos[d]) for x in ss) if s]
+            pred = {d: [(s.inicio, s.fim, rotulo(s)) for s in aparar_todos(ss, textos[d])]
                     for d, ss in spans.items()}
             r = {"documentos": len(textos),
                  "s_por_doc": round(sum(linhas[(nome, d)]["segundos"] for d in textos) / len(textos), 4),

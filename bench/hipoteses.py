@@ -24,11 +24,11 @@ import json
 import pathlib
 import random
 
-from gama.extratores.guarda import guardar
+from gama.extratores.guarda import confiante, guardar, sem_vaga_colada, trocar_fracos_pela_regua
 from gama.indice import construir
 from gama.normalizar import nucleo_numerico
-from gama.pipeline import aparar
 from gama.resolver import _ART_NUM, _SUM_NUM, _chave_lei_da_citacao, _numero_ocr
+from gama.span import aparar_todos
 
 from . import conjuntos
 from .pontuar import DB, SAIDA, extracao, oficial, para_span, rotulo, spans_de
@@ -42,7 +42,7 @@ def carregar(extrator: str, nome: str) -> tuple[dict, dict, dict]:
     """(textos, gabarito de extração, spans aparados por documento)."""
     textos, gold = conjuntos.carregar(nome)
     _, linhas = spans_de(extrator)
-    spans = {d: [s for s in (aparar(para_span(textos[d], x), textos[d]) for x in linhas[(nome, d)]["spans"]) if s]
+    spans = {d: aparar_todos([para_span(textos[d], x) for x in linhas[(nome, d)]["spans"]], textos[d])
              for d in textos}
     return textos, gold, spans
 
@@ -76,7 +76,7 @@ def _minimo(k):
 
 
 def _conf(t):
-    return lambda s: s.confianca is None or s.confianca >= t
+    return lambda s: confiante(s, t)
 
 
 def por_span(manter):
@@ -88,24 +88,14 @@ def vaga_colada(k):
     """Descarta VAGA a até k caracteres de outro span do documento. Na redação da organização a
     referência vaga é uma frase própria ("julgado do STJ proferido em 2021 pela relatoria de
     ..."); em ementa real, "Rel. Min. Fulano, julgado em ..." é o rabo de um precedente numerado."""
-    def f(ss, regua):
-        def longe(s):
-            return all(max(o.inicio - s.fim, s.inicio - o.fim) > k for o in ss if o is not s)
-        return [s for s in ss if s.forma != "vaga" or longe(s)]
-    return f
+    return lambda ss, regua: sem_vaga_colada(ss, k)
 
 
 def troca_regua(t):
     """Span com confiança < t sai; no lugar entra o span da régua que o cruza, se houver e se não
     cruzar nenhum span confiante. No estilo da organização nenhum acerto fica abaixo de 0,99,
     então nada muda ali por construção; fora dele, a régua cobre onde o modelo hesita."""
-    def f(ss, regua):
-        fortes = [s for s in ss if s.confianca is None or s.confianca >= t]
-        fracos = [s for s in ss if not (s.confianca is None or s.confianca >= t)]
-        extra = [r for r in regua if any(r.inicio < w.fim and w.inicio < r.fim for w in fracos)
-                 and not any(r.inicio < s.fim and s.inicio < r.fim for s in fortes)]
-        return sorted(fortes + extra, key=lambda s: s.inicio)
-    return f
+    return lambda ss, regua: trocar_fracos_pela_regua(ss, regua, t)
 
 
 def em_serie(*fs):

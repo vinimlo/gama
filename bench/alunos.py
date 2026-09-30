@@ -25,7 +25,8 @@ import time
 from gama.extratores.guarda import guardar
 from gama.extratores.regua import ExtratorRegua
 from gama.indice import construir
-from gama.pipeline import aparar, processar
+from gama.pipeline import processar
+from gama.span import aparar_todos
 from treino.avaliar_dobras import pontuar as pontuar_oficial
 
 from . import conjuntos
@@ -89,10 +90,8 @@ def solucao(textos: dict, linhas: dict, conjunto: str, regua, idx) -> tuple[dict
     spans, jsons = {}, {}
     fixo = Fixo()
     for d, t in textos.items():
-        def aparados(ss):
-            return [s for s in (aparar(x, t) for x in ss) if s]
-        modelo = aparados([para_span(t, s) for s in linhas[(conjunto, d)]["spans"]])
-        spans[d] = guardar(modelo, aparados(regua.extrair(t)))
+        modelo = aparar_todos([para_span(t, s) for s in linhas[(conjunto, d)]["spans"]], t)
+        spans[d] = guardar(modelo, aparar_todos(regua.extrair(t), t))
         fixo.atual = spans[d]
         jsons[d] = [c.para_json(i + 1) for i, c in enumerate(processar(t, idx, fixo))]
     return spans, jsons

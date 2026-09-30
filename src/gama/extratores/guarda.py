@@ -18,44 +18,49 @@ só entra onde o modelo hesita, e no molde ele não hesita.
 """
 from __future__ import annotations
 
-from ..span import Span
-from .neural import ExtratorNeural
-from .regua import ExtratorRegua
+from ..span import Span, aparar_todos, cruza, distancia
 
 VAGA_COLADA = 2            # caracteres entre a VAGA e o span vizinho
 CONFIANCA_MINIMA = 0.95
 
 
-def _confiante(s: Span) -> bool:
-    return s.confianca is None or s.confianca >= CONFIANCA_MINIMA
+def confiante(s: Span, minimo: float = CONFIANCA_MINIMA) -> bool:
+    return s.confianca is None or s.confianca >= minimo
 
 
-def _cruza(a: Span, b: Span) -> bool:
-    return a.inicio < b.fim and b.inicio < a.fim
+def sem_vaga_colada(spans: list[Span], limite: int = VAGA_COLADA) -> list[Span]:
+    """Regra 1: VAGA a até `limite` caracteres de outro span sai."""
+    return [s for s in spans if s.forma != "vaga" or all(
+        distancia(s, o) > limite for o in spans if o is not s)]
+
+
+def trocar_fracos_pela_regua(spans: list[Span], regua: list[Span],
+                             minimo: float = CONFIANCA_MINIMA) -> list[Span]:
+    """Regra 2: span com confiança < `minimo` sai; entra o span da régua que o cruza, se
+    não cruzar um span confiante. Devolve ordenado por início."""
+    fortes = [s for s in spans if confiante(s, minimo)]
+    fracos = [s for s in spans if not confiante(s, minimo)]
+    extra = [r for r in regua
+             if any(cruza(r, w) for w in fracos) and not any(cruza(r, s) for s in fortes)]
+    return sorted(fortes + extra, key=lambda s: s.inicio)
 
 
 def guardar(spans: list[Span], regua: list[Span]) -> list[Span]:
-    """Spans do modelo e da régua, já aparados -> spans que ficam, ordenados."""
-    spans = [s for s in spans if s.forma != "vaga" or all(
-        max(o.inicio - s.fim, s.inicio - o.fim) > VAGA_COLADA for o in spans if o is not s)]
-    fortes = [s for s in spans if _confiante(s)]
-    fracos = [s for s in spans if not _confiante(s)]
-    extra = [r for r in regua
-             if any(_cruza(r, w) for w in fracos) and not any(_cruza(r, s) for s in fortes)]
-    return sorted(fortes + extra, key=lambda s: s.inicio)
+    """Spans do modelo e da régua, já aparados -> spans que ficam, ordenados.
+
+    A ordem das regras é a medida na D-008: a VAGA é comparada também com os spans fracos
+    que a regra 2 vai tirar."""
+    return trocar_fracos_pela_regua(sem_vaga_colada(spans), regua)
 
 
 class ExtratorGuardado:
     """O extrator de produção: o modelo, com a guarda e a régua de reserva."""
     nome = "neural"
 
-    def __init__(self, pasta):
-        self.neural = ExtratorNeural(pasta)
-        self.regua = ExtratorRegua()
+    def __init__(self, neural, regua):
+        self.neural = neural
+        self.regua = regua
 
     def extrair(self, texto: str) -> list[Span]:
-        from ..pipeline import aparar              # tardio: o pipeline importa os extratores
-
-        def aparados(ss):
-            return [s for s in (aparar(x, texto) for x in ss) if s]
-        return guardar(aparados(self.neural.extrair(texto)), aparados(self.regua.extrair(texto)))
+        return guardar(aparar_todos(self.neural.extrair(texto), texto),
+                       aparar_todos(self.regua.extrair(texto), texto))
