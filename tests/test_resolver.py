@@ -7,9 +7,11 @@ test_resolver_formas.py (marca dados).
 """
 import pytest
 
-from gama.indice import Indice
-from gama.normalizar import chave_processo
-from gama.resolver import resolver
+from gama.cabecalho import CadeiaDeClasse, NumeroProprio
+from gama.indice import Indice, IndiceDeDispositivos, IndiceDeSumulas
+from gama.normalizar import NumeroDeProcesso
+from gama.resolver import (ClasseProcessual, DesempatePorCadeia, DesempatePorTribunal, Estrategia, Resolucao,
+                           ResolucaoDeProcesso, Resolvedor)
 from gama.span import Span
 
 
@@ -20,12 +22,16 @@ def _sp(trecho, forma, digitos=""):
 
 def _indice(processos=(), sumulas=None, dispositivos=None):
     """processos: (id, número como no cabeçalho, tribunal, cadeia de classe)."""
-    idx = Indice(sumulas=dict(sumulas or {}), dispositivos=dict(dispositivos or {}))
+    idx = Indice(sumulas=IndiceDeSumulas(sumulas or {}), dispositivos=IndiceDeDispositivos(dispositivos or {}))
     for doc_id, numero, tribunal, cadeia in processos:
-        idx.por_processo[chave_processo(numero)].append(doc_id)
+        idx.processos.adicionar(doc_id, NumeroProprio([NumeroDeProcesso.do_bruto(numero).chave],
+                                                      CadeiaDeClasse(cadeia)))
         idx.meta[doc_id] = (tribunal, 2020, "Relator")
-        idx.cadeia[doc_id] = cadeia
     return idx
+
+
+def resolver(span, idx):
+    return Resolvedor(idx).resolver(span)
 
 
 def _ids(trecho, forma, idx):
@@ -68,6 +74,10 @@ def test_sumula_com_zero_a_esquerda():
 ])
 def test_vinculante_resolve_com_ruido(trecho):
     assert _ids(trecho, "sumula", _indice(sumulas=SUMULAS)) == ["v10"]
+
+
+def test_palavra_com_v_depois_de_sumula_nao_faz_vinculante():
+    assert _ids("Súmula vigente 7 do STJ", "sumula", _indice(sumulas=SUMULAS)) == ["s7"]
 
 
 def test_comum_nao_resolve_para_vinculante():
@@ -131,6 +141,12 @@ def test_dispositivo_resolve(trecho, esperado):
 ])
 def test_dispositivo_resolve_com_ruido(trecho, esperado):
     assert _ids(trecho, "artigo", _indice(dispositivos=DISPOSITIVOS)) == [esperado]
+
+
+def test_apelido_mais_longo_vence():
+    """"Código de Processo Civil" antes de "CLT": o apelido mais longo que casar decide."""
+    assert _ids("art. 373 do Código de Processo Civil e da CLT", "artigo", _indice(dispositivos=DISPOSITIVOS)) == [
+        "cpc373"]
 
 
 def test_lei_municipal_nao_vira_federal():
@@ -271,3 +287,79 @@ def test_empate_sem_criterio_devolve_todos():
     idx = _indice([("a", "1.111.111", "STF", ()), ("b", "1.111.111", "STJ", ())])
     r = resolver(_sp("nº 1.111.111", "processo"), idx)
     assert (r.ids, r.via, r.ambiguidade) == (["a", "b"], "processo", 1)
+
+
+# ------------------------------------------------------------------ peças do resolvedor
+
+EMPATE_STJ = [("stf", "1.111.111", "STF", ()), ("stj1", "1.111.111", "STJ", ()), ("stj2", "1.111.111", "STJ", ())]
+
+
+@pytest.mark.parametrize("trecho,classe,tribunal", [
+    ("AgInt no Recurso Especial nº 1", "resp", "STJ"),
+    ("Agravo em Recurso Especial 1", "aresp", "STJ"),            # a frase mais longa primeiro
+    ("RR-1835-06.2010", "rr", "TST"),
+    ("Rcl. 88.178", "rcl", "STF"),
+    ("nº 1.111.111", None, None),
+])
+def test_classe_processual(trecho, classe, tribunal):
+    assert (ClasseProcessual.ler(trecho), ClasseProcessual.tribunal(trecho)) == (classe, tribunal)
+
+
+def test_desempate_por_tribunal():
+    idx, d = _indice(EMPATE_STJ), DesempatePorTribunal()
+    assert d.estreitar("REsp 1.111.111", ["stf", "stj1", "stj2"], idx) == ["stj1", "stj2"]
+    assert d.estreitar("nº 1.111.111", ["stf", "stj1"], idx) == ["stf", "stj1"]          # sem classe
+    assert d.estreitar("RR 1.111.111", ["stf", "stj1"], idx) == ["stf", "stj1"]          # nenhum do TST
+
+
+def test_desempate_por_cadeia_nao_decidido_devolve_todos():
+    idx = _indice(MESMO_NUMERO)
+    todos = ["principal", "agint", "edv"]
+    assert DesempatePorCadeia().estreitar("nº 1.599.372", todos, idx) == todos           # sem cadeia lida
+    assert DesempatePorCadeia().estreitar("RR 1.599.372", todos, idx) == todos           # não cabe em nenhuma
+    assert DesempatePorCadeia().estreitar("AgInt no REsp 1.599.372", todos, idx) == ["agint"]
+
+
+def test_processo_sem_desempates_mantem_o_empate():
+    idx = _indice(MESMO_NUMERO)
+    r = ResolucaoDeProcesso(desempates=[]).resolver(_sp("AgInt no REsp 1.599.372", "processo"), idx)
+    assert (r.ids, r.ambiguidade) == (["principal", "agint", "edv"], 2)
+
+
+def test_desempates_em_ordem_ate_sobrar_um():
+    """O segundo desempate só roda se o primeiro não decidiu."""
+    chamados = []
+
+    class Anota(DesempatePorTribunal):
+        def estreitar(self, trecho, candidatos, idx):
+            chamados.append(list(candidatos))
+            return super().estreitar(trecho, candidatos, idx)
+
+    idx = _indice(EMPATE_STJ)
+    r = ResolucaoDeProcesso([Anota(), Anota()]).resolver(_sp("REsp 1.111.111", "processo"), idx)
+    assert (r.ids, chamados) == (["stj1", "stj2"], [["stf", "stj1", "stj2"], ["stj1", "stj2"]])
+    chamados.clear()
+    ResolucaoDeProcesso([Anota()]).resolver(_sp("REsp 1.111.111", "processo"), _indice(EMPATE_STJ[:1]))
+    assert chamados == []                                                                  # um só: nada a desempatar
+
+
+@pytest.mark.parametrize("trecho,chave", [
+    ("REsp 1.234.567/SP", "1234567"),
+    ("AgR-A1 0603026-69.2018.6.09.0000", "6030266920186090000"),
+    ("REsp", ""),
+])
+def test_chave_do_processo(trecho, chave):
+    assert ResolucaoDeProcesso.chave(trecho) == chave
+
+
+def test_resolvedor_escolhe_a_estrategia_pela_forma():
+    class Fixa(Estrategia):
+        via = "fixa"
+
+        def resolver(self, span, idx):
+            return Resolucao(["x"], self.via)
+
+    r = Resolvedor(_indice(), {"sumula": Fixa()})
+    assert r.resolver(_sp("Súmula 7", "sumula")).via == "fixa"
+    assert r.resolver(_sp("REsp 1", "processo")).via == "processo"                         # sem entrada: processo
+    assert r.resolver(_sp("art. 5º da CF", "artigo")).via == "processo"

@@ -10,7 +10,7 @@ import pathlib
 import pytest
 
 from avaliacao.cobertura import construir, nucleo
-from gama.cabecalho import cadeia_de_classe
+from gama.cabecalho import CadeiaDeClasse
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 
@@ -34,13 +34,13 @@ def test_toda_real_de_acordao_do_gabarito_resolve_para_o_id_certo():
             continue                                   # súmula
         cands = por_chave.get(nucleo(r["trecho"]), [])
         if cands != [gid]:
-            cc = cadeia_de_classe(r["trecho"].replace("\\n", "\n"))
+            cc = CadeiaDeClasse.ler(r["trecho"].replace("\\n", "\n"))
             if [d for d in cands if prop[d][1].cadeia == cc] != [gid]:
                 falhas.append((r["trecho"], gid, cands))
     assert falhas == []
 
 
 def test_cadeia_de_classe_separa_embargos_de_divergencia():
-    assert cadeia_de_classe("AgInt nosEMBARGOS DE DIVERGÊNCIA EM RESP") == ("AgInt", "EDv", "REsp")
-    assert cadeia_de_classe("AgInt no RECURSO ESPECIAL") == ("AgInt", "REsp")
-    assert cadeia_de_classe("TST-Ag-ED-AIRR") == ("Ag", "ED", "AIRR")
+    assert CadeiaDeClasse.ler("AgInt nosEMBARGOS DE DIVERGÊNCIA EM RESP") == ("AgInt", "EDv", "REsp")
+    assert CadeiaDeClasse.ler("AgInt no RECURSO ESPECIAL") == ("AgInt", "REsp")
+    assert CadeiaDeClasse.ler("TST-Ag-ED-AIRR") == ("Ag", "ED", "AIRR")

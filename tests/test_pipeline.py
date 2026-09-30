@@ -7,8 +7,8 @@ import pathlib
 import pytest
 
 from gama.extrair import extrair
-from gama.indice import construir
-from gama.normalizar import chave_processo, so_digitos
+from gama.indice import Indice
+from gama.normalizar import OCR, NumeroDeProcesso
 from gama.pipeline import processar
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
@@ -17,7 +17,7 @@ DADOS = RAIZ / "dados"
 
 @pytest.fixture(scope="session")
 def idx():
-    return construir(DADOS / "desafio1_bracis.db")
+    return Indice.do_banco(DADOS / "desafio1_bracis.db")
 
 
 # --------------------------------------------------------------- normalizacao
@@ -30,11 +30,11 @@ def idx():
     ("1.45g.779", "1459779"),    # g -> 9
 ])
 def test_ocr_letra_vira_digito(bruto, esperado):
-    assert so_digitos(bruto) == esperado
+    assert OCR.so_digitos(bruto) == esperado
 
 
 def test_chave_ignora_zeros_a_esquerda():
-    assert chave_processo("0600216") == chave_processo("600216")
+    assert NumeroDeProcesso.do_bruto("0600216").chave == NumeroDeProcesso.do_bruto("600216").chave
 
 
 # --------------------------------------------------------------- extracao

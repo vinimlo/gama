@@ -6,7 +6,7 @@ uma palavra vizinha ao número, a citação real vira `inventada` em silêncio.
 """
 import pytest
 
-from gama.normalizar import nucleo_numerico
+from gama.normalizar import NumeroDeProcesso
 
 
 @pytest.mark.parametrize("trecho,chave", [
@@ -27,4 +27,4 @@ from gama.normalizar import nucleo_numerico
     ("RSE 7000082- 11.2026.7.00.0000/RS", "70000821120267000000"),
 ])
 def test_nucleo_resiste_ao_ruido(trecho, chave):
-    assert nucleo_numerico(trecho) == chave
+    assert NumeroDeProcesso.do_trecho(trecho).chave == chave

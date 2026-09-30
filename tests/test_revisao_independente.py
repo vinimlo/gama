@@ -149,17 +149,18 @@ def test_r3_1_vinculante_colado_no_numero():
 def test_r3_2_lei_municipal_nao_vira_federal():
     """Palavra pulada entre 'Lei' e o número só vale se for 'Complementar' (ruidoso ou não):
     'Lei Municipal nº 8.078' virar o CDC federal seria falso real — τ."""
-    from gama.resolver import _chave_lei_da_citacao
-    assert _chave_lei_da_citacao("art. 14 da Lei Municipal nº 8.078/1990") is None
-    assert _chave_lei_da_citacao("art. 14 da Lei Estadual nº 8.078/1990") is None
-    assert _chave_lei_da_citacao("art 1º da Lei Cornplernentar nº 64/1990") == "LC64"
+    from gama.leis import IdentificadorDeLei
+    da_citacao = IdentificadorDeLei().da_citacao
+    assert da_citacao("art. 14 da Lei Municipal nº 8.078/1990") is None
+    assert da_citacao("art. 14 da Lei Estadual nº 8.078/1990") is None
+    assert da_citacao("art 1º da Lei Cornplernentar nº 64/1990") == "LC64"
 
 
 def test_r3_3_uf_e_relator_nao_viram_classe():
-    from gama.cabecalho import cadeia_de_classe
-    assert cadeia_de_classe("EDcl no REsp 123 - AL") == ("ED", "REsp")
-    assert cadeia_de_classe("REsp 123/SP, Rel. Min. X") == ("REsp",)
-    assert cadeia_de_classe("Ernb. Decl. no AgR no REsp") == ("ED", "AgR", "REsp")
+    from gama.cabecalho import CadeiaDeClasse
+    assert CadeiaDeClasse.ler("EDcl no REsp 123 - AL") == ("ED", "REsp")
+    assert CadeiaDeClasse.ler("REsp 123/SP, Rel. Min. X") == ("REsp",)
+    assert CadeiaDeClasse.ler("Ernb. Decl. no AgR no REsp") == ("ED", "AgR", "REsp")
 
 
 def test_r3_4_adjudicacao_preserva_tipo_lei():

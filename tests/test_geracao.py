@@ -11,7 +11,7 @@ import re
 
 import pytest
 
-from gama.indice import construir
+from gama.indice import Indice
 from geracao import fichas as F
 from geracao import render as R
 from geracao.bancos import extrair
@@ -26,7 +26,7 @@ DB = str(DADOS / "desafio1_bracis.db")
 
 @pytest.fixture(scope="module")
 def mundo():
-    idx = construir(DB)
+    idx = Indice.do_banco(DB)
     fichas, sumulas, disps = F.carregar(DB)
     m = Montador(extrair(DADOS), fichas, sumulas, disps, mistura_do_dev(DADOS), idx)
     return idx, m
@@ -84,10 +84,10 @@ def test_inventada_nunca_existe_no_acervo(mundo):
     """Número inventado com candidato no acervo viraria τ no nosso próprio treino."""
     idx, m = mundo
     rng = random.Random(3)
-    from gama.normalizar import nucleo_numerico
+    from gama.normalizar import NumeroDeProcesso
     for _ in range(300):
         c = m.citacao("proc_inv", "civel", rng.choice([1, 2]), rng)
-        assert not idx.candidatos_processo(nucleo_numerico(c.texto)), c.texto
+        assert not idx.candidatos_processo(NumeroDeProcesso.do_trecho(c.texto).chave), c.texto
 
 
 @pytest.mark.dados

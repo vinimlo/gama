@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
-"""Nomes antigos que o laboratório (bench/, treino/) ainda importa, vivos até a leva 8.
+"""Nomes antigos que o laboratório (bench/, treino/, geracao/, avaliacao/) ainda importa, vivos até a leva 8.
 
 Cada fachada só delega: aqui se confere que ela chega à classe com os mesmos limites.
 Sai inteiro junto com as fachadas, quando os consumidores migrarem.
 """
-from gama import pipeline, span
+from gama import cabecalho, indice, normalizar, pipeline, resolver, span
+from gama.cabecalho import CadeiaDeClasse, LeitorDeNumeroProprio
 from gama.extratores import carregar, guarda
 from gama.extratores.regua import ExtratorRegua
+from gama.leis import IdentificadorDeLei
+from gama.normalizar import OCR, Normalizador, NumeroDeProcesso
+from gama.resolver import ClasseProcessual, Resolvedor
 from gama.span import Span
 
 
@@ -38,3 +42,59 @@ def test_guarda(monkeypatch):
 
 def test_carregar():
     assert isinstance(carregar("regua"), ExtratorRegua)
+
+
+def test_normalizar():
+    t = "AgInt no REsp 1.45g.779/SP Códig0"
+    assert normalizar.sem_acento(t) == Normalizador.sem_acento(t)
+    assert normalizar.achatar(t) == Normalizador.achatar(t)
+    assert normalizar.esqueleto(t) == Normalizador.esqueleto(t)
+    assert normalizar.so_digitos(t) == OCR.so_digitos(t)
+    assert normalizar.chave_processo("0001.459") == NumeroDeProcesso.do_bruto("0001.459").chave == "1459"
+    assert normalizar.nucleo_numerico(t) == NumeroDeProcesso.do_trecho(t).chave == "1459779"
+
+
+def test_cabecalho():
+    texto = "AgRg no RECURSO ESPECIAL Nº 1.205.500 - SC (2010⁄0146585-7)"
+    assert cabecalho.cadeia_de_classe("AgRg no REsp") == CadeiaDeClasse.ler("AgRg no REsp")
+    assert cabecalho.numero_proprio(texto, "STJ") == LeitorDeNumeroProprio().ler(texto, "STJ")
+    assert cabecalho.Proprio is cabecalho.NumeroProprio
+
+
+def test_indice(tmp_path):
+    import sqlite3
+    db = tmp_path / "a.db"
+    con = sqlite3.connect(db)
+    con.execute("CREATE TABLE documentos (id TEXT, natureza TEXT, tribunal TEXT, ano INTEGER, "
+                "relator TEXT, texto TEXT)")
+    con.execute("INSERT INTO documentos VALUES ('a', 'acordao', 'STJ', 2020, 'R', "
+                "'AgRg no RECURSO ESPECIAL Nº 1.205.500 - SC')")
+    con.execute("INSERT INTO documentos VALUES ('s', 'sumula', 'STJ', 2020, 'R', 'Súmula n. 7 do STJ')")
+    con.execute("INSERT INTO documentos VALUES ('d', 'dispositivo', NULL, NULL, NULL, "
+                "'Artigo 5 da Constituição Federal de 1988 Art. 5.')")
+    con.commit()
+    con.close()
+    idx = indice.construir(db)
+    novo = indice.Indice.do_banco(db)
+    assert (idx.processos.por_chave, idx.sumulas, idx.meta) == (novo.processos.por_chave, novo.sumulas, novo.meta)
+    assert idx.por_processo == {"1205500": ["a"]} and idx.cadeia == {"a": ("AgR", "REsp")}
+    assert idx.resolve_sumula("7", "STJ", False) == ["s"]
+    assert idx.resolve_dispositivo("5", "CF") == ["d"]
+    assert indice._chave_lei("Lei nº 13.105") == IdentificadorDeLei.do_cabecalho("Lei nº 13.105")
+    assert indice.APELIDOS_LEI["cpc"] == "13105"
+
+
+def test_indice_aceita_dicionarios_simples():
+    idx = indice.Indice(sumulas={("7", "STJ", False): "s"}, dispositivos={("5", "CF"): "d"})
+    assert idx.sumulas.resolver("7", None, False) == ["s"] and idx.dispositivos.resolver("5", "CF") == ["d"]
+
+
+def test_resolver():
+    idx = indice.Indice(sumulas={("7", "STJ", False): "s"})
+    sp = Span(0, 16, "Súmula 7 do STJ", "jurisprudencia", "sumula")
+    assert resolver.resolver(sp, idx) == Resolvedor(idx).resolver(sp)
+    assert resolver._numero_ocr("2l1") == OCR.numero("2l1")
+    assert resolver._chave_lei_da_citacao("art. 5 da CF") == IdentificadorDeLei().da_citacao("art. 5 da CF")
+    assert resolver.TRIBUNAL_DA_CLASSE is ClasseProcessual.TRIBUNAL_DA_CLASSE
+    assert resolver.CLASSE_POR_EXTENSO is ClasseProcessual.POR_EXTENSO
+    assert resolver._ART_NUM.search("art. 5").group(1) == "5"

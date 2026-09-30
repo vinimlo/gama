@@ -10,8 +10,8 @@ import pytest
 
 from gama.classificar import classificar
 from gama.formas import forma, span_de
-from gama.indice import construir
-from gama.resolver import resolver
+from gama.indice import Indice
+from gama.resolver import Resolvedor
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 DB = RAIZ / "dados" / "desafio1_bracis.db"
@@ -19,13 +19,13 @@ DB = RAIZ / "dados" / "desafio1_bracis.db"
 
 @pytest.fixture(scope="module")
 def idx():
-    return construir(DB)
+    return Indice.do_banco(DB)
 
 
 def _classe(idx, trecho, rotulo="JURIS"):
     texto = f"Cita-se o {trecho}, no ponto."
     sp = span_de(texto, 10, 10 + len(trecho), rotulo)
-    c = classificar(sp, resolver(sp, idx))
+    c = classificar(sp, Resolvedor(idx).resolver(sp))
     return c.classificacao, c.id_canonico
 
 
@@ -126,19 +126,19 @@ def test_vinculante_com_ruido(idx, trecho):
 
 
 def test_cadeia_de_classe_tolera_ocr():
-    from gama.cabecalho import cadeia_de_classe
-    assert cadeia_de_classe("Ernb. Decl. no AgR no REsp") == cadeia_de_classe("Emb. Decl. no AgR no REsp")
-    assert cadeia_de_classe("Aglnt nos EREsp") == cadeia_de_classe("AgInt nos EREsp")
-    assert cadeia_de_classe("Rcc. Esp.") == ("REsp",)
-    assert cadeia_de_classe("5egundo AG.REG. no ARE") == cadeia_de_classe("Segundo AG.REG. no ARE")
+    from gama.cabecalho import CadeiaDeClasse
+    assert CadeiaDeClasse.ler("Ernb. Decl. no AgR no REsp") == CadeiaDeClasse.ler("Emb. Decl. no AgR no REsp")
+    assert CadeiaDeClasse.ler("Aglnt nos EREsp") == CadeiaDeClasse.ler("AgInt nos EREsp")
+    assert CadeiaDeClasse.ler("Rcc. Esp.") == ("REsp",)
+    assert CadeiaDeClasse.ler("5egundo AG.REG. no ARE") == CadeiaDeClasse.ler("Segundo AG.REG. no ARE")
 
 
 def test_abreviacao_com_espaco_depois_do_ponto():
-    from gama.cabecalho import cadeia_de_classe
-    assert cadeia_de_classe("Ag. Reg. no REsp") == ("AgR", "REsp")
-    assert cadeia_de_classe("Emb. Decl. no AgR no REsp") == ("ED", "AgR", "REsp")
-    assert cadeia_de_classe("AgInt nos Emb. Div. no REsp") == ("AgInt", "EDv", "REsp")
-    assert cadeia_de_classe("AgInt nos EREsp no REsp") == ("AgInt", "EDv", "REsp")
+    from gama.cabecalho import CadeiaDeClasse
+    assert CadeiaDeClasse.ler("Ag. Reg. no REsp") == ("AgR", "REsp")
+    assert CadeiaDeClasse.ler("Emb. Decl. no AgR no REsp") == ("ED", "AgR", "REsp")
+    assert CadeiaDeClasse.ler("AgInt nos Emb. Div. no REsp") == ("AgInt", "EDv", "REsp")
+    assert CadeiaDeClasse.ler("AgInt nos EREsp no REsp") == ("AgInt", "EDv", "REsp")
 
 
 @pytest.mark.dados
@@ -166,7 +166,7 @@ def test_empate_sem_cadeia_continua_empate(idx):
     cadeia: nenhuma regra pode escolher, a confiança fica a do empate."""
     texto = "Cita-se o ARE nº 1356440/SP, no ponto."
     sp = span_de(texto, 10, 27, "JURIS")
-    c = classificar(sp, resolver(sp, idx))
+    c = classificar(sp, Resolvedor(idx).resolver(sp))
     assert c.classificacao == "real" and c.balde[:2] == ("processo", "real_ambiguo")
 
 

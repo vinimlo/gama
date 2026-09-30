@@ -12,7 +12,7 @@ import pathlib
 import pytest
 
 from gama.extratores import carregar
-from gama.indice import construir
+from gama.indice import Indice
 from gama.pipeline import processar
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
@@ -50,7 +50,7 @@ def _extratores():
 
 @pytest.fixture(scope="module")
 def idx():
-    return construir(RAIZ / "dados" / "desafio1_bracis.db")
+    return Indice.do_banco(RAIZ / "dados" / "desafio1_bracis.db")
 
 
 def _iou(a, b):
