@@ -3,18 +3,15 @@
 from __future__ import annotations
 
 import pathlib
-import sys
 
 import pytest
 
+from gama.extrair import extrair
+from gama.indice import construir
+from gama.normalizar import agrupar_milhares, chave_processo, so_digitos
+from gama.pipeline import processar
+
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(RAIZ / "src"))
-
-from gama.extrair import extrair  # noqa: E402
-from gama.indice import construir  # noqa: E402
-from gama.normalizar import agrupar_milhares, chave_processo, so_digitos  # noqa: E402
-from gama.pipeline import processar  # noqa: E402
-
 DADOS = RAIZ / "dados"
 
 
@@ -85,11 +82,13 @@ def test_referencia_vaga_sem_numero():
 
 # --------------------------------------------------------------- ponta a ponta
 
+@pytest.mark.dados
 def test_dispositivos_todos_indexados(idx):
     assert len(idx.dispositivos) == 13
     assert len(idx.sumulas) == 5
 
 
+@pytest.mark.dados
 def test_tst_resolve_apesar_do_preambulo(idx):
     """Os acordaos do TST so citam o proprio numero por volta do char 1100."""
     cit = processar("Cita-se o RR-1835-06.2010.5.15.0042 no ponto.", idx)
@@ -98,6 +97,7 @@ def test_tst_resolve_apesar_do_preambulo(idx):
     assert cit[0].id_canonico == "392669042"
 
 
+@pytest.mark.dados
 def test_citacao_inexistente_e_inventada(idx):
     cit = processar("Menciona-se a Rcl 88.178/RS, sem correspondente.", idx)
     assert len(cit) == 1
@@ -105,6 +105,7 @@ def test_citacao_inexistente_e_inventada(idx):
     assert cit[0].id_canonico is None
 
 
+@pytest.mark.dados
 def test_offsets_apontam_para_o_texto_original(idx):
     """inicio/fim sao a chave de juncao com o gabarito -- precisam fechar."""
     texto = (DADOS / "txt" / "gen_n2_003.txt").read_text(encoding="utf-8")
@@ -112,6 +113,7 @@ def test_offsets_apontam_para_o_texto_original(idx):
         assert texto[c.inicio:c.fim] == c.trecho
 
 
+@pytest.mark.dados
 def test_confianca_nunca_saturada(idx):
     """INVARIANTE: nao inflar confianca para 1,0 -- o bonus e Brier."""
     texto = (DADOS / "txt" / "gen_n1_001.txt").read_text(encoding="utf-8")

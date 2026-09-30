@@ -4,14 +4,9 @@
 É ele que transforma o span do extrator neural na chave do índice — se costurar
 uma palavra vizinha ao número, a citação real vira `inventada` em silêncio.
 """
-import pathlib
-import sys
-
 import pytest
 
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "src"))
-
-from gama.normalizar import nucleo_numerico  # noqa: E402
+from gama.normalizar import nucleo_numerico
 
 
 @pytest.mark.parametrize("trecho,chave", [

@@ -8,17 +8,17 @@ extrator neural tem que passar em todas.
 """
 import os
 import pathlib
-import sys
 
 import pytest
 
+from gama.extratores import carregar
+from gama.indice import construir
+from gama.pipeline import processar
+
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 MODELOS = pathlib.Path(os.environ.get("GAMA_MODELOS", str(RAIZ / "modelos")))
-sys.path.insert(0, str(RAIZ / "src"))
 
-from gama.extratores import carregar  # noqa: E402
-from gama.indice import construir  # noqa: E402
-from gama.pipeline import processar  # noqa: E402
+pytestmark = pytest.mark.dados
 
 MOLDURA = ("PODER JUDICIÁRIO\nTRIBUNAL REGIONAL\n\nProcesso nº 8133385-26.2020.5.05.4913\n"
            "Relator: Desembargador PAULO HENRIQUE\n\n\nACÓRDÃO\n\n"

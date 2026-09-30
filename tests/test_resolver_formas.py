@@ -5,18 +5,15 @@ Cada caso veio de uma citação renderizada a partir de uma ficha real cujo rót
 é conhecido por construção, e que o resolver classificava errado.
 """
 import pathlib
-import sys
 
 import pytest
 
+from gama.classificar import classificar
+from gama.formas import forma, span_de
+from gama.indice import construir
+from gama.resolver import resolver
+
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(RAIZ / "src"))
-
-from gama.classificar import classificar  # noqa: E402
-from gama.formas import forma, span_de  # noqa: E402
-from gama.indice import construir  # noqa: E402
-from gama.resolver import resolver  # noqa: E402
-
 DB = RAIZ / "dados" / "desafio1_bracis.db"
 
 
@@ -38,21 +35,25 @@ def test_ordinal_por_extenso_nao_vira_tema():
     assert forma("Temã 2.680 da repercussão geral") == "tema"
 
 
+@pytest.mark.dados
 def test_ordinal_por_extenso_resolve(idx):
     assert _classe(idx, "Terceiro AgR na Rcl nº 62425/SP") == ("real", "2428195275")
 
 
+@pytest.mark.dados
 def test_sumula_de_outro_tribunal_e_inventada(idx):
     """A 211 existe no STJ; 'Súmula 211 do TSE' é outra súmula, que não existe."""
     assert _classe(idx, "Súmula 211 do STJ") == ("real", "1289710776")
     assert _classe(idx, "SÚMULA 211 do TSE") == ("inventada", None)
 
 
+@pytest.mark.dados
 def test_lc_abreviada_resolve(idx):
     assert _classe(idx, "art. 1º da LC nº 64/1990", "LEI") == ("real", "11304039")
     assert _classe(idx, "art. 1º da LC 64/90", "LEI") == ("real", "11304039")
 
 
+@pytest.mark.dados
 @pytest.mark.parametrize("trecho,esperado", [
     ("art. 7º, XXVIII, 'a', da Constltuição Federal", "10641213"),
     ("Art. 373 do Códig0 de Pr0cesso Civil", "28893055"),
@@ -65,6 +66,7 @@ def test_lei_com_ruido_de_ocr_resolve(idx, trecho, esperado):
     assert _classe(idx, trecho, "LEI") == ("real", esperado)
 
 
+@pytest.mark.dados
 @pytest.mark.parametrize("trecho,esperado", [
     ("SúmuIa\n211/STJ", "1289710776"),
     ("Súmulã\n211/STJ", "1289710776"),
@@ -77,10 +79,12 @@ def test_sumula_com_ruido_de_ocr_resolve(idx, trecho, esperado):
     assert _classe(idx, trecho) == ("real", esperado)
 
 
+@pytest.mark.dados
 def test_sumula_inventada_com_ruido_continua_inventada(idx):
     assert _classe(idx, "SúmuIa 979 do STF") == ("inventada", None)
 
 
+@pytest.mark.dados
 @pytest.mark.parametrize("trecho,esperado", [
     ("art. 373\nda Lei nº 131O5/2015", "28893055"),
     ("art. 14, II, da Lei nº 807B/1990", "10606184"),
@@ -93,12 +97,14 @@ def test_numero_da_lei_com_ruido_resolve(idx, trecho, esperado):
     assert _classe(idx, trecho, "LEI") == ("real", esperado)
 
 
+@pytest.mark.dados
 def test_vinculante_com_i_trocado(idx):
     assert _classe(idx, "SÚMULA\nVlnculante 10") == ("real", "1289712966")
 
 
 # Ruído na PALAVRA-CHAVE (goldenset v3, 22/09): o resolver tem que aguentar o mesmo
 # ruído que o extrator aprendeu a aguentar.
+@pytest.mark.dados
 @pytest.mark.parametrize("trecho,esperado", [
     ("art 1º da Lei Cornplernentar nº 64/1990", "11304039"),
     ("art. 1º, V, da Lei Cornplcrnentar nº 64/19q0", "11304039"),
@@ -110,6 +116,7 @@ def test_lei_com_ruido_na_palavra_chave(idx, trecho, esperado):
     assert _classe(idx, trecho, "LEI") == ("real", esperado)
 
 
+@pytest.mark.dados
 @pytest.mark.parametrize("trecho", [
     "Súrnula Vinculantc\n10 do  5TF", "SÚMULA Vinculãnte 10 do STF", "Súrn. Vineulantê 10",
     "5ÚMULA\nVinculãnte 10", "Súm.  Vineulante 10 do 5TF", "Súmula Vinculantc 10",
@@ -134,10 +141,12 @@ def test_abreviacao_com_espaco_depois_do_ponto():
     assert cadeia_de_classe("AgInt nos EREsp no REsp") == ("AgInt", "EDv", "REsp")
 
 
+@pytest.mark.dados
 def test_lei_com_circunflexo(idx):
     assert _classe(idx, "Art.\n186 da Lêi nº 10.A06/2Q02", "LEI") == ("real", "10718759")
 
 
+@pytest.mark.dados
 @pytest.mark.parametrize("trecho,esperado", [
     # "Ag. Int." não entra na cadeia lida, (EDv, EDv, REsp); só uma ficha a contém
     ("Ag. Int. nos Emb. Div. nos  EDv no\nREsp nº\n1599372 (PR)", "2679381856"),
@@ -151,6 +160,7 @@ def test_desempate_por_cadeia_compativel(idx, trecho, esperado):
     assert _classe(idx, trecho) == ("real", esperado)
 
 
+@pytest.mark.dados
 def test_empate_sem_cadeia_continua_empate(idx):
     """Duas fichas do mesmo ARE que só diferem no ordinal dos embargos, e o texto não traz
     cadeia: nenhuma regra pode escolher, a confiança fica a do empate."""
@@ -160,12 +170,14 @@ def test_empate_sem_cadeia_continua_empate(idx):
     assert c.classificacao == "real" and c.balde[:2] == ("processo", "real_ambiguo")
 
 
+@pytest.mark.dados
 def test_cnj_com_classe_grudada_pelo_ocr(idx):
     """'AI' virou 'A1' e grudou no número: 22 dígitos. CNJ tem 20; ficam os 20 últimos."""
     assert _classe(idx, "AgR-A1 0603026-69.2018.6.09.0000") == ("real", "1888089426")
     assert _classe(idx, "AgR-AI 0603026-69.2018.6.09.0000") == ("real", "1888089426")
 
 
+@pytest.mark.dados
 def test_cnj_inventado_continua_inventado(idx):
     assert _classe(idx, "AgR-A1 0603026-69.2018.6.09.0001") == ("inventada", None)
     assert _classe(idx, "0603026-69.2018.6.09.0001") == ("inventada", None)

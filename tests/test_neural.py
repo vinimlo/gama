@@ -1,22 +1,19 @@
 # -*- coding: utf-8 -*-
-"""Extrator neural (Gama): determinismo e contrato de saída. Pula sem pesos montados.
+"""Extrator neural (Gama): determinismo e contrato de saída. Pula sem pesos montados ou sem ./dados.
 
 Roda com os pesos em GAMA_MODELOS (no container: ./modelos montado em /models).
 """
 import csv
 import os
 import pathlib
-import sys
 
 import pytest
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(RAIZ / "src"))
 MODELOS = pathlib.Path(os.environ.get("GAMA_MODELOS", str(RAIZ / "modelos")))
 DADOS = RAIZ / "dados"
 
-pytestmark = pytest.mark.skipif(not (MODELOS / "config.json").exists(),
-                                reason="sem pesos do extrator neural montados")
+pytestmark = [pytest.mark.modelos, pytest.mark.dados]
 
 
 @pytest.fixture(scope="module")

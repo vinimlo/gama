@@ -6,22 +6,23 @@ próprio vira `inventada` em silêncio para qualquer citação a ela.
 """
 import csv
 import pathlib
-import sys
+
+import pytest
+
+from avaliacao.cobertura import construir, nucleo
+from gama.cabecalho import cadeia_de_classe
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(RAIZ))
-sys.path.insert(0, str(RAIZ / "src"))
-
-from avaliacao.cobertura import construir, nucleo  # noqa: E402
-from gama.cabecalho import cadeia_de_classe  # noqa: E402
 
 
+@pytest.mark.dados
 def test_todo_acordao_tem_numero_proprio():
     _, prop, _ = construir()
     sem = [(d, t, p.fonte) for d, (t, p) in prop.items() if not p.chaves]
     assert sem == []
 
 
+@pytest.mark.dados
 def test_toda_real_de_acordao_do_gabarito_resolve_para_o_id_certo():
     _, prop, por_chave = construir()
     falhas = []

@@ -11,11 +11,9 @@ from types import SimpleNamespace as P
 
 import pytest
 
-RAIZ = pathlib.Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(RAIZ))
-sys.path.insert(0, str(RAIZ / "src"))
+from gama.extratores import bio
 
-from gama.extratores import bio  # noqa: E402
+RAIZ = pathlib.Path(__file__).resolve().parent.parent
 
 
 def test_1_tokens_com_o_mesmo_offset_nao_duplicam_span():
@@ -97,6 +95,7 @@ def test_r2_2_extensao_nao_atravessa_citacao_vizinha():
     assert bio.decodificar(offsets, bio.rotular(offsets, gold), texto) == gold
 
 
+@pytest.mark.treino
 def test_r2_3_treino_le_crlf_como_a_inferencia(tmp_path):
     sys.path.insert(0, str(RAIZ / "treino"))
     from treino.treinar import carregar

@@ -3,19 +3,15 @@
 import csv
 import pathlib
 import random
-import sys
 
 import pytest
 
+from avaliacao.cobertura import nucleo
+from avaliacao.convencoes import forma
+from gama.ruido import DIGITO_PARA_LETRA, aplicar_ruido
+from gama.normalizar import OCR_PARA_DIGITO
+
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(RAIZ))
-sys.path.insert(0, str(RAIZ / "src"))
-
-from avaliacao.cobertura import nucleo  # noqa: E402
-from avaliacao.convencoes import forma  # noqa: E402
-from gama.ruido import DIGITO_PARA_LETRA, aplicar_ruido  # noqa: E402
-from gama.normalizar import OCR_PARA_DIGITO  # noqa: E402
-
 DADOS = RAIZ / "dados"
 
 
@@ -41,6 +37,7 @@ def test_intensidade_zero_nao_altera():
     assert aplicar_ruido(texto, [(10, 27)], random.Random(1), 0.0) == (texto, [(10, 27)])
 
 
+@pytest.mark.dados
 @pytest.mark.parametrize("semente", range(40))
 def test_numero_de_cada_citacao_sobrevive_ao_ruido(semente):
     """INVARIANTE da organização: dígito nunca vira outro dígito."""
@@ -55,6 +52,7 @@ def test_numero_de_cada_citacao_sobrevive_ao_ruido(semente):
                 assert nucleo(depois) == nucleo(antes), (doc, antes, depois)
 
 
+@pytest.mark.dados
 @pytest.mark.parametrize("semente", range(20))
 def test_offsets_remapeados_apontam_para_o_span_ruidoso(semente):
     """Cada span remapeado começa e termina em caractere não-branco e o número de

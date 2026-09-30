@@ -1,13 +1,7 @@
 # -*- coding: utf-8 -*-
 """Guarda do extrator neural: as duas regras, com spans montados à mão."""
-import pathlib
-import sys
-
-RAIZ = pathlib.Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(RAIZ / "src"))
-
-from gama.extratores.guarda import guardar  # noqa: E402
-from gama.span import Span  # noqa: E402
+from gama.extratores.guarda import guardar
+from gama.span import Span
 
 
 def _s(texto, trecho, tipo="jurisprudencia", forma="processo", conf=1.0, apos=0):

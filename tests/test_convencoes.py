@@ -7,16 +7,16 @@ borda errada e ensinaria o modelo errado.
 """
 import csv
 import pathlib
-import sys
+
+import pytest
+
+from avaliacao.convencoes import violacoes_de_borda
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(RAIZ))
-
-from avaliacao.convencoes import violacoes_de_borda  # noqa: E402
-
 DADOS = RAIZ / "dados"
 
 
+@pytest.mark.dados
 def test_gabarito_nao_viola_nenhuma_regra_de_borda():
     textos, violacoes = {}, []
     for r in csv.DictReader(open(DADOS / "goldenset_offsets.csv", encoding="utf-8-sig")):
