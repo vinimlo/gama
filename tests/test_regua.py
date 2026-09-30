@@ -7,10 +7,11 @@ cair no cabeçalho inferido. Os casos contra o dev set estão em test_convencoes
 """
 import pytest
 
-from gama.extrair import (_e_sigla, _estende_direita, _estende_esquerda, _fim_cabecalho, _fronteira_sentenca,
-                          _tem_classe, _vagas, extrair)
+from gama.extratores.regua import Achados, DetectorDeVagas, ExtensorDeCitacao, ExtratorRegua
 
 CAB = "CABEÇALHO\n\n\n"
+REGUA = ExtratorRegua()
+extrair = REGUA.extrair
 
 
 def _trechos(corpo):
@@ -29,7 +30,7 @@ def _trechos(corpo):
     ("x" * 300 + "\n\n" + "y" * 100, 100),          # linha em branco depois do teto: teto
 ])
 def test_fim_do_cabecalho(texto, fim):
-    assert _fim_cabecalho(texto) == fim
+    assert ExtratorRegua.fim_do_cabecalho(texto) == fim
 
 
 # ------------------------------------------------------------------ prefixo
@@ -40,7 +41,7 @@ def test_fim_do_cabecalho(texto, fim):
     ("a", False), ("parte", False), ("A", False), ("Ab", False), ("abc", False), ("12", False),
 ])
 def test_e_sigla(bruto, sigla):
-    assert _e_sigla(bruto) == sigla
+    assert ExtensorDeCitacao.e_sigla(bruto) == sigla
 
 
 @pytest.mark.parametrize("janela,pos", [
@@ -55,11 +56,11 @@ def test_e_sigla(bruto, sigla):
     ("sem fronteira", -1),
 ])
 def test_fronteira_de_sentenca(janela, pos):
-    assert _fronteira_sentenca(janela) == pos
+    assert ExtensorDeCitacao.fronteira_sentenca(janela) == pos
 
 
 def _esquerda(texto, numero, limite=80):
-    return texto[_estende_esquerda(texto, texto.index(numero), limite):texto.index(numero)]
+    return texto[ExtensorDeCitacao(limite).esquerda(texto, texto.index(numero)):texto.index(numero)]
 
 
 @pytest.mark.parametrize("texto,prefixo", [
@@ -89,20 +90,20 @@ def test_estende_esquerda_respeita_o_limite():
 ])
 def test_estende_direita(resto, uf):
     texto = "REsp 1" + resto
-    assert texto[6:_estende_direita(texto, 6)] == uf
+    assert texto[6:ExtensorDeCitacao.direita(texto, 6)] == uf
 
 
 @pytest.mark.parametrize("prefixo,classe", [
     ("Processo nº ", False), ("Processo nº TST-RR-", True), ("AgInt no ", True), ("n. ", False), ("", False),
 ])
 def test_tem_classe(prefixo, classe):
-    assert _tem_classe(prefixo) == classe
+    assert ExtensorDeCitacao.tem_classe(prefixo) == classe
 
 
 # ------------------------------------------------------------------ vagas
 
 def _vaga(texto):
-    return [texto[a:b] for a, b in _vagas(texto, _fim_cabecalho(texto))]
+    return [texto[a:b] for a, b in DetectorDeVagas().encontrar(texto, ExtratorRegua.fim_do_cabecalho(texto))]
 
 
 def test_vaga_da_abertura_ao_relator():
@@ -199,3 +200,35 @@ def test_saida_ordenada_e_sem_sobreposicao():
 
 def test_texto_sem_citacao():
     assert extrair("") == [] and extrair(CAB + "Nada a citar aqui.") == []
+
+
+# ------------------------------------------------------------------ peças
+
+def test_achados_recusam_sobreposicao_e_distrator_e_aparam_a_borda():
+    texto = "REsp 123 - fls. 45 e mais."
+    a = Achados(texto)
+    a.registrar(0, 8, "jurisprudencia", "processo")
+    a.registrar(5, 10, "jurisprudencia", "processo")                  # cruza o primeiro
+    a.registrar(11, 18, "jurisprudencia", "processo")                 # distrator (fls.)
+    a.registrar(19, 21, "jurisprudencia", "processo")                 # "e " -> "e"
+    a.registrar(8, 11, "jurisprudencia", "processo")                  # " - " só lixo de borda
+    assert [(s.inicio, s.fim, s.trecho) for s in a.ordenados()] == [(0, 8, "REsp 123"), (19, 20, "e")]
+
+
+def test_achados_ordenados_pelo_inicio():
+    a = Achados("abcdefghij")
+    a.registrar(6, 8, "lei", "artigo")
+    a.registrar(0, 2, "lei", "artigo")
+    assert [s.inicio for s in a.ordenados()] == [0, 6]
+
+
+def test_regua_com_pecas_injetadas():
+    class SemVagas(DetectorDeVagas):
+        def encontrar(self, texto, fim_cabecalho):
+            return []
+
+    texto = CAB + "Conforme o AgInt no REsp 1.234.567/SP, julgado de 2020, Rel. Min. Nancy Andrighi."
+    curto = ExtratorRegua(ExtensorDeCitacao(limite=5), SemVagas())
+    assert [s.trecho for s in curto.extrair(texto)] == ["REsp 1.234.567/SP"]
+    assert [s.trecho for s in REGUA.extrair(texto)] == [
+        "AgInt no REsp 1.234.567/SP", "julgado de 2020, Rel. Min. Nancy Andrighi"]

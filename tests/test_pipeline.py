@@ -6,7 +6,7 @@ import pathlib
 
 import pytest
 
-from gama.extrair import extrair
+from gama.extratores.regua import ExtratorRegua
 from gama.indice import Indice
 from gama.normalizar import OCR, NumeroDeProcesso
 from gama.pipeline import Pipeline
@@ -45,7 +45,7 @@ def test_prefixo_nao_contamina_a_chave():
     Aplicar a tabela de OCR ao trecho inteiro converte as letras do prefixo em
     digitos e produz chave fantasma. Bug silencioso que apareceu tres vezes.
     """
-    spans = extrair("Cita-se o AgInt no AREsp 1576933/SP, que trata do tema.")
+    spans = ExtratorRegua().extrair("Cita-se o AgInt no AREsp 1576933/SP, que trata do tema.")
     assert len(spans) == 1
     assert spans[0].digitos == "1576933"
     assert "AgInt" in spans[0].trecho
@@ -54,7 +54,7 @@ def test_prefixo_nao_contamina_a_chave():
 def test_ponto_de_abreviatura_nao_encerra_sentenca():
     """O corte ingenuo em '. ' decepava o prefixo e custava IoU."""
     texto = "Observa-se o AgRg no Rec. Esp. n. 1.522.200 (SC), no ponto."
-    spans = extrair(texto)
+    spans = ExtratorRegua().extrair(texto)
     assert len(spans) == 1
     assert spans[0].trecho.startswith("AgRg")
 
@@ -62,7 +62,7 @@ def test_ponto_de_abreviatura_nao_encerra_sentenca():
 def test_numero_dos_autos_no_cabecalho_e_distrator():
     texto = ("TRIBUNAL\nProcesso nº 8133385-26.2020.5.05.4913\n\n\n"
              "No mérito, invoca-se o RR-1835-06.2010.5.15.0042 como paradigma.")
-    trechos = [s.trecho for s in extrair(texto)]
+    trechos = [s.trecho for s in ExtratorRegua().extrair(texto)]
     assert not any("8133385" in t for t in trechos)
     assert any("1835-06" in t for t in trechos)
 
@@ -70,7 +70,7 @@ def test_numero_dos_autos_no_cabecalho_e_distrator():
 def test_referencia_vaga_sem_numero():
     texto = ("Ao final.\nInvoca-se precedente do STF de 2026, "
              "da relatoria de CRISTIANO ZANIN, no ponto.")
-    spans = extrair(texto)
+    spans = ExtratorRegua().extrair(texto)
     assert [s.forma for s in spans] == ["vaga"]
 
 

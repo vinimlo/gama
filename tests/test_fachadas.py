@@ -123,3 +123,10 @@ def test_pipeline(tmp_path, monkeypatch):
     chamado = []
     monkeypatch.setattr(pipeline.Aplicacao, "executar", lambda self, argv=None: chamado.append(argv) or 7)
     assert pipeline.main(["x"]) == 7 and chamado == [["x"]]
+
+
+def test_extrair():
+    from gama import extrair
+    from gama.extratores.regua import ExtratorRegua
+    t = "CAB\n\n\nO AgInt no REsp 1.234.567/SP e a Súmula 7."
+    assert extrair.extrair(t) == ExtratorRegua().extrair(t)
