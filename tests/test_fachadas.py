@@ -109,3 +109,17 @@ def test_classificar_e_formas(monkeypatch):
     assert classificar.classificar(sp, res) == classificar.Classificador().classificar(sp, res)
     monkeypatch.setattr(classificar, "TABELA", {"processo|real|alta": 0.12})
     assert classificar.classificar(sp, res).confianca == 0.12                    # lida a cada chamada
+
+
+def test_pipeline(tmp_path, monkeypatch):
+    arq = tmp_path / "d.txt"
+    arq.write_bytes("REsp 1\r\n".encode())
+    assert pipeline.ler_texto(arq) == pipeline.Documento.ler(arq).texto
+    a, b = _em(0, 10), _em(5, 15)
+    assert pipeline._iou(a, b) == a.iou(b)
+    assert pipeline.sem_sobreposicao([a, _em(0, 9)]) == pipeline.Pipeline.sem_sobreposicao([a, _em(0, 9)]) == [a]
+    idx = indice.Indice()
+    assert pipeline.processar("art. 1 da CF", idx) == pipeline.Pipeline(idx).processar("art. 1 da CF")
+    chamado = []
+    monkeypatch.setattr(pipeline.Aplicacao, "executar", lambda self, argv=None: chamado.append(argv) or 7)
+    assert pipeline.main(["x"]) == 7 and chamado == [["x"]]

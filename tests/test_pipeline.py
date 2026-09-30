@@ -9,7 +9,7 @@ import pytest
 from gama.extrair import extrair
 from gama.indice import Indice
 from gama.normalizar import OCR, NumeroDeProcesso
-from gama.pipeline import processar
+from gama.pipeline import Pipeline
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 DADOS = RAIZ / "dados"
@@ -85,7 +85,7 @@ def test_dispositivos_todos_indexados(idx):
 @pytest.mark.dados
 def test_tst_resolve_apesar_do_preambulo(idx):
     """Os acordaos do TST so citam o proprio numero por volta do char 1100."""
-    cit = processar("Cita-se o RR-1835-06.2010.5.15.0042 no ponto.", idx)
+    cit = Pipeline(idx).processar("Cita-se o RR-1835-06.2010.5.15.0042 no ponto.")
     assert len(cit) == 1
     assert cit[0].classificacao == "real"
     assert cit[0].id_canonico == "392669042"
@@ -93,7 +93,7 @@ def test_tst_resolve_apesar_do_preambulo(idx):
 
 @pytest.mark.dados
 def test_citacao_inexistente_e_inventada(idx):
-    cit = processar("Menciona-se a Rcl 88.178/RS, sem correspondente.", idx)
+    cit = Pipeline(idx).processar("Menciona-se a Rcl 88.178/RS, sem correspondente.")
     assert len(cit) == 1
     assert cit[0].classificacao == "inventada"
     assert cit[0].id_canonico is None
@@ -103,7 +103,7 @@ def test_citacao_inexistente_e_inventada(idx):
 def test_offsets_apontam_para_o_texto_original(idx):
     """inicio/fim sao a chave de juncao com o gabarito -- precisam fechar."""
     texto = (DADOS / "txt" / "gen_n2_003.txt").read_text(encoding="utf-8")
-    for c in processar(texto, idx):
+    for c in Pipeline(idx).processar(texto):
         assert texto[c.inicio:c.fim] == c.trecho
 
 
@@ -111,5 +111,5 @@ def test_offsets_apontam_para_o_texto_original(idx):
 def test_confianca_nunca_saturada(idx):
     """INVARIANTE: nao inflar confianca para 1,0 -- o bonus e Brier."""
     texto = (DADOS / "txt" / "gen_n1_001.txt").read_text(encoding="utf-8")
-    for c in processar(texto, idx):
+    for c in Pipeline(idx).processar(texto):
         assert 0.0 < c.confianca < 1.0

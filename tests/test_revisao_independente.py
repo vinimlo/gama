@@ -24,22 +24,22 @@ def test_1_tokens_com_o_mesmo_offset_nao_duplicam_span():
 
 
 def test_1_pipeline_nunca_emite_spans_sobrepostos():
-    from gama.pipeline import sem_sobreposicao
+    from gama.pipeline import Pipeline
     a = P(inicio=0, fim=10, trecho="x" * 10)
     b = P(inicio=0, fim=10, trecho="x" * 10)
     c = P(inicio=5, fim=12, trecho="x" * 7)
     d = P(inicio=20, fim=25, trecho="x" * 5)
     # b duplica a (IoU 1) e sai; c cruza a com IoU 0,42 — permitido pela regra da
     # métrica (só IoU >= 0,5 invalida), então fica (revisão independente, rodada 2, achado 4).
-    assert sem_sobreposicao([a, b, c, d]) == [a, c, d]
+    assert Pipeline.sem_sobreposicao([a, b, c, d]) == [a, c, d]
 
 
 def test_2_crlf_preserva_offsets(tmp_path):
     """A leitura não pode trocar \\r\\n por \\n: o offset é sobre o texto como veio."""
-    from gama.pipeline import ler_texto
+    from gama.pipeline import Documento
     arq = tmp_path / "d.txt"
     arq.write_bytes("x\r\nLei 1".encode("utf-8"))
-    texto = ler_texto(arq)
+    texto = Documento.ler(arq).texto
     assert texto.index("Lei 1") == 3
 
 
@@ -82,9 +82,9 @@ def test_span_que_abre_no_meio_da_palavra_estende_ate_a_borda():
 # Rodada 2 (22/09): 7 achados. Cada um vira teste antes do fix.
 
 def test_r2_1_regua_nunca_emite_borda_com_espaco():
-    from gama.pipeline import processar
+    from gama.pipeline import Pipeline
     for texto in ("art. 1\n", "art. 1\r\n", "art. 1 "):
-        for c in processar(texto, None):
+        for c in Pipeline(None).processar(texto):
             assert not c.trecho[-1].isspace() and texto[c.inicio:c.fim] == c.trecho, repr(c.trecho)
 
 
@@ -108,10 +108,10 @@ def test_r2_3_treino_le_crlf_como_a_inferencia(tmp_path):
 
 
 def test_r2_4_sobreposicao_so_invalida_com_iou_meio():
-    from gama.pipeline import sem_sobreposicao
+    from gama.pipeline import Pipeline
     a = P(inicio=0, fim=11, trecho="x" * 11)
     b = P(inicio=9, fim=20, trecho="x" * 11)
-    assert sem_sobreposicao([a, b]) == [a, b]
+    assert Pipeline.sem_sobreposicao([a, b]) == [a, b]
 
 
 def test_r2_5_confianca_so_dos_tokens_da_entidade():

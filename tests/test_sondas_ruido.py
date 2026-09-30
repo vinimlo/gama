@@ -11,9 +11,9 @@ import pathlib
 
 import pytest
 
-from gama.extratores import carregar
+from gama.extratores import CatalogoDeExtratores
 from gama.indice import Indice
-from gama.pipeline import processar
+from gama.pipeline import Pipeline
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 MODELOS = pathlib.Path(os.environ.get("GAMA_MODELOS", str(RAIZ / "modelos")))
@@ -65,9 +65,9 @@ def test_sonda(nome_extrator, nome, cit, esperado, idx, request):
         request.node.add_marker(pytest.mark.xfail(reason="régua não resiste a ruído em palavra-chave", strict=True))
     if nome_extrator == "neural" and nome in FALHA_CONHECIDA_DO_NEURAL:
         request.node.add_marker(pytest.mark.xfail(reason="Gama v1: Tema fora da faixa do treino; corrigido no v1.2", strict=True))
-    extrator = carregar(nome_extrator, str(MODELOS))
+    extrator = CatalogoDeExtratores(str(MODELOS)).carregar(nome_extrator)
     texto = MOLDURA.format(cit=cit)
     gold = (texto.index(cit), texto.index(cit) + len(cit))
-    casados = [c for c in processar(texto, idx, extrator) if _iou(gold, (c.inicio, c.fim)) >= 0.5]
+    casados = [c for c in Pipeline(idx, extrator).processar(texto) if _iou(gold, (c.inicio, c.fim)) >= 0.5]
     assert casados, f"{nome}: nenhum span com IoU >= 0,5"
     assert casados[0].classificacao == esperado

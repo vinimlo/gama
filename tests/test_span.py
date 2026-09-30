@@ -36,6 +36,14 @@ def test_distancia_e_simetrica(a, b, distancia):
     assert x.distancia(y) == y.distancia(x) == distancia
 
 
+@pytest.mark.parametrize("a,b,iou", [
+    ((0, 10), (0, 10), 1.0), ((0, 10), (5, 15), 5 / 15), ((0, 10), (10, 20), 0.0), ((0, 10), (2, 7), 0.5),
+])
+def test_iou_e_simetrico(a, b, iou):
+    x, y = _em(*a), _em(*b)
+    assert x.iou(y) == y.iou(x) == pytest.approx(iou)
+
+
 @pytest.mark.parametrize("conf,fica", [(None, True), (0.95, True), (0.9499, False), (1.0, True)])
 def test_confiante(conf, fica):
     assert _em(0, 1, conf).confiante(0.95) == fica
