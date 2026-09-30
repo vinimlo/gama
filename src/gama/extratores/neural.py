@@ -15,9 +15,12 @@ import pathlib
 from ..formas import span_de
 from ..span import Span
 from . import bio
+from .base import Extrator
 
 
-class ExtratorNeural:
+class ExtratorNeural(Extrator):
+    nome = "neural-cru"
+
     def __init__(self, pasta: str | pathlib.Path, max_len: int | None = None):
         import torch
         from transformers import AutoModelForTokenClassification, AutoTokenizer

@@ -8,19 +8,20 @@ neural sozinho é pergunta da validação por dobras (métrica oficial), não su
 """
 from __future__ import annotations
 
-from ..span import Span, cruza
-from .neural import ExtratorNeural
-from .regua import ExtratorRegua
+from ..span import Span
+from .base import Extrator
 
 
-class ExtratorUniao:
-    def __init__(self, pasta):
-        self.neural = ExtratorNeural(pasta)
-        self.regua = ExtratorRegua()
+class ExtratorUniao(Extrator):
+    nome = "uniao"
+
+    def __init__(self, neural: Extrator, regua: Extrator):
+        self.neural = neural
+        self.regua = regua
 
     def extrair(self, texto: str) -> list[Span]:
         spans = list(self.neural.extrair(texto))
         for r in self.regua.extrair(texto):
-            if not any(cruza(r, s) for s in spans):
+            if not any(r.cruza(s) for s in spans):
                 spans.append(r)
         return sorted(spans, key=lambda s: s.inicio)

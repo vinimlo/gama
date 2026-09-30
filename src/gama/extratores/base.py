@@ -2,14 +2,14 @@
 """Contrato de um extrator: texto -> spans de citação tipados."""
 from __future__ import annotations
 
-from typing import Protocol
+from abc import ABC, abstractmethod
 
 from ..span import Span
 
 
-class Extrator(Protocol):
+class Extrator(ABC):
     nome: str
 
+    @abstractmethod
     def extrair(self, texto: str) -> list[Span]:
         """Spans sem sobreposição, ordenados por início, offsets em codepoints."""
-        ...

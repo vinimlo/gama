@@ -8,9 +8,10 @@ from __future__ import annotations
 
 from ..extrair import extrair
 from ..span import Span
+from .base import Extrator
 
 
-class ExtratorRegua:
+class ExtratorRegua(Extrator):
     nome = "regua"
 
     def extrair(self, texto: str) -> list[Span]:
