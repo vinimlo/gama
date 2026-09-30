@@ -22,8 +22,8 @@ import json
 import pathlib
 import random
 
-from gama.indice import construir
-from gama.ruido import aplicar_ruido
+from gama.indice import Indice
+from gama.ruido import InjetorDeRuido
 
 from . import fichas as F
 from .montar import Documento, Montador, mistura_do_dev
@@ -50,7 +50,7 @@ def gerar_um(m: Montador, i: int, semente: int, nivel: int, idx) -> tuple:
     doc = m.montar(rng, nivel)
     if nivel == 2:
         inten = rng.uniform(0.45, 1.0)
-        novo, remap = aplicar_ruido(doc.texto, [(a, b) for a, b, _ in doc.spans], rng, inten)
+        novo, remap = InjetorDeRuido(rng, inten).aplicar(doc.texto, [(a, b) for a, b, _ in doc.spans])
         doc = Documento(novo, [(na, nb, c) for (na, nb), (_, _, c) in zip(remap, doc.spans)],
                         {**doc.meta, "ruido": round(inten, 3)})
     return doc, verificar(doc.texto, doc.spans, idx, nivel)
@@ -125,7 +125,7 @@ def main() -> int:
         for k in montar.FRACAO_LLM:
             montar.FRACAO_LLM[k] = a.fracao_llm
 
-    idx = construir(a.db)
+    idx = Indice.do_banco(a.db)
     fichas, sumulas, disps = F.carregar(a.db)
     m = Montador(carregar_bancos(a.bancos.split(",")), fichas, sumulas, disps,
                  mistura_do_dev(pathlib.Path(a.dados)), idx)

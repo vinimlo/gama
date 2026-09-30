@@ -26,12 +26,12 @@ import pathlib
 import shutil
 import time
 
-from gama.extratores import carregar as carregar_extrator
-from gama.extratores.guarda import guardar
-from gama.formas import span_de
-from gama.indice import construir
-from gama.pipeline import SCHEMA, processar
-from gama.span import Span, aparar_todos
+from gama.extratores import CatalogoDeExtratores
+from gama.extratores.guarda import Guarda
+from gama.formas import DetectorDeForma
+from gama.indice import Indice
+from gama.pipeline import Pipeline, SCHEMA
+from gama.span import Span
 from treino.avaliar_dobras import pontuar as pontuar_oficial
 
 from . import conjuntos
@@ -77,8 +77,8 @@ def spans_com_guarda() -> tuple[dict, dict]:
         if k not in regua or k not in textos:
             continue
         t = textos[k]
-        ss = guardar(aparar_todos([para_span(t, x) for x in lg["spans"]], t),
-                     aparar_todos([para_span(t, x) for x in regua[k]["spans"]], t))
+        ss = Guarda().aplicar(Span.aparar_todos([para_span(t, x) for x in lg["spans"]], t),
+                              Span.aparar_todos([para_span(t, x) for x in regua[k]["spans"]], t))
         linhas[k] = {"segundos": lg["segundos"] + regua[k]["segundos"],
                      "spans": [[s.inicio, s.fim, s.tipo, s.forma, s.digitos, s.confianca] for s in ss]}
     return {"gama": mg, "regua": mr}, linhas
@@ -88,7 +88,7 @@ def para_span(texto: str, s: list) -> Span:
     if len(s) == 6:                                   # Span completo (régua, Gama)
         a, b, tipo, forma, digitos, conf = s
         return Span(a, b, texto[a:b], tipo, forma, digitos, conf)
-    return span_de(texto, s[0], s[1], s[2], None)     # (inicio, fim, rótulo[, score])
+    return DetectorDeForma().span(texto, s[0], s[1], s[2], None)     # (inicio, fim, rótulo[, score])
 
 
 def rotulo(s: Span) -> str:
@@ -143,7 +143,7 @@ def oficial(nome: str, extrator: str, textos: dict, spans: dict, idx) -> dict:
     fixo = Fixo()
     for d, texto in textos.items():
         fixo.atual = spans[d]
-        cits = processar(texto, idx, fixo)
+        cits = Pipeline(idx, fixo).processar(texto)
         doc = {"schema_version": SCHEMA, "documento_id": d,
                "citacoes": [c.para_json(i + 1) for i, c in enumerate(cits)]}
         (pasta / f"{d}.json").write_text(json.dumps(doc, ensure_ascii=False), encoding="utf-8")
@@ -152,7 +152,7 @@ def oficial(nome: str, extrator: str, textos: dict, spans: dict, idx) -> dict:
 
 def extrair_local(extrator: str, nomes: list[str]) -> int:
     """Roda régua ou Gama aqui (por padrão, só no dev) e grava os spans completos."""
-    ext = carregar_extrator("regua" if extrator == "regua" else "neural-cru", "/models")
+    ext = CatalogoDeExtratores("/models").carregar("regua" if extrator == "regua" else "neural-cru")
     meta = {"extrator": extrator, "dispositivo": "cpu (container, 4 vCPUs)"}
     for nome in nomes:
         textos, _ = conjuntos.carregar(nome)
@@ -180,7 +180,7 @@ def main() -> int:
     if a.acao == "extrair":
         return extrair_local(a.extrator, a.conjuntos.split(","))
 
-    idx = construir(DB)
+    idx = Indice.do_banco(DB)
     saida = {"meta": {}, "resultados": {}}
     for extrator in EXTRATORES:
         metas, linhas = spans_com_guarda() if extrator == "gama_guarda" else spans_de(extrator)
@@ -193,7 +193,7 @@ def main() -> int:
                 print(f"{extrator} {nome}: faltam {len(faltam)} documentos, conjunto pulado", flush=True)
                 continue
             spans = {d: [para_span(textos[d], s) for s in linhas[(nome, d)]["spans"]] for d in textos}
-            pred = {d: [(s.inicio, s.fim, rotulo(s)) for s in aparar_todos(ss, textos[d])]
+            pred = {d: [(s.inicio, s.fim, rotulo(s)) for s in Span.aparar_todos(ss, textos[d])]
                     for d, ss in spans.items()}
             r = {"documentos": len(textos),
                  "s_por_doc": round(sum(linhas[(nome, d)]["segundos"] for d in textos) / len(textos), 4),

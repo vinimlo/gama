@@ -22,9 +22,9 @@ import csv
 import json
 import pathlib
 
-from gama.extratores import carregar
-from gama.indice import construir
-from gama.pipeline import ler_texto, processar
+from gama.extratores import CatalogoDeExtratores
+from gama.indice import Indice
+from gama.pipeline import Documento, Pipeline
 
 TETO = 0.995
 
@@ -82,8 +82,8 @@ def medir(conjuntos: list[pathlib.Path], extrator, idx, limite: int | None) -> d
             n2 = [d for d in docs if "_n1_" not in d]
             docs = sorted(n1[: limite // 2] + n2[: limite - limite // 2])
         for d in docs:
-            texto = ler_texto(pasta / "txt" / f"{d}.txt")
-            for p, g in casar(processar(texto, idx, extrator), gab[d]):
+            texto = Documento.ler(pasta / "txt" / f"{d}.txt").texto
+            for p, g in casar(Pipeline(idx, extrator).processar(texto), gab[d]):
                 y = p.classificacao == g[2] and (g[2] != "real" or mesmo_id(p.id_canonico, g[3]))
                 s = stats["|".join(p.balde)]
                 s[0] += int(y)
@@ -100,8 +100,9 @@ def main() -> int:
     ap.add_argument("--limite", type=int, default=None, help="documentos por conjunto")
     ap.add_argument("--saida", default=None)
     a = ap.parse_args()
-    idx = construir(a.db)
-    stats = medir([pathlib.Path(c) for c in a.conjunto], carregar(a.extrator, a.modelos), idx, a.limite)
+    idx = Indice.do_banco(a.db)
+    extrator = CatalogoDeExtratores(a.modelos).carregar(a.extrator)
+    stats = medir([pathlib.Path(c) for c in a.conjunto], extrator, idx, a.limite)
     tabela = {}
     for balde, (k, n) in sorted(stats.items()):
         tabela[balde] = round(min(TETO, (k + 1) / (n + 2)), 4)

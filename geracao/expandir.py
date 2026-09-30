@@ -20,7 +20,7 @@ import random
 import re
 import unicodedata
 
-from gama.extrair import extrair
+from gama.extratores.regua import ExtratorRegua
 
 from . import prompts as P
 from .llm import MODELOS, chat
@@ -44,7 +44,7 @@ def _limpa_de_citacao(texto: str) -> bool:
     cheio = preencher(texto, rng)
     if re.search(r"\d", re.sub(r"\{(CNJ|DATA|FLS|OAB|PROTOCOLO)\}", "", texto)):
         return False
-    return not extrair(cheio)
+    return not ExtratorRegua().extrair(cheio)
 
 
 _CHAVES = ("moldes", "frases", "refs", "blocos", "pecas", "texto")   # "texto": reais.anotar

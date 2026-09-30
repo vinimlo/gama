@@ -178,13 +178,7 @@ def test_limites_da_instancia():
 
 def test_limites_padrao():
     assert (GUARDA.vaga_colada, GUARDA.confianca_minima) == (2, 0.95)
-
-
-def test_padrao_le_os_limites_do_modulo_a_cada_chamada(monkeypatch):
-    """`bench.controles.avaliar` troca CONFIANCA_MINIMA durante a medida."""
-    monkeypatch.setattr(guarda, "CONFIANCA_MINIMA", 0.5)
-    monkeypatch.setattr(guarda, "VAGA_COLADA", 7)
-    assert (Guarda.padrao().confianca_minima, Guarda.padrao().vaga_colada) == (0.5, 7)
+    assert (guarda.VAGA_COLADA, guarda.CONFIANCA_MINIMA) == (2, 0.95)
 
 
 # ------------------------------------------------------------------ o extrator de produção
@@ -224,12 +218,9 @@ def test_extrator_guardado_usa_a_guarda_injetada():
     assert ExtratorGuardado(_Fixo([fraco]), _Fixo([]), Guarda(confianca_minima=0.5)).extrair(t) == [fraco]
 
 
-def test_extrator_guardado_sem_guarda_le_os_limites_na_extracao(monkeypatch):
-    """Montado antes da troca do limite, extrai com o limite trocado (o que o bench faz)."""
-    fraco = _em(0, 10, conf=0.7)
-    ext = ExtratorGuardado(_Fixo([fraco]), _Fixo([]))
-    monkeypatch.setattr(guarda, "CONFIANCA_MINIMA", 0.5)
-    assert ext.extrair("x" * 20) == [fraco]
+def test_extrator_guardado_sem_guarda_usa_a_de_producao():
+    ext = ExtratorGuardado(_Fixo([]), _Fixo([]))
+    assert (ext.guarda.vaga_colada, ext.guarda.confianca_minima) == (2, 0.95)
 
 
 # ------------------------------------------------------------------ união
@@ -265,7 +256,7 @@ def test_catalogo_monta_cada_extrator(catalogo):
     guardado = catalogo.carregar("neural")
     assert isinstance(guardado, ExtratorGuardado) and guardado.nome == "neural"
     assert isinstance(guardado.neural, _Modelo) and guardado.neural.pasta == "/sem/pesos"
-    assert isinstance(guardado.regua, ExtratorRegua) and guardado.guarda is None
+    assert isinstance(guardado.regua, ExtratorRegua) and guardado.guarda.confianca_minima == 0.95
     uniao = catalogo.carregar("uniao")
     assert isinstance(uniao, ExtratorUniao) and isinstance(uniao.neural, _Modelo)
 

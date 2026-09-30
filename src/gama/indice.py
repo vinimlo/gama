@@ -21,11 +21,10 @@ from dataclasses import dataclass, field
 from typing import Iterator
 
 from .cabecalho import CadeiaDeClasse, LeitorDeNumeroProprio, NumeroProprio
-from .leis import APELIDOS_LEI, IdentificadorDeLei
+from .leis import IdentificadorDeLei
 from .normalizar import NumeroDeProcesso
 
-__all__ = ["APELIDOS_LEI", "Acervo", "Ficha", "Indice", "IndiceDeDispositivos", "IndiceDeProcessos",
-           "IndiceDeSumulas", "construir"]
+__all__ = ["Acervo", "Ficha", "Indice", "IndiceDeDispositivos", "IndiceDeProcessos", "IndiceDeSumulas"]
 
 # O cabecalho termina onde o texto do artigo comeca ("... Art. 276."). Parar
 # na virgula falhava na Constituicao, cujo cabecalho nao tem virgula:
@@ -134,12 +133,6 @@ class Indice:
     dispositivos: IndiceDeDispositivos = field(default_factory=IndiceDeDispositivos)
     meta: dict = field(default_factory=dict)          # id -> (tribunal, ano, relator)
 
-    def __post_init__(self):
-        if not isinstance(self.sumulas, IndiceDeSumulas):
-            self.sumulas = IndiceDeSumulas(self.sumulas)
-        if not isinstance(self.dispositivos, IndiceDeDispositivos):
-            self.dispositivos = IndiceDeDispositivos(self.dispositivos)
-
     @classmethod
     def construir(cls, acervo: Acervo, leitor: LeitorDeNumeroProprio | None = None,
                   leis: IdentificadorDeLei | None = None) -> Indice:
@@ -170,29 +163,3 @@ class Indice:
 
     def candidatos_processo(self, bruto: str) -> list:
         return self.processos.candidatos(bruto)
-
-    # -------------------------------------------------------------- fachadas (até a leva 8)
-
-    @property
-    def por_processo(self) -> dict:
-        return self.processos.por_chave
-
-    @property
-    def cadeia(self) -> dict:
-        return self.processos.cadeias
-
-    def resolve_sumula(self, numero: str, tribunal: str | None, vinculante: bool) -> list:
-        return self.sumulas.resolver(numero, tribunal, vinculante)
-
-    def resolve_dispositivo(self, artigo: str, chave_lei: str) -> list:
-        return self.dispositivos.resolver(artigo, chave_lei)
-
-
-def construir(caminho_db) -> Indice:
-    """Fachada (até a leva 8): `Indice.do_banco(caminho_db)`."""
-    return Indice.do_banco(caminho_db)
-
-
-def _chave_lei(descricao: str) -> str:
-    """Fachada (até a leva 8): `IdentificadorDeLei.do_cabecalho`."""
-    return IdentificadorDeLei.do_cabecalho(descricao)

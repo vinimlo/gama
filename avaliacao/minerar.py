@@ -30,9 +30,9 @@ import sys
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
 
-from gama.extrair import extrair  # noqa: E402
-from gama.indice import construir  # noqa: E402
-from gama.normalizar import chave_processo  # noqa: E402
+from gama.extratores.regua import ExtratorRegua  # noqa: E402
+from gama.indice import Indice  # noqa: E402
+from gama.normalizar import NumeroDeProcesso  # noqa: E402
 
 # Numeros que PARECEM processo mas nao sao. Sem este filtro a medicao infla:
 # "DJe 24.11.2014" vira chave 24112014, que pode colidir com algum registro.
@@ -73,7 +73,7 @@ def ocorrencias_reais(texto: str, doc_id: int, idx) -> list:
             continue
         if CONTEXTO_DATA.search(texto[max(0, pos - 24):pos]):
             continue
-        chave = chave_processo(m.group(0))
+        chave = NumeroDeProcesso.do_bruto(m.group(0)).chave
         if len(chave) < 5:
             continue
         cands = [c for c in idx.candidatos_processo(chave) if c != doc_id]
@@ -92,7 +92,7 @@ def medir(idx, docs, amostra: int, seed: int = 0):
     formas = collections.Counter()
     exemplos = []
     for doc_id, texto in escolhidos:
-        spans = extrair(texto)
+        spans = ExtratorRegua().extrair(texto)
         cobertos = [(s.inicio, s.fim) for s in spans]
         for oc in ocorrencias_reais(texto, doc_id, idx):
             if any(a <= oc["pos"] < b for a, b in cobertos):
@@ -117,7 +117,7 @@ def main(argv=None) -> int:
     ap.add_argument("--dump", help="salva as ocorrencias mineradas em JSONL")
     args = ap.parse_args(argv)
 
-    idx = construir(args.db)
+    idx = Indice.do_banco(args.db)
     con = sqlite3.connect(f"file:{args.db}?mode=ro", uri=True)
     docs = con.execute(
         "SELECT id, texto FROM documentos WHERE natureza='acordao'").fetchall()

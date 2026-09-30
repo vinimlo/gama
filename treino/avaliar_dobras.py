@@ -16,9 +16,9 @@ import pathlib
 import shutil
 
 from avaliacao.harness import avaliar, montar_solution, montar_submission
-from gama.indice import construir
-from gama.pipeline import ler_texto, processar
-from gama.extratores import carregar
+from gama.indice import Indice
+from gama.pipeline import Documento, Pipeline
+from gama.extratores import CatalogoDeExtratores
 
 SCHEMA = "1.2"
 
@@ -28,8 +28,8 @@ def rodar(extrator, idx, docs: list[str], dados: pathlib.Path, saida: pathlib.Pa
         shutil.rmtree(saida)
     saida.mkdir(parents=True)
     for d in docs:
-        texto = ler_texto(dados / "txt" / f"{d}.txt")
-        cits = processar(texto, idx, extrator)
+        texto = Documento.ler(dados / "txt" / f"{d}.txt").texto
+        cits = Pipeline(idx, extrator).processar(texto)
         doc = {"schema_version": SCHEMA, "documento_id": d,
                "citacoes": [c.para_json(i + 1) for i, c in enumerate(cits)]}
         (saida / f"{d}.json").write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -56,14 +56,14 @@ def main() -> int:
     from huggingface_hub import snapshot_download
 
     dados, dobras = pathlib.Path(a.dados), pathlib.Path(a.dobras)
-    idx = construir(dados / "desafio1_bracis.db")
+    idx = Indice.do_banco(dados / "desafio1_bracis.db")
     tabela = {}
     for d in (int(x) for x in a.dobra.split(",")):
         pasta = dobras / f"dobra{d}"
         docs = pasta.joinpath("docs.txt").read_text().split()
         gold = pasta / "gabarito.csv"
         if not a.sem_regua:
-            rodar(carregar("regua"), idx, docs, dados, pasta / "pred_regua")
+            rodar(CatalogoDeExtratores().carregar("regua"), idx, docs, dados, pasta / "pred_regua")
             tabela[f"d{d}:regua"] = pontuar(gold, pasta / "pred_regua")
             print(f"d{d} regua", tabela[f"d{d}:regua"], flush=True)
         for v in a.variantes.split(","):
@@ -74,7 +74,7 @@ def main() -> int:
             snapshot_download(repo, local_dir=str(local))
             for modo in ("neural", "uniao"):
                 chave = f"{a.nome}:d{d}:{v}:{modo}"
-                rodar(carregar(modo, str(local)), idx, docs, dados, pasta / f"pred_{v}_{modo}")
+                rodar(CatalogoDeExtratores(str(local)).carregar(modo), idx, docs, dados, pasta / f"pred_{v}_{modo}")
                 tabela[chave] = pontuar(gold, pasta / f"pred_{v}_{modo}")
                 print(chave, tabela[chave], flush=True)
             shutil.rmtree(local)

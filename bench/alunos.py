@@ -22,11 +22,11 @@ import pathlib
 import random
 import time
 
-from gama.extratores.guarda import guardar
+from gama.extratores.guarda import Guarda
 from gama.extratores.regua import ExtratorRegua
-from gama.indice import construir
-from gama.pipeline import processar
-from gama.span import aparar_todos
+from gama.indice import Indice
+from gama.pipeline import Pipeline
+from gama.span import Span
 from treino.avaliar_dobras import pontuar as pontuar_oficial
 
 from . import conjuntos
@@ -90,10 +90,10 @@ def solucao(textos: dict, linhas: dict, conjunto: str, regua, idx) -> tuple[dict
     spans, jsons = {}, {}
     fixo = Fixo()
     for d, t in textos.items():
-        modelo = aparar_todos([para_span(t, s) for s in linhas[(conjunto, d)]["spans"]], t)
-        spans[d] = guardar(modelo, aparar_todos(regua.extrair(t), t))
+        modelo = Span.aparar_todos([para_span(t, s) for s in linhas[(conjunto, d)]["spans"]], t)
+        spans[d] = Guarda().aplicar(modelo, Span.aparar_todos(regua.extrair(t), t))
         fixo.atual = spans[d]
-        jsons[d] = [c.para_json(i + 1) for i, c in enumerate(processar(t, idx, fixo))]
+        jsons[d] = [c.para_json(i + 1) for i, c in enumerate(Pipeline(idx, fixo).processar(t))]
     return spans, jsons
 
 
@@ -119,7 +119,7 @@ def _f1(contagens: dict, docs: list) -> float:
 
 
 def comparar(alunos: list[str]) -> dict:
-    idx = construir(DB)
+    idx = Indice.do_banco(DB)
     regua = ExtratorRegua()
     modelos = {n: ler(n) for n in ["professor", *alunos]}
     out = {}

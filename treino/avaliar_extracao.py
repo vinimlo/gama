@@ -81,7 +81,6 @@ def main() -> int:
     sys.path.insert(0, str(raiz / "codigo"))
     from gama.extratores.neural import ExtratorNeural
     from gama.extratores.regua import ExtratorRegua
-    from gama.pipeline import aparar
 
     pasta = raiz / a.subpasta
     gold = collections.defaultdict(list)
@@ -103,10 +102,10 @@ def main() -> int:
 
         neural, uniao = {}, {}
         for d, t in textos.items():
-            ns = [x for x in (aparar(s, t) for s in ext.extrair(t)) if x]
+            ns = [x for x in (s.aparado(t) for s in ext.extrair(t)) if x]
             neural[d] = [(s.inicio, s.fim, rot(s)) for s in ns]
             if a.uniao:
-                extra = [x for x in (aparar(r, t) for r in regua.extrair(t)) if x
+                extra = [x for x in (r.aparado(t) for r in regua.extrair(t)) if x
                          and not any(x.inicio < s.fim and s.inicio < x.fim for s in ns)]
                 uniao[d] = neural[d] + [(s.inicio, s.fim, rot(s)) for s in extra]
         for nome, pred in (("neural", neural), ("uniao", uniao)):

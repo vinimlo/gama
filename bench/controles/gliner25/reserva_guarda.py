@@ -2,7 +2,7 @@
 """Reserva da guarda com o GLiNER 2.5 (experimento 3a), nas 305 e nas 172.
 
 Refaz `saidas/analises/reserva_da_guarda.py` (que não é alterado) com os spans já gravados: a
-guarda de produção (`gama.extratores.guarda.guardar`, limiar 0,95 intacto) sobre o Gama v1.3,
+guarda de produção (`gama.extratores.guarda.Guarda`, limiar 0,95 intacto) sobre o Gama v1.3,
 trocando só o reserva, isto é, quem entra onde o Gama hesita. Nenhum job novo.
 
 Leitura, aparar, F1 de extração e bootstrap pelo harness validado (`bench.controles.avaliar`):
@@ -30,8 +30,8 @@ from __future__ import annotations
 import json
 import pathlib
 
-from gama.extratores.guarda import guardar
-from gama.formas import span_de
+from gama.extratores.guarda import Guarda
+from gama.formas import DetectorDeForma
 
 from bench import pontuar
 from bench.controles import avaliar as av
@@ -80,7 +80,7 @@ def reservas(c: str, textos: dict, gold: dict) -> tuple[dict, dict]:
         if sp is None:
             raise SystemExit(f"{nome}: conjunto {c} incompleto em {arqs}")
         out[nome], fontes[nome] = sp, [_rel(a) for a in arqs]
-    out["oraculo"] = {d: [span_de(textos[d], a, b, t, None) for a, b, t in gold[d]] for d in textos}
+    out["oraculo"] = {d: [DetectorDeForma().span(textos[d], a, b, t, None) for a, b, t in gold[d]] for d in textos}
     fontes["oraculo"] = ["gabarito do conjunto"]
     return {k: out[k] for k in ORDEM}, fontes
 
@@ -92,12 +92,11 @@ def _chave(ss) -> list:
 def conjunto(c: str) -> dict:
     textos, gold = av.textos_e_ouro(c)
     gama = av.spans(pontuar._ler_spans(av.REFERENCIA[c])[1], c)
-    base = {d: guardar(gama[d], []) for d in textos}                  # fortes (0,95) sem reserva
-    with av.limiar(0.0):
-        g1 = {d: guardar(gama[d], []) for d in textos}                # depois da regra 1
+    base = {d: Guarda().aplicar(gama[d], []) for d in textos}                     # fortes (0,95) sem reserva
+    g1 = {d: Guarda(confianca_minima=0.0).aplicar(gama[d], []) for d in textos}   # depois da regra 1
     fracos = sum(len(g1[d]) - len(base[d]) for d in textos)
     res, fontes = reservas(c, textos, gold)
-    finais = {n: {d: guardar(gama[d], r[d]) for d in textos} for n, r in res.items()}
+    finais = {n: {d: Guarda().aplicar(gama[d], r[d]) for d in textos} for n, r in res.items()}
     pd = {n: av.por_doc(c, f) for n, f in finais.items()}
     ref = av.referencia(c)
     assert pd["regua"] == ref, "reserva régua != referência do harness (Gama v1.3 com guarda)"
@@ -136,10 +135,10 @@ def conferir_original(finais: dict) -> dict:
     textos, gold, gama = carregar("gama", "reais")
     orig = {"regua": carregar("regua", "reais")[2], "gliner21_zs": carregar("gliner", "reais")[2],
             "nenhum": {d: [] for d in textos},
-            "oraculo": {d: [span_de(textos[d], a, b, t, None) for a, b, t in gold[d]] for d in textos}}
+            "oraculo": {d: [DetectorDeForma().span(textos[d], a, b, t, None) for a, b, t in gold[d]] for d in textos}}
     out = {}
     for n, r in orig.items():
-        o = {d: guardar(gama[d], r.get(d, [])) for d in textos}
+        o = {d: Guarda().aplicar(gama[d], r.get(d, [])) for d in textos}
         out[n] = {"docs_diferentes": sum(_chave(o[d]) != _chave(finais[n][d]) for d in textos),
                   "f1_original": pontuar.extracao(gold, {d: [(s.inicio, s.fim, pontuar.rotulo(s)) for s in ss]
                                                          for d, ss in o.items()}, True)["f1"]}
@@ -149,7 +148,7 @@ def conferir_original(finais: dict) -> dict:
 
 def main() -> int:
     out = {"experimento": "reserva da guarda com o GLiNER 2.5 (3a)", "codigo": av.impressao(),
-           "guarda": "gama.extratores.guarda.guardar, CONFIANCA_MINIMA 0,95 (produção), VAGA_COLADA 2",
+           "guarda": "gama.extratores.guarda.Guarda, CONFIANCA_MINIMA 0,95 (produção), VAGA_COLADA 2",
            "metrica": "F1 de extração, mesmo tipo, IoU >= 0,5, 1 para 1, VAGA em JURIS",
            "bootstrap": "pareado por ementa, 2.000 reamostras, semente 0 (avaliar.bootstrap)",
            "conjuntos": {}}

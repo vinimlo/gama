@@ -15,7 +15,7 @@ import csv
 import json
 import pathlib
 
-from gama.indice import construir
+from gama.indice import Indice
 from geracao import fichas as F
 from geracao.bancos import dobras_do_dev, extrair
 from geracao.gerar import escrever
@@ -31,7 +31,7 @@ def main() -> int:
     ap.add_argument("--saida", default="/app/corpus/dobras")
     a = ap.parse_args()
     dados, saida = pathlib.Path(a.dados), pathlib.Path(a.saida)
-    idx = construir(a.db)
+    idx = Indice.do_banco(a.db)
     fichas, sumulas, disps = F.carregar(a.db)
     mistura = mistura_do_dev(dados)
     llm = json.loads(pathlib.Path(a.llm).read_text(encoding="utf-8"))

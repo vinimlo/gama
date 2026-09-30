@@ -20,7 +20,7 @@ import json
 import pathlib
 
 from bench.controles import avaliar as av
-from gama.formas import span_de
+from gama.formas import DetectorDeForma
 
 
 def main() -> int:
@@ -42,7 +42,7 @@ def main() -> int:
                 r["meta"] = {**r["meta"], "diagnostico": "formato completo, score como confiança (calibração do Gama)"}
             elif (r["conjunto"], r["id"]) in textos:
                 t = textos[(r["conjunto"], r["id"])]
-                ss = [span_de(t, s[0], s[1], s[2], s[3]) for s in r["spans"]]
+                ss = [DetectorDeForma().span(t, s[0], s[1], s[2], s[3]) for s in r["spans"]]
                 r["spans"] = [[s.inicio, s.fim, s.tipo, s.forma, s.digitos, s.confianca] for s in ss]
                 n += 1
             fs.write(json.dumps(r, ensure_ascii=False) + "\n")

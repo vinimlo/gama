@@ -13,7 +13,7 @@ import pathlib
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "src"))
-from gama.extrair import extrair  # noqa: E402
+from gama.extratores.regua import ExtratorRegua  # noqa: E402
 
 DADOS = pathlib.Path(__file__).resolve().parent.parent / "dados"
 
@@ -37,7 +37,7 @@ def medir(mostrar: int = 0):
 
     for doc, golds in sorted(por_doc.items()):
         texto = (DADOS / "txt" / f"{doc}.txt").read_text(encoding="utf-8")
-        preds = extrair(texto)
+        preds = ExtratorRegua().extrair(texto)
         usados = set()
         for g in golds:
             tot += 1

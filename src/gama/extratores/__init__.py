@@ -2,7 +2,7 @@
 from .base import Extrator
 from .regua import ExtratorRegua
 
-__all__ = ["CatalogoDeExtratores", "Extrator", "ExtratorRegua", "carregar"]
+__all__ = ["CatalogoDeExtratores", "Extrator", "ExtratorRegua"]
 
 
 class CatalogoDeExtratores:
@@ -32,8 +32,3 @@ class CatalogoDeExtratores:
     def _neural(self) -> Extrator:
         from .neural import ExtratorNeural
         return ExtratorNeural(self.modelos)
-
-
-def carregar(nome: str, modelos: str | None = None) -> Extrator:
-    """Fachada (até a leva 8): `CatalogoDeExtratores(modelos).carregar(nome)`."""
-    return CatalogoDeExtratores(modelos).carregar(nome)

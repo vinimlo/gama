@@ -66,11 +66,11 @@ def main() -> int:
         for jv in (False, True):
             difs += ft.extracao(gold, pred, jv) != pontuar.extracao(gold, pred, jv)
     res["extracao"] = {"casos": 600, "diferentes": difs}
-    from gama.formas import forma
+    from gama.formas import DetectorDeForma
     docs, split = ft.carregar(pathlib.Path("/app/corpus/goldenset/v3"))
     for nome in ("treino", "estresse"):
         sub = {d: v for d, v in docs.items() if split.get(d, "treino") == nome}
-        _, st = ft.exemplos(sub, forma)
+        _, st = ft.exemplos(sub, DetectorDeForma().forma)
         res[f"conversao_{nome}"] = {k: st.get(k, 0) for k in ("citacoes", "citacoes_fora_de_toda_janela",
                                                                "cortadas_pela_janela", "borda_desalinhada",
                                                                "sem_palavra", "sobrepostas", "janelas")}

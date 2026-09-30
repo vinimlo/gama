@@ -34,7 +34,7 @@ import sys
 import time
 
 from bench.controles import avaliar
-from gama.span import aparar_todos
+from gama.span import Span
 from bench.controles.verificador import nucleo as vn
 
 SAIDA = avaliar.SAIDA / "verificador_treinado" / "laya_ft"     # /app/saidas/bench/controles/verificador_treinado/laya_ft
@@ -165,15 +165,16 @@ def cmd_paridade(a) -> None:
 def cmd_dev(a) -> None:
     """Dev: 26 documentos da organização, só aqui, em CPU."""
     ensaio = a.modelo is not None          # ensaio do caminho: outro checkpoint e taus dados, nada gravado em dev.json
-    from gama.extratores import carregar
-    from gama.indice import construir
+    from gama.extratores import CatalogoDeExtratores
+    from gama.indice import Indice
     from bench import conjuntos, pontuar
 
     pasta = SAIDA / ("dev_ensaio" if ensaio else "dev")
     pasta.mkdir(parents=True, exist_ok=True)
     textos, gold = conjuntos.carregar("dev")
     arqs = {}
-    for nome, ext in (("gama", carregar("neural-cru", "/models")), ("regua", carregar("regua"))):
+    catalogo = CatalogoDeExtratores("/models")
+    for nome, ext in (("gama", catalogo.carregar("neural-cru")), ("regua", catalogo.carregar("regua"))):
         arq = arqs[nome] = pasta / f"spans_{nome}.jsonl"
         with arq.open("w", encoding="utf-8") as fh:
             fh.write(json.dumps({"meta": {"extrator": nome, "modelo": "/models (vinimlo/gama@5f924ca)" if nome == "gama"
@@ -195,8 +196,8 @@ def cmd_dev(a) -> None:
             chave(la[("dev", d)]["spans"]) != chave(lido["gama"][("dev", d)]["spans"]) for d in textos if ("dev", d) in la)}
     docs, estados = {}, {}
     for d, t in textos.items():
-        G = aparar_todos([avaliar._span(t, s) for s in lido["gama"][("dev", d)]["spans"]], t)
-        R = aparar_todos([avaliar._span(t, s) for s in lido["regua"][("dev", d)]["spans"]], t)
+        G = Span.aparar_todos([avaliar._span(t, s) for s in lido["gama"][("dev", d)]["spans"]], t)
+        R = Span.aparar_todos([avaliar._span(t, s) for s in lido["regua"][("dev", d)]["spans"]], t)
         docs[d] = ([vn.Cand(f"dev/{d}/gama/{s.inicio}-{s.fim}", "gama", s) for s in G],
                    [vn.Cand(f"dev/{d}/regua/{s.inicio}-{s.fim}", "regua", s) for s in R])
         for c in docs[d][0] + docs[d][1]:
@@ -216,7 +217,7 @@ def cmd_dev(a) -> None:
     prod = vn.producao(docs)
     ref = avaliar.com_guarda({d: [c.span for c in G] for d, (G, R) in docs.items()},
                              {d: [c.span for c in R] for d, (G, R) in docs.items()}, vn.FORTE)
-    idx = construir(pontuar.DB)
+    idx = Indice.do_banco(pontuar.DB)
 
     def nota(rotulo: str, finais: dict) -> dict:
         antes = pontuar.SAIDA

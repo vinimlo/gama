@@ -32,7 +32,7 @@ O que é igual ao fine-tune da v2.1
                citação do ouro (`janelas_treino`); janela sem citação entra como negativa.
     rótulos    os mesmos quatro nomes em português, presentes em TODA janela (os ausentes viram
                consultas sem ouro, o negativo da 2.5); VAGA -> "referência a julgado sem número";
-               LEI -> "artigo de lei"; JURIS -> "súmula ou tema de tribunal" se `gama.formas.forma`
+               LEI -> "artigo de lei"; JURIS -> "súmula ou tema de tribunal" se `DetectorDeForma.forma`
                der súmula/tema, senão "precedente judicial com número".
     receita    3 épocas, lote 8, cosseno, aquecimento 10%, decaimento 0,01, norma do gradiente 1,0,
                bf16, semente 13; taxas da documentação da biblioteca, sem busca (encoder 1e-5,
@@ -537,7 +537,7 @@ def cmd_treinar(a) -> int:
     raiz_b = pathlib.Path(snapshot_download(DADOS, repo_type="dataset", revision=REV_BENCH, allow_patterns=[
         "bench/entrada_remota.jsonl", "bench/entrada_novas.jsonl", "bench/codigo/**"]))
     sys.path.insert(0, str(raiz_b / "bench" / "codigo"))
-    from gama.formas import forma
+    from gama.formas import DetectorDeForma
 
     docs, split = carregar(raiz_t / "final_v3")
     print("impressao dos textos do final_v3:", impressao_textos(docs), flush=True)
@@ -566,7 +566,7 @@ def cmd_treinar(a) -> int:
     print(f"divisor de palavras: {dif_div} diferenças em {len(textos_amostra)} textos", flush=True)
     assert dif_div == 0, "o divisor de palavras daqui não é o do modelo"
 
-    registros, st = exemplos(treino, forma)
+    registros, st = exemplos(treino, DetectorDeForma().forma)
     tok = modelo.processor.tokenizer
     sub = sorted(len(tok(r["input"], add_special_tokens=False)["input_ids"]) for r in registros[:2000])
     st["subpalavras_por_janela"] = {"mediana": sub[len(sub) // 2], "max": sub[-1]}
@@ -692,12 +692,12 @@ def cmd_extrair(a) -> int:
 
 
 def cmd_estatisticas(a) -> int:
-    from gama.formas import forma                       # src/ no container (= bench/codigo do dataset)
+    from gama.formas import DetectorDeForma                       # src/ no container (= bench/codigo do dataset)
     docs, split = carregar(pathlib.Path(a.pasta))
     print("impressao dos textos:", impressao_textos(docs))
     for nome in ("treino", "estresse"):
         sub = {d: v for d, v in docs.items() if split.get(d, "treino") == nome}
-        _, st = exemplos(sub, forma)
+        _, st = exemplos(sub, DetectorDeForma().forma)
         print(nome, len(sub), json.dumps(st, ensure_ascii=False))
     return 0
 

@@ -3,7 +3,7 @@
 
 Não reimplementa nada do benchmark: importa `bench.pontuar` (leitura dos spans, `para_span`,
 `rotulo`, `extracao`, `oficial`), `bench.alunos` (textos e ouro das 172, F1 por documento) e a
-guarda de produção (`gama.extratores.guarda.guardar`).
+guarda de produção (`gama.extratores.guarda.Guarda`).
 
 Conjuntos (valor do campo `conjunto` no JSONL)
     estresse  600 docs sintéticos, redação nunca treinada (N1 + N2). Métrica OFICIAL pelo caminho
@@ -16,13 +16,13 @@ Conjuntos (valor do campo `conjunto` no JSONL)
               CONFIRMAÇÃO. Mesma métrica das 305. Nunca informa escolha.
 
 Variantes de cada candidato
-    cru          os spans do arquivo, aparados (`gama.span.aparar`)
+    cru          os spans do arquivo, aparados (`Span.aparado`)
     guarda@0.95  a guarda de produção com o limiar de produção
     guarda@<t*>  a mesma guarda com o limiar escolhido nas 305 numa grade de 0,50 a 0,99 (passo
                  0,01). Critério: maior F1 exato nas 305; empate -> mais perto de 0,95; depois o
                  maior. Só existe se o modelo tem confiança; o t* é medido nas 172 sem reescolha.
-O limiar entra trocando `guarda.CONFIANCA_MINIMA` durante a chamada: a função de produção roda
-intacta. A régua da guarda são os spans gravados em `saidas/bench/regua.jsonl` (estresse, reais;
+O limiar entra como `Guarda(confianca_minima=t)`: a guarda de produção com outro limiar, sem
+trocar nada no módulo. A régua da guarda são os spans gravados em `saidas/bench/regua.jsonl` (estresse, reais;
 os mesmos que o benchmark publicado usou) e `saidas/bench/controles/regua_novas.jsonl` (novas;
 gerado aqui na primeira vez com `ExtratorRegua`).
 
@@ -78,7 +78,6 @@ documento da métrica oficial em `saidas/bench/controles/json/estresse/<nome>__<
 from __future__ import annotations
 
 import argparse
-import contextlib
 import dataclasses
 import hashlib
 import json
@@ -88,9 +87,9 @@ import time
 
 from gama.extratores import guarda
 from gama.extratores.regua import ExtratorRegua
-from gama.formas import span_de
-from gama.indice import construir
-from gama.span import aparar_todos
+from gama.formas import DetectorDeForma
+from gama.indice import Indice
+from gama.span import Span
 
 from .. import alunos, pontuar
 
@@ -99,14 +98,14 @@ BENCH = pontuar.SAIDA                                 # /app/saidas/bench
 SAIDA = BENCH / "controles"
 CONJUNTOS = ("estresse", "reais", "novas")
 GRADE = [round(0.50 + 0.01 * i, 2) for i in range(50)]  # 0,50 a 0,99
-LIMIAR_PRODUCAO = guarda.CONFIANCA_MINIMA             # 0,95, lido antes de qualquer troca
+LIMIAR_PRODUCAO = guarda.CONFIANCA_MINIMA             # 0,95
 REAMOSTRAS, SEMENTE = 2000, 0
 REFERENCIA = {"estresse": BENCH / "gama.jsonl", "reais": BENCH / "gama.jsonl",
               "novas": BENCH / "modelo_base12.jsonl"}
 REGUA = {"estresse": BENCH / "regua.jsonl", "reais": BENCH / "regua.jsonl",
          "novas": SAIDA / "regua_novas.jsonl"}
 CODIGO = ["src/gama/extratores/guarda.py", "src/gama/extratores/regua.py", "src/gama/pipeline.py",
-          "src/gama/classificar.py", "src/gama/calibracao.json", "src/gama/resolver.py",
+          "src/gama/classificar.py", "src/gama/calibracao.json", "src/gama/resolver.py", "src/gama/leis.py",
           "src/gama/formas.py", "src/gama/indice.py", "bench/pontuar.py", "bench/alunos.py",
           "bench/conjuntos.py", "vendor/kaggle_metric.py", "avaliacao/harness.py"]
 
@@ -148,7 +147,7 @@ def _span(texto: str, s: list):
     """Linha gravada -> Span. `bench.pontuar.para_span` descarta o score do formato curto (a
     métrica oficial não o usa); a guarda precisa dele, então aqui ele vira a confiança."""
     if len(s) == 4 and s[3] is not None:
-        return span_de(texto, s[0], s[1], s[2], s[3])
+        return DetectorDeForma().span(texto, s[0], s[1], s[2], s[3])
     return pontuar.para_span(texto, s)
 
 
@@ -157,7 +156,7 @@ def spans(linhas: dict, conjunto: str) -> dict | None:
     textos, _ = textos_e_ouro(conjunto)
     if any((conjunto, d) not in linhas for d in textos):
         return None
-    return {d: aparar_todos([_span(t, s) for s in linhas[(conjunto, d)]["spans"]], t) for d, t in textos.items()}
+    return {d: Span.aparar_todos([_span(t, s) for s in linhas[(conjunto, d)]["spans"]], t) for d, t in textos.items()}
 
 
 _REGUA: dict = {}
@@ -188,20 +187,10 @@ def regua(conjunto: str) -> dict:
 
 # ---------------------------------------------------------------- guarda e métricas
 
-@contextlib.contextmanager
-def limiar(t: float):
-    """A guarda de produção com outro limiar: `guardar` lê o global a cada chamada."""
-    antes = guarda.CONFIANCA_MINIMA
-    guarda.CONFIANCA_MINIMA = t
-    try:
-        yield
-    finally:
-        guarda.CONFIANCA_MINIMA = antes
-
-
 def com_guarda(sp: dict, reg: dict, t: float) -> dict:
-    with limiar(t):
-        return {d: guarda.guardar(ss, reg[d]) for d, ss in sp.items()}
+    """A guarda de produção com o limiar t."""
+    g = guarda.Guarda(confianca_minima=t)
+    return {d: g.aplicar(ss, reg[d]) for d, ss in sp.items()}
 
 
 def triplas(sp: dict) -> dict:
@@ -336,7 +325,7 @@ def avaliar(nome: str, arquivos: list, limiares_extra=(), com_oficial: bool = Tr
     for t in limiares_extra:
         variantes[variante(t)] = t
     if com_oficial and "estresse" in sp and idx is None:
-        idx = construir(pontuar.DB)
+        idx = Indice.do_banco(pontuar.DB)
 
     for v, t in variantes.items():
         res = {}
@@ -415,7 +404,7 @@ def _sanidade() -> dict:
     for c in CONJUNTOS:
         textos, _ = textos_e_ouro(c)
         gravada = regua(c)
-        agora = {d: aparar_todos(ext.extrair(t), t) for d, t in textos.items()}
+        agora = {d: Span.aparar_todos(ext.extrair(t), t) for d, t in textos.items()}
         out[f"regua_gravada_igual_codigo_atual_{c}"] = {
             "docs": len(textos),
             "diferentes": sum([(s.inicio, s.fim, s.tipo, s.forma) for s in gravada[d]]
@@ -431,15 +420,15 @@ def _sanidade() -> dict:
             "guarda_diferentes": sum(chave(gg[d]) != chave(gb[d]) for d in sg),
             "max_dif_confianca": round(max((abs((x.confianca or 0) - (y.confianca or 0))
                                             for d in sg for x, y in zip(sg[d], sb[d])), default=0.0), 8)}
-    # guarda com limiar trocado para 0,95 = guarda de produção sem troca
+    # guarda com limiar 0,95 explícito = guarda de produção
     sg = spans(g, "reais")
-    sem_troca = {d: guarda.guardar(ss, regua("reais")[d]) for d, ss in sg.items()}
+    sem_troca = {d: guarda.Guarda().aplicar(ss, regua("reais")[d]) for d, ss in sg.items()}
     out["guarda_limiar_095_igual_producao"] = sem_troca == com_guarda(sg, regua("reais"), 0.95)
     return out
 
 
 def validar() -> dict:
-    idx = construir(pontuar.DB)
+    idx = Indice.do_banco(pontuar.DB)
     regua("novas")                                  # grava controles/regua_novas.jsonl se faltar
     relatorios = {n: avaliar(n, [BENCH / a for a in arqs], idx=idx) for n, arqs in CANDIDATOS_VALIDACAO.items()}
     for n, rel in relatorios.items():

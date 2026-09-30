@@ -9,9 +9,11 @@ import random
 import pytest
 
 from avaliacao.cobertura import nucleo
-from avaliacao.convencoes import forma
-from gama.ruido import DIGITO_PARA_LETRA, InjetorDeRuido
+from gama.formas import DetectorDeForma
 from gama.normalizar import OCR_PARA_DIGITO
+from gama.ruido import DIGITO_PARA_LETRA, InjetorDeRuido
+
+forma = DetectorDeForma().forma
 
 
 def aplicar_ruido(texto, spans, rng, intensidade=0.3):

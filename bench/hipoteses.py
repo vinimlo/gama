@@ -24,11 +24,12 @@ import json
 import pathlib
 import random
 
-from gama.extratores.guarda import confiante, guardar, sem_vaga_colada, trocar_fracos_pela_regua
-from gama.indice import construir
-from gama.normalizar import nucleo_numerico
-from gama.resolver import _ART_NUM, _SUM_NUM, _chave_lei_da_citacao, _numero_ocr
-from gama.span import aparar_todos
+from gama.extratores.guarda import Guarda
+from gama.indice import Indice
+from gama.leis import IdentificadorDeLei
+from gama.normalizar import OCR, NumeroDeProcesso
+from gama.resolver import _ART_NUM, _SUM_NUM
+from gama.span import Span
 
 from . import conjuntos
 from .pontuar import DB, SAIDA, extracao, oficial, para_span, rotulo, spans_de
@@ -42,7 +43,7 @@ def carregar(extrator: str, nome: str) -> tuple[dict, dict, dict]:
     """(textos, gabarito de extração, spans aparados por documento)."""
     textos, gold = conjuntos.carregar(nome)
     _, linhas = spans_de(extrator)
-    spans = {d: aparar_todos([para_span(textos[d], x) for x in linhas[(nome, d)]["spans"]], textos[d])
+    spans = {d: Span.aparar_todos([para_span(textos[d], x) for x in linhas[(nome, d)]["spans"]], textos[d])
              for d in textos}
     return textos, gold, spans
 
@@ -61,10 +62,10 @@ def tem_chave(s) -> bool:
         return True
     if s.forma == "sumula":
         m = _SUM_NUM.search(t)
-        return bool(m and _numero_ocr(m.group(2)))
+        return bool(m and OCR.numero(m.group(2)))
     if s.forma == "artigo":
-        return bool(_ART_NUM.search(t)) and _chave_lei_da_citacao(t) is not None
-    return bool(nucleo_numerico(t))                       # processo, cnj, tema
+        return bool(_ART_NUM.search(t)) and IdentificadorDeLei().da_citacao(t) is not None
+    return bool(NumeroDeProcesso.do_trecho(t).chave)      # processo, cnj, tema
 
 
 def _com_digito(s) -> bool:
@@ -76,7 +77,7 @@ def _minimo(k):
 
 
 def _conf(t):
-    return lambda s: confiante(s, t)
+    return lambda s: s.confiante(t)
 
 
 def por_span(manter):
@@ -88,14 +89,14 @@ def vaga_colada(k):
     """Descarta VAGA a até k caracteres de outro span do documento. Na redação da organização a
     referência vaga é uma frase própria ("julgado do STJ proferido em 2021 pela relatoria de
     ..."); em ementa real, "Rel. Min. Fulano, julgado em ..." é o rabo de um precedente numerado."""
-    return lambda ss, regua: sem_vaga_colada(ss, k)
+    return lambda ss, regua: Guarda(vaga_colada=k).sem_vaga_colada(ss)
 
 
 def troca_regua(t):
     """Span com confiança < t sai; no lugar entra o span da régua que o cruza, se houver e se não
     cruzar nenhum span confiante. No estilo da organização nenhum acerto fica abaixo de 0,99,
     então nada muda ali por construção; fora dele, a régua cobre onde o modelo hesita."""
-    return lambda ss, regua: trocar_fracos_pela_regua(ss, regua, t)
+    return lambda ss, regua: Guarda(confianca_minima=t).trocar_fracos_pela_regua(ss, regua)
 
 
 def em_serie(*fs):
@@ -120,7 +121,7 @@ FILTROS = {
     "vaga_colada2+troca_regua0.9": em_serie(vaga_colada(2), troca_regua(0.9)),
     "vaga_colada2+troca_regua0.95": em_serie(vaga_colada(2), troca_regua(0.95)),
     "conf0.9+min10": em_serie(por_span(_conf(0.9)), por_span(_minimo(10))),
-    "producao": guardar,                     # src/gama/extratores/guarda.py: o que vai na entrega
+    "producao": Guarda().aplicar,            # src/gama/extratores/guarda.py: o que vai na entrega
 }
 
 
@@ -138,7 +139,7 @@ def aplicar(nome_f: str, spans: dict, regua: dict) -> dict:
 
 
 def filtros() -> dict:
-    idx = construir(DB)
+    idx = Indice.do_banco(DB)
     dados = {n: carregar("gama", n) for n in conjuntos_nomes()}
     reguas = {n: carregar("regua", n)[2] for n in conjuntos_nomes()}
     saida = {}

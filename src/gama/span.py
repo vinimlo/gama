@@ -56,22 +56,3 @@ class Span(Intervalo):
     def aparar_todos(spans, texto: str) -> list[Span]:
         """`aparado` em cada span; os que ficam vazios saem."""
         return [s for s in (x.aparado(texto) for x in spans) if s]
-
-
-# ------------------------------------------------------------------ fachadas (até a leva 8)
-# Nomes antigos, ainda importados pelo laboratório (bench/, treino/).
-
-def cruza(a: Span, b: Span) -> bool:
-    return a.cruza(b)
-
-
-def distancia(a: Span, b: Span) -> int:
-    return a.distancia(b)
-
-
-def aparar(span: Span, texto: str) -> Span | None:
-    return span.aparado(texto)
-
-
-def aparar_todos(spans, texto: str) -> list[Span]:
-    return Span.aparar_todos(spans, texto)

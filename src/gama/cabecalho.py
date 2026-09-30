@@ -164,9 +164,6 @@ class NumeroProprio:
     classe: str = ""                              # texto bruto da classe (gerador sintético)
 
 
-Proprio = NumeroProprio                           # nome antigo (até a leva 8)
-
-
 def _chave(bruto: str) -> str:
     return NumeroDeProcesso.do_bruto(bruto).chave
 
@@ -314,16 +311,3 @@ class LeitorDeNumeroProprio:
             return p
         g = self.generico.ler(texto)
         return g if g.chaves else p
-
-
-# ------------------------------------------------------------------ fachadas (até a leva 8)
-
-_LEITOR = LeitorDeNumeroProprio()
-
-
-def cadeia_de_classe(texto: str) -> tuple:
-    return CadeiaDeClasse.ler(texto)
-
-
-def numero_proprio(texto: str, tribunal: str) -> NumeroProprio:
-    return _LEITOR.ler(texto, tribunal)

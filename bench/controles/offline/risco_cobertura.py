@@ -36,7 +36,7 @@ from avaliacao.harness import avaliar as avaliar_oficial
 from avaliacao.harness import montar_solution, montar_submission
 from bench import conjuntos, pontuar
 from bench.controles import avaliar as A
-from gama.indice import construir
+from gama.indice import Indice
 from vendor import kaggle_metric as K
 
 APP = pathlib.Path("/app")
@@ -339,7 +339,7 @@ def estresse(idx) -> dict:
 
 
 def main() -> int:
-    idx = construir(pontuar.DB)
+    idx = Indice.do_banco(pontuar.DB)
     out = {"experimento": "offline/H10", "definicoes": DEFINICOES,
            "sistema": {"modelo": "Gama v1.3 = vinimlo/gama@5f924ca2fa77c2aae6afe6d770c78ca4438f52f3",
                        "spans": {c: str(p.relative_to(APP)) for c, p in FONTES.items()},

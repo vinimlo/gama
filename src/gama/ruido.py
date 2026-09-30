@@ -212,9 +212,3 @@ class InjetorDeRuido:
                 nb -= 1
             remapeados.append((na, nb))
         return remapeados
-
-
-# ------------------------------------------------------------------ fachada (até a leva 8)
-
-def aplicar_ruido(texto: str, spans: list, rng: random.Random, intensidade: float = 0.3) -> tuple:
-    return InjetorDeRuido(rng, intensidade).aplicar(texto, spans)

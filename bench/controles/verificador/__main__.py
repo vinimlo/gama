@@ -28,7 +28,7 @@ import json
 import pathlib
 import time
 
-from gama.indice import construir
+from gama.indice import Indice
 
 from .. import avaliar
 from ... import pontuar
@@ -119,7 +119,7 @@ def cmd_rodar(a) -> None:
     if not conf["ok"]:
         raise SystemExit(f"candidatos não reproduzem o harness: {conf}")
     prod = {c: nu.producao(docs[c]) for c in nu.CONJUNTOS}
-    oficial = None if a.sem_oficial else nu.Oficial(construir(pontuar.DB))
+    oficial = None if a.sem_oficial else nu.Oficial(Indice.do_banco(pontuar.DB))
     out = {"verificador": a.nome, "candidatos": {"arquivo": str(a.candidatos), "sha256": nu.sha256(a.candidatos),
                                                    "meta": {k: v for k, v in meta_c.items() if k != "codigo"}},
            "conferencia_harness": conf, "codigo": avaliar.impressao(), "grade": nu.GRADE,

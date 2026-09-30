@@ -12,10 +12,10 @@ import re
 from dataclasses import dataclass, field
 
 from avaliacao.convencoes import violacoes_de_borda
-from gama.classificar import classificar
-from gama.extrair import extrair
-from gama.formas import span_de
-from gama.resolver import resolver
+from gama.classificar import Classificador
+from gama.extratores.regua import ExtratorRegua
+from gama.formas import DetectorDeForma
+from gama.resolver import Resolvedor
 
 
 @dataclass
@@ -43,8 +43,8 @@ def verificar(texto: str, spans: list, idx, nivel: int) -> Laudo:
         if nivel == 1:
             for v in violacoes_de_borda(trecho):
                 laudo.fatal.append(f"borda {v}: {trecho!r}")
-        sp = span_de(texto, a, b, cit.rotulo)
-        out = classificar(sp, resolver(sp, idx))
+        sp = DetectorDeForma().span(texto, a, b, cit.rotulo)
+        out = Classificador().classificar(sp, Resolvedor(idx).resolver(sp))
         ok = out.classificacao == cit.classe and (cit.classe != "real" or out.id_canonico == cit.id_canonico)
         if not ok:
             if cit.classe == "inventada" and out.classificacao == "real":
@@ -55,7 +55,7 @@ def verificar(texto: str, spans: list, idx, nivel: int) -> Laudo:
     # Nenhuma citação fora de rótulo: a régua varre o texto; span dela que não cruza
     # nenhum rótulo é citação que o gerador deixou escapar (ou falso positivo da régua).
     if nivel == 1:
-        for s in extrair(texto):
+        for s in ExtratorRegua().extrair(texto):
             if not any(s.inicio < b and a < s.fim for a, b, _ in spans):
                 laudo.fatal.append(f"citação sem rótulo (régua): {s.trecho!r}")
     return laudo

@@ -33,7 +33,7 @@ import sys
 import time
 
 from bench.controles import avaliar
-from gama.span import aparar_todos
+from gama.span import Span
 from bench.controles.verificador import __main__ as vcli
 from bench.controles.verificador import nucleo as vn
 
@@ -109,8 +109,8 @@ def _taus() -> dict:
 
 def cmd_dev(a) -> None:
     """Só local. Nada do dev sai da máquina: textos, spans e scores ficam em dev/."""
-    from gama.extratores import carregar
-    from gama.indice import construir
+    from gama.extratores import CatalogoDeExtratores
+    from gama.indice import Indice
     from bench import conjuntos, pontuar
     from bench.controles.verificador_treinado.dados import nucleo as dn
 
@@ -119,7 +119,7 @@ def cmd_dev(a) -> None:
 
     taus = _taus()
     textos, gold = conjuntos.carregar("dev")
-    neural, regua = carregar("neural-cru", "/models"), carregar("regua")
+    neural, regua = CatalogoDeExtratores("/models").carregar("neural-cru"), CatalogoDeExtratores().carregar("regua")
     # o extrator de produção com as MESMAS instâncias (um Gama só na memória do container, 4 GB)
     prod_ext = ExtratorGuardado(neural, regua)
     docs, regs, prod, iguais_producao = {}, [], {}, 0
@@ -129,15 +129,15 @@ def cmd_dev(a) -> None:
         g_raw, r_raw = neural.extrair(t), regua.extrair(t)
         t_ext += time.perf_counter() - t0
         lista = lambda ss: [[s.inicio, s.fim, s.tipo, s.forma, s.digitos, s.confianca] for s in ss]  # noqa: E731
-        G = aparar_todos([avaliar._span(t, s) for s in lista(g_raw)], t)      # como o harness lê
-        R = aparar_todos([avaliar._span(t, s) for s in lista(r_raw)], t)
+        G = Span.aparar_todos([avaliar._span(t, s) for s in lista(g_raw)], t)      # como o harness lê
+        R = Span.aparar_todos([avaliar._span(t, s) for s in lista(r_raw)], t)
         rs = dn.candidatos_doc("dev", d, t, G, R)
         regs += rs
         docs[d] = ([vn.Cand(r["cid"], "gama", r["_span"]) for r in rs if r["origem"] == "gama"],
                    [vn.Cand(r["cid"], "regua", r["_span"]) for r in rs if r["origem"] == "regua"])
         prod[d] = vn.politica_v0(*docs[d], vn.FORTE)
         # a saída do extrator de produção (ExtratorGuardado, aparado) = guarda@0,95 sobre os candidatos
-        ext = aparar_todos(prod_ext.extrair(t), t)
+        ext = Span.aparar_todos(prod_ext.extrair(t), t)
         iguais_producao += vn._chave(ext) == vn._chave(prod[d])
     del neural, prod_ext
     gc.collect()
@@ -145,7 +145,7 @@ def cmd_dev(a) -> None:
     sc_lista, seg = _pontuar(tok, model, [r["estado"] for r in regs])
     sc = {r["cid"]: s for r, s in zip(regs, sc_lista)}
     rot = {r["cid"]: int(vn.casa(r["_span"], gold[r["doc"]], False)) for r in regs}   # VAGA separada, como no estresse
-    idx = construir(pontuar.DB)
+    idx = Indice.do_banco(pontuar.DB)
     antes = pontuar.SAIDA
     pontuar.SAIDA = SAIDA / "dev"
     try:

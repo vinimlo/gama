@@ -9,16 +9,16 @@ CANDIDATOS (por documento, nos três conjuntos do harness)
     Gama, se é forte (Gama, confiança >= 0,95, depois da regra 1), se cruza um span forte e o
     `estado` para o modelo de decisão (janela de 300 caracteres de cada lado, candidato entre [[ ]]).
 
-GRUPOS DA GUARDA (sempre pela função de produção `guarda.guardar`, nunca reimplementados)
-    G1 = sobreviventes da regra 1 (VAGA colada sai)   guardar(G, [])   com limiar 0
-    F  = fortes, confiança >= 0,95 depois da regra 1   guardar(G, [])   com limiar 0,95
+GRUPOS DA GUARDA (sempre pela guarda de produção `guarda.Guarda`, nunca reimplementados)
+    G1 = sobreviventes da regra 1 (VAGA colada sai)   aplicar(G, [])   com limiar 0
+    F  = fortes, confiança >= 0,95 depois da regra 1   aplicar(G, [])   com limiar 0,95
     W  = fracos = G1 - F
     X  = spans da régua que a guarda põe onde o Gama hesita (cruzam um fraco e nenhum forte)
-         = guardar(G, R) - F  com limiar 0,95
+         = aplicar(G, R) - F  com limiar 0,95
 
 POLÍTICAS (score >= tau; sobreposição entre elegíveis resolvida pelo maior score; empate: Gama
 antes da régua, depois o início)
-    V0-A  a guarda de produção com o limiar varrido: `guardar(G, R)` com CONFIANCA_MINIMA = tau.
+    V0-A  a guarda de produção com o limiar varrido: `Guarda(confianca_minima=tau).aplicar(G, R)`.
           O score é a confiança do Gama; a régua não tem sinal (entra onde o Gama cai abaixo de tau).
     A     F fica; elegíveis W + X.
     B     como A, e também os spans da régua que não cruzam nenhum span do Gama (antes da regra 1).
@@ -77,11 +77,10 @@ def _chave(ss) -> list:
 
 def grupos(G: list, R: list) -> tuple[list, list, list, list]:
     """(G1, F, W, X) pela guarda de produção; ver o docstring do módulo."""
-    with avaliar.limiar(0.0):
-        g1 = guarda.guardar(G, [])
-    with avaliar.limiar(FORTE):
-        f = guarda.guardar(G, [])
-        prod = guarda.guardar(G, R)
+    g1 = guarda.Guarda(confianca_minima=0.0).aplicar(G, [])
+    forte = guarda.Guarda(confianca_minima=FORTE)
+    f = forte.aplicar(G, [])
+    prod = forte.aplicar(G, R)
     ids_f = {id(s) for s in f}
     return g1, f, [s for s in g1 if id(s) not in ids_f], [s for s in prod if id(s) not in ids_f]
 
@@ -286,8 +285,7 @@ def auroc(pares: list) -> float | None:
 
 def politica_v0(G: list, R: list, tau: float) -> list:
     """A guarda de produção com o limiar varrido (score = confiança do Gama)."""
-    with avaliar.limiar(tau):
-        return guarda.guardar([x.span for x in G], [x.span for x in R])
+    return guarda.Guarda(confianca_minima=tau).aplicar([x.span for x in G], [x.span for x in R])
 
 
 def politica(pol: str, G: list, R: list, score: dict, tau: float) -> list:

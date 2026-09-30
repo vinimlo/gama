@@ -18,13 +18,13 @@ import sys
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
 
-from gama.cabecalho import cadeia_de_classe, numero_proprio  # noqa: E402
-from gama.normalizar import nucleo_numerico  # noqa: E402
+from gama.cabecalho import CadeiaDeClasse, LeitorDeNumeroProprio  # noqa: E402
+from gama.normalizar import NumeroDeProcesso  # noqa: E402
 
 DB = RAIZ / "dados" / "desafio1_bracis.db"
 def nucleo(trecho: str) -> str:
-    """Chave do número de uma citação (ver normalizar.nucleo_numerico)."""
-    return nucleo_numerico(trecho)
+    """Chave do número de uma citação (ver NumeroDeProcesso.do_trecho)."""
+    return NumeroDeProcesso.do_trecho(trecho).chave
 
 
 def construir():
@@ -33,7 +33,7 @@ def construir():
     con.close()
     prop, por_chave = {}, collections.defaultdict(list)
     for doc_id, trib, texto in rows:
-        p = numero_proprio(texto, trib)
+        p = LeitorDeNumeroProprio().ler(texto, trib)
         prop[doc_id] = (trib, p)
         for k in p.chaves:
             por_chave[k].append(doc_id)
@@ -67,7 +67,7 @@ def main() -> int:
         if cands == [gid]:
             stat["unico_correto"] += 1
         elif gid in cands:
-            cc = cadeia_de_classe(r["trecho"].replace("\\n", "\n"))
+            cc = CadeiaDeClasse.ler(r["trecho"].replace("\\n", "\n"))
             filtr = [d for d in cands if prop[d][1].cadeia == cc]
             stat["amb_resolvido" if filtr == [gid] else "amb_nao_resolvido"] += 1
             if filtr != [gid]:

@@ -25,7 +25,7 @@ import argparse
 import json
 import pathlib
 
-from gama.indice import construir
+from gama.indice import Indice
 
 from ... import pontuar
 from .. import avaliar
@@ -127,7 +127,7 @@ def main() -> int:
     ap.add_argument("--nome", default="bertimbau_s13")
     a = ap.parse_args()
     AQUI.mkdir(parents=True, exist_ok=True)
-    idx = construir(pontuar.DB)
+    idx = Indice.do_banco(pontuar.DB)
     cands = {"bertimbau": [pathlib.Path(a.bertimbau)], "v12": REF_V12, "v13": REF_V13}
     nomes = {"bertimbau": a.nome, "v12": "v12_ref", "v13": "v13_ref"}
     rels = {}

@@ -125,13 +125,3 @@ class Classificador:
             classe, id_canonico, balde = "real", str(res.ids[0]), ("processo", "real_ambiguo")
         conf, balde = self.tabela.confianca(*balde, span.confianca)
         return Citacao(span.inicio, span.fim, span.trecho, span.tipo, classe, id_canonico, conf, balde)
-
-
-# ------------------------------------------------------------------ fachadas (até a leva 8)
-
-def faixa(conf_modelo: float | None) -> str:
-    return TabelaDeConfianca.faixa(conf_modelo)
-
-
-def classificar(span: Span, res: Resolucao) -> Citacao:
-    return Classificador().classificar(span, res)

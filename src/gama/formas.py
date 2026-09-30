@@ -51,17 +51,3 @@ class DetectorDeForma:
                 fm = "processo"
         tipo = "lei" if fm == "artigo" else "jurisprudencia"
         return Span(inicio, fim, trecho, tipo, fm, "", confianca)
-
-
-# ------------------------------------------------------------------ fachadas (até a leva 8)
-
-_DETECTOR = DetectorDeForma()
-
-
-def forma(trecho: str) -> str:
-    return _DETECTOR.forma(trecho)
-
-
-def span_de(texto: str, inicio: int, fim: int, rotulo: str,
-            confianca: float | None = None) -> Span:
-    return _DETECTOR.span(texto, inicio, fim, rotulo, confianca)

@@ -21,7 +21,7 @@ import sys
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 DADOS = RAIZ / "dados"
 sys.path.insert(0, str(RAIZ / "src"))
-from gama.formas import forma  # noqa: E402
+from gama.formas import DetectorDeForma  # noqa: E402
 
 UF = r"(?:AC|AL|AP|AM|BA|CE|DF|ES|GO|MA|MT|MS|MG|PA|PB|PR|PE|PI|RJ|RN|RS|RO|RR|SC|SP|SE|TO)"
 RE_UF_FINAL = re.compile(r"[/\-–—(]\s*" + UF + r"\s*\)?\s*$")
@@ -46,7 +46,7 @@ def violacoes_de_borda(span: str) -> list:
     primeiro = re.findall(r"\S+", span)[:1]
     if primeiro and primeiro[0].lower() in ARTIGO_OU_PREPOSICAO:
         v.append("artigo_ou_preposicao_inicial")     # "o REsp" -> o "o" fica fora
-    fm = forma(span)
+    fm = DetectorDeForma().forma(span)
     if fm == "artigo" and not span[:1].islower():
         v.append("artigo_comeca_maiusculo")          # 28/28 começam em "art"
     if fm == "processo" and not RE_UF_FINAL.search(span):
@@ -73,7 +73,7 @@ def analisar() -> dict:
         span = texto[i:f]
         antes = texto[max(0, i - 40):i]
         depois = texto[f:f + 25]
-        por_forma[forma(span)].append({
+        por_forma[DetectorDeForma().forma(span)].append({
             "doc": doc, "nivel": r["nivel"], "classe": r["classificacao"],
             "span": span, "antes": antes, "depois": depois,
         })

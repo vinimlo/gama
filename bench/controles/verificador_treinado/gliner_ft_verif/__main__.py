@@ -49,7 +49,7 @@ import statistics
 import time
 
 from bench.controles import avaliar
-from gama.span import aparar_todos
+from gama.span import Span
 from bench.controles.verificador import __main__ as cli
 from bench.controles.verificador import nucleo as nu
 
@@ -219,7 +219,7 @@ def cmd_dev(a) -> None:
 
     def sp(n, d):
         t = textos[d]
-        return aparar_todos([avaliar._span(t, s) for s in lido[n][("dev", d)]["spans"]], t)
+        return Span.aparar_todos([avaliar._span(t, s) for s in lido[n][("dev", d)]["spans"]], t)
 
     chave = lambda ss: [(s.inicio, s.fim, s.tipo, s.forma) for s in ss]  # noqa: E731
     out = {"fontes": {n: {"arquivo": nu._rel(p), "sha256": nu.sha256(p)} for n, p in fontes.items()},

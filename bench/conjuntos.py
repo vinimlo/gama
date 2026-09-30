@@ -14,7 +14,7 @@ import csv
 import json
 import pathlib
 
-from gama.pipeline import ler_texto
+from gama.pipeline import Documento
 
 RAIZ = pathlib.Path("/app")
 DEV = RAIZ / "dados"
@@ -35,7 +35,7 @@ def _com_gabarito_csv(pasta: pathlib.Path) -> tuple[dict, dict]:
     gold: dict[str, list] = {}
     for r in csv.DictReader(open(pasta / "goldenset_offsets.csv", encoding="utf-8-sig")):
         gold.setdefault(r["documento_id"], []).append((int(r["inicio"]), int(r["fim"]), _rotulo(r)))
-    textos = {d: ler_texto(pasta / "txt" / f"{d}.txt") for d in sorted(gold)}
+    textos = {d: Documento.ler(pasta / "txt" / f"{d}.txt").texto for d in sorted(gold)}
     return textos, gold
 
 

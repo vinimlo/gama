@@ -60,9 +60,10 @@ def modelo_cpu(pasta: str):
 
 
 def extrair(textos: dict) -> dict:
-    from gama.extratores import carregar
+    from gama.extratores import CatalogoDeExtratores
     out = {}
-    for nome, ext in (("gama", carregar("neural-cru", "/models")), ("regua", carregar("regua"))):
+    catalogo = CatalogoDeExtratores("/models")
+    for nome, ext in (("gama", catalogo.carregar("neural-cru")), ("regua", catalogo.carregar("regua"))):
         linhas = {}
         for d, t in textos.items():
             linhas[d] = [[s.inicio, s.fim, s.tipo, s.forma, s.digitos, s.confianca] for s in ext.extrair(t)]
@@ -118,8 +119,8 @@ def main() -> int:
     rel = json.loads(pathlib.Path(a.relatorio).read_text(encoding="utf-8"))
     taus = {pol: r["tau"] for pol, r in rel["politicas"].items()}
     prod = {d: vn.politica_v0(G, R, vn.FORTE) for d, (G, R) in docs.items()}
-    from gama.indice import construir
-    idx = construir(pontuar.DB)
+    from gama.indice import Indice
+    idx = Indice.do_banco(pontuar.DB)
     antes = pontuar.SAIDA
     pontuar.SAIDA = DEV
     try:

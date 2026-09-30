@@ -40,7 +40,7 @@ quatro rótulos em toda janela (o recomendado pela documentação para conjunto 
 na mesma ordem da inferência; janela sem citação entra como exemplo negativo.
 
 Rótulo do ouro -> nome do zero-shot: VAGA (classificação incompleta) -> "referência a julgado
-sem número"; LEI -> "artigo de lei"; JURIS -> "súmula ou tema de tribunal" se `gama.formas.forma`
+sem número"; LEI -> "artigo de lei"; JURIS -> "súmula ou tema de tribunal" se `DetectorDeForma.forma`
 do trecho der súmula/tema, senão "precedente judicial com número".
 
     # estatísticas da conversão, no container (sem GLiNER, sem torch)
@@ -406,7 +406,7 @@ def cmd_treinar(a) -> int:
     raiz_b = pathlib.Path(snapshot_download(DADOS, repo_type="dataset", revision=REV_BENCH, allow_patterns=[
         "bench/entrada_remota.jsonl", "bench/entrada_novas.jsonl", "bench/codigo/**"]))
     sys.path.insert(0, str(raiz_b / "bench" / "codigo"))
-    from gama.formas import forma
+    from gama.formas import DetectorDeForma
 
     docs, split = carregar(raiz_t / "final_v3")
     print("impressao dos textos do final_v3:", impressao_textos(docs), flush=True)
@@ -419,7 +419,7 @@ def cmd_treinar(a) -> int:
 
     # max_width: o GLiNER só enumera spans de até max_width palavras (12 no multi-v2.1). Regra
     # fixada antes de treinar: a maior largura de citação do split treino (0 = automático).
-    _, st0 = exemplos(treino, forma)
+    _, st0 = exemplos(treino, DetectorDeForma().forma)
     if not a.max_width:
         a.max_width = st0["largura_citacao_palavras"]["max"]
     print(f"max_width = {a.max_width} (maior citação do treino: {st0['largura_citacao_palavras']})", flush=True)
@@ -431,7 +431,7 @@ def cmd_treinar(a) -> int:
     print(f"divisor de palavras: {dif_div} diferenças em {len(textos_amostra)} textos", flush=True)
     assert dif_div == 0, "o divisor de palavras daqui não é o do modelo"
 
-    ex_treino, st = exemplos(treino, forma, a.max_width)
+    ex_treino, st = exemplos(treino, DetectorDeForma().forma, a.max_width)
     tok = modelo.data_processor.transformer_tokenizer
     subpalavras = sorted(len(tok(e["tokenized_text"], is_split_into_words=True)["input_ids"]) for e in ex_treino[:2000])
     st["subpalavras_por_janela"] = {"mediana": subpalavras[len(subpalavras) // 2], "max": subpalavras[-1]}
@@ -538,12 +538,12 @@ def cmd_extrair(a) -> int:
 
 
 def cmd_estatisticas(a) -> int:
-    from gama.formas import forma                       # src/ no container (= bench/codigo do dataset)
+    from gama.formas import DetectorDeForma                       # src/ no container (= bench/codigo do dataset)
     docs, split = carregar(pathlib.Path(a.pasta))
     print("impressao dos textos:", impressao_textos(docs))
     for nome in ("treino", "estresse"):
         sub = {d: v for d, v in docs.items() if split.get(d, "treino") == nome}
-        _, st = exemplos(sub, forma, a.max_width)
+        _, st = exemplos(sub, DetectorDeForma().forma, a.max_width)
         print(nome, len(sub), json.dumps(st, ensure_ascii=False))
     return 0
 

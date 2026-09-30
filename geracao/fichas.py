@@ -14,7 +14,7 @@ import sqlite3
 import unicodedata
 from dataclasses import dataclass
 
-from gama.cabecalho import numero_proprio
+from gama.cabecalho import LeitorDeNumeroProprio
 
 UFS = ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG",
        "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"]
@@ -119,7 +119,7 @@ def carregar(db: str):
             "SELECT id, tribunal, ano, relator, natureza, texto FROM documentos"):
         id_ = str(id_)
         if nat == "acordao":
-            p = numero_proprio(texto, trib)
+            p = LeitorDeNumeroProprio().ler(texto, trib)
             if not p.chaves or not p.numero:
                 continue
             numero = re.sub(r"\s+", "", p.numero)

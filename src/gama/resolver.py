@@ -218,23 +218,3 @@ class Resolvedor:
 
     def resolver(self, span: Span) -> Resolucao:
         return self.estrategias.get(span.forma, self.processo).resolver(span, self.indice)
-
-
-# ------------------------------------------------------------------ fachadas (até a leva 8)
-# Nomes antigos, ainda importados pelo laboratório (bench/, geracao/).
-
-TRIBUNAL_DA_CLASSE = ClasseProcessual.TRIBUNAL_DA_CLASSE
-CLASSE_POR_EXTENSO = ClasseProcessual.POR_EXTENSO
-_LEIS = IdentificadorDeLei()
-
-
-def _numero_ocr(bruto: str) -> str | None:
-    return OCR.numero(bruto)
-
-
-def _chave_lei_da_citacao(trecho: str) -> str | None:
-    return _LEIS.da_citacao(trecho)
-
-
-def resolver(span: Span, idx: Indice) -> Resolucao:
-    return Resolvedor(idx).resolver(span)

@@ -63,13 +63,13 @@ def honesto(dados: pathlib.Path, db: str, dobras: int = 2, por_dobra: int = 130,
     como "sintético". O classificador aprende isso ao contrário e a AUC cai abaixo de
     0,5 por vazamento, não por qualidade.
     """
-    from gama.indice import construir
+    from gama.indice import Indice
     from . import fichas as F
     from .bancos import extrair
     from .gerar import gerar_um
     from .montar import Montador, mistura_do_dev
 
-    idx = construir(db)
+    idx = Indice.do_banco(db)
     fichas, sumulas, disps = F.carregar(db)
     mistura = mistura_do_dev(dados)
     docs = sorted((dados / "txt").glob("*.txt"))

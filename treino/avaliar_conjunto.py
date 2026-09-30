@@ -14,8 +14,8 @@ import json
 import pathlib
 import shutil
 
-from gama.extratores import carregar
-from gama.indice import construir
+from gama.extratores import CatalogoDeExtratores
+from gama.indice import Indice
 
 from .avaliar_dobras import pontuar, rodar
 
@@ -52,10 +52,10 @@ def main() -> int:
             shutil.rmtree(local)
         snapshot_download(a.modelo, revision=a.revisao, local_dir=str(local))
     pasta_modelo = str(local or a.modelo) if a.modelo else None
-    idx = construir("/app/dados/desafio1_bracis.db")
+    idx = Indice.do_banco("/app/dados/desafio1_bracis.db")
     nome = a.nome or f"{a.extrator}:{a.modelo or ''}"
     saida = pathlib.Path("/app/saidas/conjuntos") / nome.replace("/", "_").replace(":", "_")
-    rodar(carregar(a.extrator, pasta_modelo), idx, docs, conj, saida)
+    rodar(CatalogoDeExtratores(pasta_modelo).carregar(a.extrator), idx, docs, conj, saida)
     res = pontuar(gold, saida)
     print(nome, json.dumps(res, ensure_ascii=False))
     arq = conj / "resultados.json"

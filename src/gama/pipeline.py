@@ -23,7 +23,7 @@ from .classificar import Citacao, Classificador
 from .extratores import CatalogoDeExtratores, Extrator, ExtratorRegua
 from .indice import Indice
 from .resolver import Resolvedor
-from .span import Intervalo, Span, aparar  # noqa: F401  (aparar: fachada, scripts do treino importam daqui)
+from .span import Intervalo, Span
 
 SCHEMA = "1.2"
 DB_PADRAO = "/app/dados/desafio1_bracis.db"
@@ -149,27 +149,5 @@ class Aplicacao:
         return 0
 
 
-# ------------------------------------------------------------------ fachadas (até a leva 8)
-
-def ler_texto(arq) -> str:
-    return Documento.ler(arq).texto
-
-
-def _iou(a, b) -> float:
-    return Intervalo.iou(a, b)
-
-
-def sem_sobreposicao(citacoes: list) -> list:
-    return Pipeline.sem_sobreposicao(citacoes)
-
-
-def processar(texto: str, idx, extrator=None) -> list:
-    return Pipeline(idx, extrator).processar(texto)
-
-
-def main(argv=None) -> int:
-    return Aplicacao().executar(argv)
-
-
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(Aplicacao().executar())

@@ -146,29 +146,3 @@ class NumeroDeProcesso:
                     melhor, melhor_reais = "".join(seq), reais
                 seq, reais = [], 0
         return cls.do_bruto(melhor, ocr)
-
-
-# ------------------------------------------------------------------ fachadas (até a leva 8)
-
-def sem_acento(texto: str) -> str:
-    return Normalizador.sem_acento(texto)
-
-
-def achatar(texto: str) -> str:
-    return Normalizador.achatar(texto)
-
-
-def esqueleto(texto: str) -> str:
-    return Normalizador.esqueleto(texto)
-
-
-def so_digitos(bruto: str) -> str:
-    return OCR.so_digitos(bruto)
-
-
-def chave_processo(bruto: str) -> str:
-    return NumeroDeProcesso.do_bruto(bruto).chave
-
-
-def nucleo_numerico(trecho: str) -> str:
-    return NumeroDeProcesso.do_trecho(trecho).chave

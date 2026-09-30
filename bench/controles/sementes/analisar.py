@@ -35,7 +35,7 @@ import pathlib
 import statistics
 
 from gama.extratores.regua import ExtratorRegua
-from gama.indice import construir
+from gama.indice import Indice
 
 from ... import alunos, conjuntos, pontuar
 from .. import avaliar
@@ -256,7 +256,7 @@ def diferencas(rel: dict) -> dict:
 
 def tudo() -> dict:
     PASTA.mkdir(parents=True, exist_ok=True)
-    idx = construir(pontuar.DB)
+    idx = Indice.do_banco(pontuar.DB)
     rel = pontuar_todos(idx)
     res = {"reproducao_s13": reproducao_s13(), "tabela": tabela(rel), "diferencas": diferencas(rel),
            "v13_contra_o_professor": vs_professor(), "concordancia_com_s13": concordancia(rel),

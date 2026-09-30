@@ -113,12 +113,13 @@ def cmd_validacao(a) -> None:
 
 def _dev_spans() -> None:
     """Gama v1.3 (neural-cru, /models) e régua no dev, gravados no formato do harness (só offsets)."""
-    from gama.extratores import carregar
+    from gama.extratores import CatalogoDeExtratores
     textos, _ = conjuntos.carregar("dev")
     with DEV_SPANS.open("w", encoding="utf-8") as fh:
         fh.write(json.dumps({"meta": {"gama": dn.MODELO_GAMA, "regua": "regras", "dispositivo": "cpu (container, 4 vCPUs)",
                                       "nota": "spans crus do dev; só offsets (o texto fica em dados/)"}}) + "\n")
-        for nome, ext in (("gama", carregar("neural-cru", "/models")), ("regua", carregar("regua"))):
+        catalogo = CatalogoDeExtratores("/models")
+        for nome, ext in (("gama", catalogo.carregar("neural-cru")), ("regua", catalogo.carregar("regua"))):
             for d, t in textos.items():
                 fh.write(json.dumps({"conjunto": f"dev_{nome}", "id": d, "spans": [
                     [s.inicio, s.fim, s.tipo, s.forma, s.digitos, s.confianca] for s in ext.extrair(t)]},
@@ -199,7 +200,7 @@ def _taus(relatorio: pathlib.Path) -> dict:
 
 
 def cmd_dev(a) -> None:
-    from gama.indice import construir
+    from gama.indice import Indice
     if not DEV_SPANS.exists() or a.reextrair:
         _dev_spans()
     textos, docs, regs = _dev_candidatos()
@@ -212,14 +213,14 @@ def cmd_dev(a) -> None:
     out = {"modelo": str(a.modelo), "taus_de": dn.rel(POLITICAS), "tempo_cpu": tempo,
            "spans": {"arquivo": dn.rel(DEV_SPANS), "sha256": vn.sha256(DEV_SPANS)},
            "scores": {"arquivo": dn.rel(DEV_SCORES), "sha256": vn.sha256(DEV_SCORES)},
-           **_dev_avaliar(textos, docs, sc, _taus(POLITICAS), construir(pontuar.DB))}
+           **_dev_avaliar(textos, docs, sc, _taus(POLITICAS), Indice.do_banco(pontuar.DB))}
     _escrever(DEV, out)
 
 
 # ---------------------------------------------------------------- refazer e resumo
 
 def cmd_refazer(a) -> None:
-    from gama.indice import construir
+    from gama.indice import Indice
     antigo = json.loads(POLITICAS.read_text(encoding="utf-8"))
     comp = {}
     sha = vn.sha256(SCORES)
@@ -246,7 +247,7 @@ def cmd_refazer(a) -> None:
     dev_antigo = json.loads(DEV.read_text(encoding="utf-8"))
     textos, docs, _ = _dev_candidatos()
     _, sc = vn.ler_scores(DEV_SCORES)
-    dev_novo = _dev_avaliar(textos, docs, sc, _taus(REFEITO / "politicas.json"), construir(pontuar.DB))
+    dev_novo = _dev_avaliar(textos, docs, sc, _taus(REFEITO / "politicas.json"), Indice.do_banco(pontuar.DB))
     comp["dev_igual"] = all(dev_antigo[k] == dev_novo[k] for k in ("docs", "candidatos", "auroc", "producao", "politicas"))
     comp["tudo_igual"] = (comp["scores_sha256_igual"] and not difs and comp["harness_cru_igual"]
                           and comp["validacao_igual"] and comp["dev_igual"])

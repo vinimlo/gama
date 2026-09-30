@@ -24,8 +24,8 @@ import random
 import re
 from dataclasses import dataclass, field
 
-from gama.formas import forma
-from gama.normalizar import chave_processo
+from gama.formas import DetectorDeForma
+from gama.normalizar import NumeroDeProcesso
 
 from . import render as R
 from .bancos import FEMININO
@@ -67,7 +67,7 @@ def mistura_do_dev(dados: pathlib.Path) -> dict:
     for r in csv.DictReader(open(dados / "goldenset_offsets.csv", encoding="utf-8-sig")):
         n = int(r["nivel"])
         por_doc[r["documento_id"]] += 1
-        fm = forma(r["trecho"])
+        fm = DetectorDeForma().forma(r["trecho"])
         c, t = r["classificacao"], r["tipo"]
         if c == "incompleta":
             k = "vaga"
@@ -184,7 +184,7 @@ class Montador:
         # duas fichas não tem desempate possível — a organização não as cita.
         grupos = collections.defaultdict(list)
         for f in fichas:
-            grupos[(chave_processo(f.numero), f.cadeia)].append(f)
+            grupos[(NumeroDeProcesso.do_bruto(f.numero).chave, f.cadeia)].append(f)
         self.fichas: dict[str, list[Ficha]] = collections.defaultdict(list)
         for (_, cad), fs in grupos.items():
             f = fs[0]
@@ -220,8 +220,8 @@ class Montador:
 
     def _sem_candidato(self, cit: R.Cit) -> bool:
         """Inventada precisa ter ZERO candidatos no acervo — garantia da organização."""
-        from gama.normalizar import nucleo_numerico
-        n = nucleo_numerico(cit.texto)
+        from gama.normalizar import NumeroDeProcesso
+        n = NumeroDeProcesso.do_trecho(cit.texto).chave
         return not n or not self.idx.candidatos_processo(n)
 
     def citacao(self, tipo: str, materia: str, nivel: int, rng: random.Random) -> R.Cit:

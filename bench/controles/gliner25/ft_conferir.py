@@ -87,12 +87,12 @@ def main() -> int:
     ext.modelo = Falso25()
     res["direto"] = {"textos": len(textos),
                      "diferentes": sum(ext.direto(t, zs.LIMIAR) != zs.extrair(Falso21(), t) for t in textos)}
-    from gama.formas import forma
+    from gama.formas import DetectorDeForma
     docs, split = ft.carregar(pathlib.Path("/app/corpus/goldenset/v3"))
     res["impressao_textos_final_v3"] = ft.impressao_textos(docs)
     for nome in ("treino", "estresse"):
         sub = {d: v for d, v in docs.items() if split.get(d, "treino") == nome}
-        _, st = ft.exemplos(sub, forma)
+        _, st = ft.exemplos(sub, DetectorDeForma().forma)
         aud = st["auditoria_ouro_por_texto"]
         res[f"conversao_{nome}"] = {k: st.get(k, 0) for k in (
             "citacoes", "citacoes_fora_de_toda_janela", "cortadas_pela_janela", "borda_desalinhada",
