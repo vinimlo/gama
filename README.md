@@ -200,6 +200,14 @@ avaliada usa o extrator com a guarda (`--extrator neural`); o modelo sozinho con
 disponível como `--extrator neural-cru`. Decisão completa em
 [D-008](wiki/decisoes/D-008_guarda-do-extrator.md).
 
+Testamos também um juiz treinado no lugar da régua: um modelo que lê cada candidato no
+contexto e diz se ele é citação. Com 22 mil candidatos rotulados, a maior parte de ementas com
+rótulo prata, quatro verificadores (o encoder do próprio Gama, o Laya e dois modelos de
+decisão abertos) levam o F1 nas 172 de 0,839 para 0,847 a 0,850, com IC95 acima de zero.
+É pouco, e fica fora da solução. O espaço maior, aceitar citações que o modelo não marcou,
+mudou de 29 a 52 documentos do estresse com qualquer um deles. Detalhes em
+[verificador de candidatos](wiki/experimentos/2026-09-29_verificador-de-candidatos.md).
+
 ### Treino com documentos sintéticos
 
 A organização gera os documentos do desafio por moldes: 62% das frases se repetem entre
@@ -361,7 +369,9 @@ Quatro invariantes quebram em silêncio se forem violadas:
 ## Licença
 
 MIT, ver [LICENSE](LICENSE). A exceção é `vendor/`, cópia do código da organização do
-desafio (métrica e conversor oficiais), que segue os termos dela. As ementas reais não
+desafio (métrica e conversor oficiais), que segue os termos dela, e
+`bench/controles/verificador_treinado/laya_ft/laya_min.py`, que copia trechos do Laya 0.3.22
+(Apache-2.0, Convai Innovations). As ementas reais não
 estão neste repositório: ficam no dataset, com a CC-BY-4.0 do `celsowm/jurisprudencias_br`
 e a proveniência de cada registro.
 

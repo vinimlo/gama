@@ -110,6 +110,7 @@ que o bruto.
 - [Destilação](experimentos/2026-09-23_destilacao.md): alunos de 13 camadas e mmBERT-small; a destilação segura o texto real, o aluno de 13 camadas empata no estilo da organização; o de 12 primeiras camadas sai idêntico e vira o v1.3
 - [Controles](experimentos/2026-09-29_controles.md): encoder congelado, GLiNER e BERTimbau treinados nos mesmos dados, sementes do v1.2 e do v1.3, auditoria dos trechos do Qwen e confiança fora do molde
 - [GLiNER 2.5 multi](experimentos/2026-09-29_gliner-2-5.md): a versão 2.5 no lugar da v2.1 no benchmark, no fine-tune, na reserva da guarda e no verificador de candidatos
+- [Verificador de candidatos](experimentos/2026-09-29_verificador-de-candidatos.md): tetos, reservas da guarda, Laya sem treino e quatro juízes treinados em ementas com rótulo prata
 
 ## Conceitos
 
