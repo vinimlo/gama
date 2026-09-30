@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.2",
+  "documento_id": "doc1",
+  "citacoes": [
+    {
+      "id": "c1",
+      "inicio": 20,
+      "fim": 45,
+      "trecho": "AgRg no REsp 1.205.500/SC",
+      "tipo": "jurisprudencia",
+      "classificacao": "real",
+      "resolucao": {
+        "fonte": "jusbrasil",
+        "id_canonico": "stj-agrg"
+      },
+      "confianca": 0.9
+    },
+    {
+      "id": "c2",
+      "inicio": 50,
+      "fim": 60,
+      "trecho": "Súmula 211",
+      "tipo": "jurisprudencia",
+      "classificacao": "real",
+      "resolucao": {
+        "fonte": "jusbrasil",
+        "id_canonico": "sum-211"
+      },
+      "confianca": 0.93
+    },
+    {
+      "id": "c3",
+      "inicio": 80,
+      "fim": 119,
+      "trecho": "art. 93 da Constituição Federal e o art",
+      "tipo": "lei",
+      "classificacao": "real",
+      "resolucao": {
+        "fonte": "jusbrasil",
+        "id_canonico": "art-93-cf"
+      },
+      "confianca": 0.93
+    },
+    {
+      "id": "c4",
+      "inicio": 155,
+      "fim": 172,
+      "trecho": "REsp 9.999.999/SP",
+      "tipo": "jurisprudencia",
+      "classificacao": "inventada",
+      "resolucao": null,
+      "confianca": 0.82
+    },
+    {
+      "id": "c5",
+      "inicio": 184,
+      "fim": 196,
+      "trecho": "MS 32.714/MT",
+      "tipo": "jurisprudencia",
+      "classificacao": "real",
+      "resolucao": {
+        "fonte": "jusbrasil",
+        "id_canonico": "stf-ms"
+      },
+      "confianca": 0.9
+    },
+    {
+      "id": "c6",
+      "inicio": 209,
+      "fim": 264,
+      "trecho": "precedente do STF de 2020, da relatoria de CÁRMEN LÚCIA",
+      "tipo": "jurisprudencia",
+      "classificacao": "incompleta",
+      "resolucao": null,
+      "confianca": 0.95
+    }
+  ]
+}
