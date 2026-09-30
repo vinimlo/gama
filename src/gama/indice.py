@@ -18,25 +18,14 @@ import re
 import sqlite3
 from collections import defaultdict
 from dataclasses import dataclass, field
+from typing import Iterator
 
-from .cabecalho import numero_proprio
-from .normalizar import achatar, chave_processo
+from .cabecalho import CadeiaDeClasse, LeitorDeNumeroProprio, NumeroProprio
+from .leis import APELIDOS_LEI, IdentificadorDeLei
+from .normalizar import NumeroDeProcesso
 
-# Apelidos de codigo -> chave da lei (digitos do numero da lei).
-# Conjunto fechado: os 13 dispositivos do acervo cobrem 9 diplomas.
-APELIDOS_LEI = {
-    "cpc": "13105", "codigo de processo civil": "13105", "lei 13105": "13105",
-    "cc": "10406", "codigo civil": "10406",
-    "clt": "5452", "consolidacao das leis do trabalho": "5452",
-    "cpp": "3689", "codigo de processo penal": "3689",
-    "cpm": "1001", "codigo penal militar": "1001",
-    "cdc": "8078", "codigo de defesa do consumidor": "8078",
-    "codigo eleitoral": "4737",
-    "cf": "CF", "constituicao federal": "CF", "constituicao da republica": "CF",
-    "constituicao": "CF", "carta magna": "CF", "cf/88": "CF",
-    "lc 64": "LC64", "lei complementar 64": "LC64",
-    "lei complementar n 64": "LC64", "lc 64/1990": "LC64",
-}
+__all__ = ["APELIDOS_LEI", "Acervo", "Ficha", "Indice", "IndiceDeDispositivos", "IndiceDeProcessos",
+           "IndiceDeSumulas", "construir"]
 
 # O cabecalho termina onde o texto do artigo comeca ("... Art. 276."). Parar
 # na virgula falhava na Constituicao, cujo cabecalho nao tem virgula:
@@ -50,81 +39,160 @@ _CAB_SUMULA = re.compile(
     r"S[uú]mula\s+(Vinculante\s+)?n\.?\s*(\d+)\s+do\s+(\w+)", re.I)
 
 
-def _chave_lei(descricao: str) -> str:
-    """'Lei n 13.105' -> '13105'; 'Constituicao Federal de 1988' -> 'CF'."""
-    plano = achatar(descricao)
-    if "constitui" in plano:
-        return "CF"
-    if "complementar" in plano:
-        return "LC" + re.sub(r"\D", "", plano.split("complementar")[1][:8])
-    digitos = re.sub(r"\D", "", plano.split(",")[0])
-    return digitos.lstrip("0") or digitos
+def _sem_zeros(numero: str) -> str:
+    return numero.lstrip("0") or numero
 
 
-@dataclass
-class Indice:
-    por_processo: dict = field(default_factory=lambda: defaultdict(list))
-    sumulas: dict = field(default_factory=dict)      # (num, trib|None, vinc) -> id
-    dispositivos: dict = field(default_factory=dict)  # (artigo, chave_lei) -> id
-    meta: dict = field(default_factory=dict)          # id -> (tribunal, ano, relator)
-    cadeia: dict = field(default_factory=dict)        # id -> cadeia de classe ('ED', 'AgR', 'REspe')
+@dataclass(frozen=True)
+class Ficha:
+    """Um documento do acervo."""
+    id: str
+    natureza: str          # acordao | sumula | dispositivo
+    tribunal: str | None
+    ano: int | None
+    relator: str | None
+    texto: str
 
-    def candidatos_processo(self, digitos: str) -> list:
-        return self.por_processo.get(chave_processo(digitos), [])
 
-    def resolve_sumula(self, numero: str, tribunal: str | None, vinculante: bool) -> list:
-        chave = (numero.lstrip("0") or numero, tribunal, vinculante)
-        if chave in self.sumulas:
-            return [self.sumulas[chave]]
+class Acervo:
+    """O SQLite congelado da organização, só leitura."""
+
+    def __init__(self, caminho_db):
+        self.caminho_db = caminho_db
+
+    def fichas(self) -> Iterator[Ficha]:
+        con = sqlite3.connect(f"file:{self.caminho_db}?mode=ro", uri=True)
+        try:
+            linhas = con.execute(
+                "SELECT id, natureza, tribunal, ano, relator, texto FROM documentos"
+            ).fetchall()
+        finally:
+            con.close()
+        return (Ficha(*linha) for linha in linhas)
+
+
+class IndiceDeProcessos:
+    """Chave do número próprio -> ids das fichas; e a cadeia de classe de cada ficha, que
+    separa as que dividem o número (embargos, agravo e principal do mesmo processo)."""
+
+    def __init__(self):
+        self.por_chave: dict = defaultdict(list)
+        self.cadeias: dict = {}
+
+    def adicionar(self, doc_id: str, proprio: NumeroProprio) -> None:
+        self.cadeias[doc_id] = proprio.cadeia
+        for chave in proprio.chaves:
+            if doc_id not in self.por_chave[chave]:
+                self.por_chave[chave].append(doc_id)
+
+    def candidatos(self, bruto: str) -> list:
+        return self.por_chave.get(NumeroDeProcesso.do_bruto(bruto).chave, [])
+
+    def cadeia(self, doc_id: str) -> CadeiaDeClasse:
+        return CadeiaDeClasse(self.cadeias.get(doc_id, ()))
+
+
+class IndiceDeSumulas(dict):
+    """(número, tribunal, vinculante) -> id."""
+
+    def adicionar(self, texto: str, doc_id: str) -> None:
+        m = _CAB_SUMULA.search(texto[:120])
+        if m:
+            self[(_sem_zeros(m.group(2)), m.group(3).upper(), bool(m.group(1)))] = doc_id
+
+    def resolver(self, numero: str, tribunal: str | None, vinculante: bool) -> list:
+        chave = (_sem_zeros(numero), tribunal, vinculante)
+        if chave in self:
+            return [self[chave]]
         # Tribunal declarado e diferente: "Sumula 211 do TSE" nao e a 211 do STJ.
         # Resolver pelo numero aqui transformaria inventada em real (tau).
         if tribunal is not None:
             return []
-        # Sem tribunal declarado: aceita se o numero for unico no acervo.
-        iguais = [i for (n, _t, v), i in self.sumulas.items()
-                  if n == chave[0] and v == vinculante]
-        return iguais if len(iguais) == 1 else iguais
+        # Sem tribunal declarado: todas as de mesmo número e vínculo. Mais de uma é
+        # empate, e o classificar decide (D-002).
+        return [i for (n, _t, v), i in self.items() if n == chave[0] and v == vinculante]
+
+
+class IndiceDeDispositivos(dict):
+    """(artigo, chave da lei) -> id."""
+
+    def adicionar(self, texto: str, doc_id: str, leis: IdentificadorDeLei) -> None:
+        m = _CAB_DISPOSITIVO.search(texto[:200])
+        if m:
+            self[(_sem_zeros(m.group(1)), leis.do_cabecalho(m.group(2)))] = doc_id
+
+    def resolver(self, artigo: str, chave_lei: str) -> list:
+        chave = (_sem_zeros(artigo), chave_lei)
+        return [self[chave]] if chave in self else []
+
+
+@dataclass
+class Indice:
+    """Os índices do acervo, construídos UMA VEZ, offline."""
+    processos: IndiceDeProcessos = field(default_factory=IndiceDeProcessos)
+    sumulas: IndiceDeSumulas = field(default_factory=IndiceDeSumulas)
+    dispositivos: IndiceDeDispositivos = field(default_factory=IndiceDeDispositivos)
+    meta: dict = field(default_factory=dict)          # id -> (tribunal, ano, relator)
+
+    def __post_init__(self):
+        if not isinstance(self.sumulas, IndiceDeSumulas):
+            self.sumulas = IndiceDeSumulas(self.sumulas)
+        if not isinstance(self.dispositivos, IndiceDeDispositivos):
+            self.dispositivos = IndiceDeDispositivos(self.dispositivos)
+
+    @classmethod
+    def construir(cls, acervo: Acervo, leitor: LeitorDeNumeroProprio | None = None,
+                  leis: IdentificadorDeLei | None = None) -> Indice:
+        """Varre o acervo uma vez e monta todos os índices."""
+        leitor = leitor or LeitorDeNumeroProprio()
+        leis = leis or IdentificadorDeLei()
+        idx = cls()
+        for f in acervo.fichas():
+            idx.meta[f.id] = (f.tribunal, f.ano, f.relator)
+            if f.natureza == "acordao":
+                # So o NUMERO PROPRIO de cada ficha vira chave (cabecalho.py). O indice
+                # antigo indexava todo numero dos primeiros 300 chars e datas, numero
+                # de registro e a Lei 13.015/2014 viravam chave: 280 chaves ambiguas,
+                # 176 fichas sem chave unica. Agora: 996/996 com numero proprio.
+                idx.processos.adicionar(f.id, leitor.ler(f.texto, f.tribunal))
+            elif f.natureza == "sumula":
+                idx.sumulas.adicionar(f.texto, f.id)
+            elif f.natureza == "dispositivo":
+                idx.dispositivos.adicionar(f.texto, f.id, leis)
+        return idx
+
+    @classmethod
+    def do_banco(cls, caminho_db) -> Indice:
+        return cls.construir(Acervo(caminho_db))
+
+    def tribunal(self, doc_id: str) -> str | None:
+        return self.meta.get(doc_id, (None,))[0]
+
+    def candidatos_processo(self, bruto: str) -> list:
+        return self.processos.candidatos(bruto)
+
+    # -------------------------------------------------------------- fachadas (até a leva 8)
+
+    @property
+    def por_processo(self) -> dict:
+        return self.processos.por_chave
+
+    @property
+    def cadeia(self) -> dict:
+        return self.processos.cadeias
+
+    def resolve_sumula(self, numero: str, tribunal: str | None, vinculante: bool) -> list:
+        return self.sumulas.resolver(numero, tribunal, vinculante)
 
     def resolve_dispositivo(self, artigo: str, chave_lei: str) -> list:
-        chave = (artigo.lstrip("0") or artigo, chave_lei)
-        return [self.dispositivos[chave]] if chave in self.dispositivos else []
+        return self.dispositivos.resolver(artigo, chave_lei)
 
 
 def construir(caminho_db) -> Indice:
-    """Varre o acervo uma vez e monta todos os indices."""
-    idx = Indice()
-    con = sqlite3.connect(f"file:{caminho_db}?mode=ro", uri=True)
-    try:
-        linhas = con.execute(
-            "SELECT id, natureza, tribunal, ano, relator, texto FROM documentos"
-        ).fetchall()
-    finally:
-        con.close()
+    """Fachada (até a leva 8): `Indice.do_banco(caminho_db)`."""
+    return Indice.do_banco(caminho_db)
 
-    for doc_id, natureza, tribunal, ano, relator, texto in linhas:
-        idx.meta[doc_id] = (tribunal, ano, relator)
 
-        if natureza == "acordao":
-            # So o NUMERO PROPRIO de cada ficha vira chave (cabecalho.py). O indice
-            # antigo indexava todo numero dos primeiros 300 chars e datas, numero
-            # de registro e a Lei 13.015/2014 viravam chave: 280 chaves ambiguas,
-            # 176 fichas sem chave unica. Agora: 996/996 com numero proprio.
-            proprio = numero_proprio(texto, tribunal)
-            idx.cadeia[doc_id] = proprio.cadeia
-            for chave in proprio.chaves:
-                if doc_id not in idx.por_processo[chave]:
-                    idx.por_processo[chave].append(doc_id)
-
-        elif natureza == "sumula":
-            m = _CAB_SUMULA.search(texto[:120])
-            if m:
-                vinc = bool(m.group(1))
-                idx.sumulas[(m.group(2).lstrip("0"), m.group(3).upper(), vinc)] = doc_id
-
-        elif natureza == "dispositivo":
-            m = _CAB_DISPOSITIVO.search(texto[:200])
-            if m:
-                artigo = m.group(1).lstrip("0") or m.group(1)
-                idx.dispositivos[(artigo, _chave_lei(m.group(2)))] = doc_id
-
-    return idx
+def _chave_lei(descricao: str) -> str:
+    """Fachada (até a leva 8): `IdentificadorDeLei.do_cabecalho`."""
+    return IdentificadorDeLei.do_cabecalho(descricao)

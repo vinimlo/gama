@@ -24,9 +24,10 @@ from __future__ import annotations
 
 import re
 import unicodedata
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
-from .normalizar import chave_processo
+from .normalizar import NumeroDeProcesso
 
 # ------------------------------------------------------------------ cadeia de classe
 
@@ -65,8 +66,6 @@ _CLASSES = [
     ("embargos", "E"), ("e", "E"),
     ("agravo", "Ag"), ("ag", "Ag"),
 ]
-_CONECTIVOS = {"no", "na", "nos", "nas", "em", "de", "do", "da", "e", "-", "n",
-               "com", "ao", "a"}
 
 
 def _plano(s: str) -> str:
@@ -93,43 +92,61 @@ def _esq(p: str) -> str:
     return " ".join(_esq_tok(t) for t in p.split())
 
 
-_FORMAS_ESQ = [(tuple(_esq(f).split()), s) for f, s in _CLASSES]
-_ORDINAIS_ESQ = {_esq(k): v for k, v in _ORDINAIS.items()}
+class CadeiaDeClasse(tuple):
+    """As siglas de classe de um processo, de fora para dentro: ('ED', 'AgR', 'MS').
 
+    É uma tupla: compara, indexa e vira chave como tal. O ordinal fica colado na sigla
+    ("SEGUNDO AG.REG." -> 'AgR2')."""
+    FORMAS = [(tuple(_esq(f).split()), s) for f, s in _CLASSES]
+    ORDINAIS = {_esq(k): v for k, v in _ORDINAIS.items()}
 
-def cadeia_de_classe(texto: str) -> tuple:
-    """'EMB.DECL. NO AG.REG. EM MANDADO DE SEGURANÇA' -> ('ED', 'AgR', 'MS').
+    @classmethod
+    def ler(cls, texto: str) -> CadeiaDeClasse:
+        """'EMB.DECL. NO AG.REG. EM MANDADO DE SEGURANÇA' -> ('ED', 'AgR', 'MS').
 
-    Também lê cadeias de siglas com hífen: 'TST-ED-ED-E-ED-ED-ARR' ->
-    ('ED', 'ED', 'E', 'ED', 'ED', 'ARR'). O prefixo do tribunal ('TST') é descartado.
-    """
-    # Texto colado na exportação do STJ: "AgInt nosEMBARGOS" -> "AgInt nos EMBARGOS".
-    texto = re.sub(r"([a-z])([A-Z]{2,})", r"\1 \2", texto)
-    p = _plano(texto)
-    p = re.sub(r"\b(tst|stf|stj|tse|stm)\b", " ", p)
-    p = _esq(p.replace("-", " - "))           # tolerância a OCR na classe (goldenset v3)
-    cadeia = []
-    i = 0
-    toks = p.split()
-    ordinal = ""
-    while i < len(toks):
-        if toks[i] in _ORDINAIS_ESQ:
-            ordinal = _ORDINAIS_ESQ[toks[i]]     # "SEGUNDO AG.REG." -> "AgR2"
-            i += 1
-            continue
-        achou = False
-        for partes, sigla in _FORMAS_ESQ:
-            if tuple(toks[i:i + len(partes)]) == partes:
-                cadeia.append(sigla + ordinal)
-                ordinal = ""
-                i += len(partes)
-                achou = True
-                break
-        if not achou:
-            if toks[i] not in _CONECTIVOS and not re.fullmatch(r"n[.ºo°]*", toks[i]):
-                pass                                   # palavra desconhecida: ignora
-            i += 1
-    return tuple(cadeia)
+        Também lê cadeias de siglas com hífen: 'TST-ED-ED-E-ED-ED-ARR' ->
+        ('ED', 'ED', 'E', 'ED', 'ED', 'ARR'). O prefixo do tribunal ('TST') é descartado.
+        Palavra desconhecida é ignorada.
+        """
+        # Texto colado na exportação do STJ: "AgInt nosEMBARGOS" -> "AgInt nos EMBARGOS".
+        texto = re.sub(r"([a-z])([A-Z]{2,})", r"\1 \2", texto)
+        p = _plano(texto)
+        p = re.sub(r"\b(tst|stf|stj|tse|stm)\b", " ", p)
+        toks = _esq(p.replace("-", " - ")).split()      # tolerância a OCR na classe (goldenset v3)
+        cadeia = []
+        i = 0
+        ordinal = ""
+        while i < len(toks):
+            if toks[i] in cls.ORDINAIS:
+                ordinal = cls.ORDINAIS[toks[i]]         # "SEGUNDO AG.REG." -> "AgR2"
+                i += 1
+                continue
+            for partes, sigla in cls.FORMAS:
+                if tuple(toks[i:i + len(partes)]) == partes:
+                    cadeia.append(sigla + ordinal)
+                    ordinal = ""
+                    i += len(partes)
+                    break
+            else:
+                i += 1
+        return cls(cadeia)
+
+    def sem_ordinal(self) -> CadeiaDeClasse:
+        return CadeiaDeClasse(c.rstrip("0123456789") for c in self)
+
+    def primeiro_elo(self) -> CadeiaDeClasse:
+        """O elo de fora, sem ordinal: ('AgR2', 'REsp') -> ('AgR',)."""
+        return CadeiaDeClasse(self.sem_ordinal()[:1])
+
+    def cabe_em(self, ficha: tuple) -> bool:
+        """Esta cadeia (lida na citação) é subsequência da cadeia da ficha, cada elo lido
+        sendo prefixo do elo da ficha: "Ag. Int." que o leitor pulou, ou "Ernbarg0s dc
+        Divergêneia" lido como "E" diante de "EDv", ainda cabem."""
+        i = 0
+        for elo in ficha:
+            if i < len(self) and elo.startswith(self[i]):
+                i += 1
+        return i == len(self)
 
 
 # ------------------------------------------------------------------ número próprio
@@ -139,42 +156,67 @@ _CNJ = r"\d{1,7}\s*-\s*\d{2}\s*\.\s*\d{4}\s*\.\s*\d\s*\.\s*\d{2}\s*\.\s*\d{4}"
 
 
 @dataclass
-class Proprio:
-    chaves: list = field(default_factory=list)   # chave_processo de cada número próprio
-    cadeia: tuple = ()
+class NumeroProprio:
+    chaves: list = field(default_factory=list)   # chave de cada número próprio (NumeroDeProcesso)
+    cadeia: tuple = CadeiaDeClasse()
     fonte: str = ""                               # de onde saiu (para auditoria)
     numero: str = ""                              # como aparece no cabeçalho (gerador sintético)
     classe: str = ""                              # texto bruto da classe (gerador sintético)
 
 
-def _stf(texto: str) -> Proprio:
-    # A classe vem em CAIXA-ALTA depois do órgão julgador; o número vem antes da UF
-    # por extenso e do "RELATOR". Pula "Página N de M" e a data.
-    cab = texto[:600]
-    m = re.search(
+Proprio = NumeroProprio                           # nome antigo (até a leva 8)
+
+
+def _chave(bruto: str) -> str:
+    return NumeroDeProcesso.do_bruto(bruto).chave
+
+
+class LeitorDeCabecalho(ABC):
+    """Lê o número próprio no cabeçalho de UM formato. Sem achar, devolve só a `fonte`."""
+    fonte: str
+
+    @abstractmethod
+    def ler(self, texto: str) -> NumeroProprio:
+        ...
+
+    def _achado(self, m: re.Match, grupo_numero: str = "num", fonte: str | None = None) -> NumeroProprio:
+        return NumeroProprio([_chave(m.group(grupo_numero))], CadeiaDeClasse.ler(m.group("classe")),
+                             fonte or self.fonte, m.group(grupo_numero), m.group("classe"))
+
+    def _sem_padrao(self) -> NumeroProprio:
+        return NumeroProprio(fonte=f"{self.fonte}:sem_padrao")
+
+
+class LeitorSTF(LeitorDeCabecalho):
+    """A classe vem em CAIXA-ALTA depois do órgão julgador; o número vem antes da UF
+    por extenso e do "RELATOR". Pula "Página N de M" e a data."""
+    fonte = "stf"
+    PADRAO = re.compile(
         r"(?:PLEN[AÁ]RIO|PRIMEIRA TURMA|SEGUNDA TURMA)\s+(?P<classe>[A-ZÀ-Ý.\s]+?)\s+"
-        r"(?P<num>" + _NUM_CLASSICO + r")\s+[A-ZÀ-Ý]", cab)
-    if not m:
-        return Proprio(fonte="stf:sem_padrao")
-    return Proprio([chave_processo(m.group("num"))], cadeia_de_classe(m.group("classe")), "stf",
-                   m.group("num"), m.group("classe"))
+        r"(?P<num>" + _NUM_CLASSICO + r")\s+[A-ZÀ-Ý]")
+
+    def ler(self, texto: str) -> NumeroProprio:
+        m = self.PADRAO.search(texto[:600])
+        return self._achado(m) if m else self._sem_padrao()
 
 
-def _stj(texto: str) -> Proprio:
-    m = re.search(r"^(?P<classe>.{2,120}?)\s*N[ºo°]\s*(?P<num>" + _NUM_CLASSICO + r")\s*-\s*[A-Z]{2}",
-                  texto[:400], re.S)
-    if not m:
-        return Proprio(fonte="stj:sem_padrao")
-    return Proprio([chave_processo(m.group("num"))], cadeia_de_classe(m.group("classe")), "stj",
-                   m.group("num"), m.group("classe"))
+class LeitorSTJ(LeitorDeCabecalho):
+    fonte = "stj"
+    PADRAO = re.compile(r"^(?P<classe>.{2,120}?)\s*N[ºo°]\s*(?P<num>" + _NUM_CLASSICO + r")\s*-\s*[A-Z]{2}",
+                        re.S)
+
+    def ler(self, texto: str) -> NumeroProprio:
+        m = self.PADRAO.search(texto[:400])
+        return self._achado(m) if m else self._sem_padrao()
 
 
-def _stm(texto: str) -> Proprio:
-    m = re.search(r"(?P<classe>[A-ZÀ-Ý][A-ZÀ-Ý\s.]{2,80}?)\s*N[ºo°]\s*(?P<num>" + _CNJ + ")", texto[:500])
-    if not m:
-        return Proprio(fonte="stm:sem_padrao")
-    return Proprio([chave_processo(m.group("num"))], cadeia_de_classe(m.group("classe")), "stm",
-                   m.group("num"), m.group("classe"))
+class LeitorSTM(LeitorDeCabecalho):
+    fonte = "stm"
+    PADRAO = re.compile(r"(?P<classe>[A-ZÀ-Ý][A-ZÀ-Ý\s.]{2,80}?)\s*N[ºo°]\s*(?P<num>" + _CNJ + ")")
+
+    def ler(self, texto: str) -> NumeroProprio:
+        m = self.PADRAO.search(texto[:500])
+        return self._achado(m) if m else self._sem_padrao()
 
 
 # "Nº", "N.º", "N o", "No" — o cabeçalho do TSE vem com OCR ruim ("TRE3UNAL").
@@ -185,7 +227,7 @@ _CNJ_FROUXO = (r"\d{1,7}\s*-\s*\d\s*\d\s*\.\s*\d\s*\d\s*\d\s*\d\s*\.\s*\d\s*\.\s
 _MARCA_N_TSE = r"N\s*[.ºo°‚,]?\s*"                    # "Nº", "N o", "N‚" (OCR), "N"
 
 
-def _tse(texto: str) -> Proprio:
+class LeitorTSE(LeitorDeCabecalho):
     """Dois formatos: número antigo + CNJ entre parênteses, ou CNJ direto.
 
     A ORDEM importa: o CNJ direto precisa ser tentado ANTES do número antigo. Com a
@@ -193,69 +235,95 @@ def _tse(texto: str) -> Proprio:
     padrão antigo em "378" e a chave ficava truncada — 10 citações reais do
     gabarito deixavam de resolver.
     """
-    cab = texto[:900]
-    ini = re.search(r"ELEITORAL", cab)
-    cab = cab[ini.end():] if ini else cab
-    m = re.search(r"(?P<classe>(?:[A-ZÀ-Ý€„ƒ][\wÀ-ÿ€„ƒ.]*\s+){1,14}?)" + _MARCA_N_TSE +
-                  r"(?P<cnj>" + _CNJ_FROUXO + ")", cab, re.S)
-    if m:
-        return Proprio([chave_processo(m.group("cnj"))], cadeia_de_classe(m.group("classe")), "tse:cnj",
-                       m.group("cnj"), m.group("classe"))
-    m = re.search(r"AC[OÓ]RD[AÃ]O\s+(?P<classe>.{3,220}?)\s*" + _MARCA_N + r"(?P<num>" + _NUM_CLASSICO + r")"
-                  r"(?:\s*\(\s*(?P<cnj>" + _CNJ_FROUXO + r")\s*\))?", cab, re.S | re.I)
-    if m:
-        chaves = [chave_processo(m.group("num"))]
-        if m.group("cnj"):
-            chaves.append(chave_processo(m.group("cnj")))
-        return Proprio(chaves, cadeia_de_classe(m.group("classe")), "tse:antigo",
-                       m.group("cnj") or m.group("num"), m.group("classe"))
-    return Proprio(fonte="tse:sem_padrao")
+    fonte = "tse"
+    CNJ_DIRETO = re.compile(r"(?P<classe>(?:[A-ZÀ-Ý€„ƒ][\wÀ-ÿ€„ƒ.]*\s+){1,14}?)" + _MARCA_N_TSE +
+                            r"(?P<cnj>" + _CNJ_FROUXO + ")", re.S)
+    ANTIGO = re.compile(r"AC[OÓ]RD[AÃ]O\s+(?P<classe>.{3,220}?)\s*" + _MARCA_N + r"(?P<num>" + _NUM_CLASSICO + r")"
+                        r"(?:\s*\(\s*(?P<cnj>" + _CNJ_FROUXO + r")\s*\))?", re.S | re.I)
+
+    def ler(self, texto: str) -> NumeroProprio:
+        cab = texto[:900]
+        ini = re.search(r"ELEITORAL", cab)
+        cab = cab[ini.end():] if ini else cab
+        m = self.CNJ_DIRETO.search(cab)
+        if m:
+            return self._achado(m, "cnj", "tse:cnj")
+        m = self.ANTIGO.search(cab)
+        if m:
+            chaves = [_chave(m.group("num"))]
+            if m.group("cnj"):
+                chaves.append(_chave(m.group("cnj")))
+            return NumeroProprio(chaves, CadeiaDeClasse.ler(m.group("classe")), "tse:antigo",
+                                 m.group("cnj") or m.group("num"), m.group("classe"))
+        return self._sem_padrao()
 
 
-def _generico(texto: str) -> Proprio:
+class LeitorTST(LeitorDeCabecalho):
+    """A autorreferência canônica. A cadeia de siglas pode ter 7+ elos e espaços
+    ("TST-ED-ED-E- ED-ED-ARR-1575-04.2016...") e aparecer depois do caractere 12.000."""
+    fonte = "tst"
+    AUTOS = re.compile(
+        r"(?:discutidos|examinados)\s+(?:estes|os\s+presentes)\s+autos\s+de\s+(?P<ext>[^.]{0,160}?)"
+        r"n\s*\.?\s*[ºo°]?\s*\.?\s*(?P<siglas>(?:[A-Za-z]{1,10}\s*-\s*){1,12})(?P<cnj>" + _CNJ + ")",
+        re.S)
+    AUTOS_FRACO = re.compile(
+        r"estes\s+autos\s+de\s+(?P<ext>.{0,200}?)n\s*\.?\s*[ºo°]?\s*\.?\s*"
+        r"(?P<siglas>(?:[A-Za-z]{1,10}\s*-\s*){1,12})(?P<cnj>" + _CNJ + ")", re.S)
+
+    def ler(self, texto: str) -> NumeroProprio:
+        for rx, fonte in ((self.AUTOS, "tst:autos"), (self.AUTOS_FRACO, "tst:autos_fraco")):
+            m = rx.search(texto)
+            if m:
+                return NumeroProprio([_chave(m.group("cnj"))],
+                                     CadeiaDeClasse.ler(m.group("siglas")) or CadeiaDeClasse.ler(m.group("ext")),
+                                     fonte, m.group("cnj"), m.group("siglas"))
+        return self._sem_padrao()
+
+
+class LeitorGenerico(LeitorDeCabecalho):
     """Último recurso para formatos raros: primeira ocorrência de
     '<CLASSE EM CAIXA-ALTA> Nº <número>' nos primeiros 3.000 caracteres."""
-    m = re.search(r"(?P<classe>(?:[A-ZÀ-Ý][A-ZÀ-Ý.]*\s+){1,10}?)" + _MARCA_N +
-                  r"(?P<num>" + _CNJ_FROUXO + "|" + _NUM_CLASSICO + ")", texto[:3000])
-    if not m:
-        return Proprio(fonte="sem_padrao")
-    return Proprio([chave_processo(m.group("num"))], cadeia_de_classe(m.group("classe")), "generico",
-                   m.group("num"), m.group("classe"))
+    fonte = "generico"
+    PADRAO = re.compile(r"(?P<classe>(?:[A-ZÀ-Ý][A-ZÀ-Ý.]*\s+){1,10}?)" + _MARCA_N +
+                        r"(?P<num>" + _CNJ_FROUXO + "|" + _NUM_CLASSICO + ")")
+
+    def ler(self, texto: str) -> NumeroProprio:
+        m = self.PADRAO.search(texto[:3000])
+        return self._achado(m) if m else NumeroProprio(fonte="sem_padrao")
 
 
-# TST: a autorreferência canônica. A cadeia de siglas pode ter 7+ elos e espaços
-# ("TST-ED-ED-E- ED-ED-ARR-1575-04.2016...") e aparecer depois do caractere 12.000.
-_TST_AUTOS = re.compile(
-    r"(?:discutidos|examinados)\s+(?:estes|os\s+presentes)\s+autos\s+de\s+(?P<ext>[^.]{0,160}?)"
-    r"n\s*\.?\s*[ºo°]?\s*\.?\s*(?P<siglas>(?:[A-Za-z]{1,10}\s*-\s*){1,12})(?P<cnj>" + _CNJ + ")",
-    re.S)
-_TST_AUTOS_FRACO = re.compile(
-    r"estes\s+autos\s+de\s+(?P<ext>.{0,200}?)n\s*\.?\s*[ºo°]?\s*\.?\s*"
-    r"(?P<siglas>(?:[A-Za-z]{1,10}\s*-\s*){1,12})(?P<cnj>" + _CNJ + ")", re.S)
+class LeitorDeNumeroProprio:
+    """Escolhe o leitor pelo tribunal da ficha; sem achar, tenta o genérico.
+
+    Formato raro: exportação do STJ, extrato de ata do STM, OCR ruim no TSE. No TST o
+    genérico é perigoso: o cabeçalho não traz o número e o primeiro "CLASSE Nº" costuma
+    ser um processo CITADO — por isso fica de fora (`sem_generico`)."""
+
+    def __init__(self, leitores: dict | None = None, generico: LeitorDeCabecalho | None = None,
+                 sem_generico=frozenset({"TST"})):
+        self.leitores = leitores if leitores is not None else {
+            "STF": LeitorSTF(), "STJ": LeitorSTJ(), "STM": LeitorSTM(), "TSE": LeitorTSE(), "TST": LeitorTST()}
+        self.generico = generico or LeitorGenerico()
+        self.sem_generico = sem_generico
+
+    def ler(self, texto: str, tribunal: str | None) -> NumeroProprio:
+        tribunal = (tribunal or "").upper()
+        leitor = self.leitores.get(tribunal)
+        p = leitor.ler(texto) if leitor else NumeroProprio(fonte="tribunal_desconhecido")
+        if p.chaves or tribunal in self.sem_generico:
+            return p
+        g = self.generico.ler(texto)
+        return g if g.chaves else p
 
 
-def _tst(texto: str) -> Proprio:
-    for rx, fonte in ((_TST_AUTOS, "tst:autos"), (_TST_AUTOS_FRACO, "tst:autos_fraco")):
-        m = rx.search(texto)
-        if m:
-            return Proprio([chave_processo(m.group("cnj"))],
-                           cadeia_de_classe(m.group("siglas")) or cadeia_de_classe(m.group("ext")),
-                           fonte, m.group("cnj"), m.group("siglas"))
-    return Proprio(fonte="tst:sem_padrao")
+# ------------------------------------------------------------------ fachadas (até a leva 8)
+
+_LEITOR = LeitorDeNumeroProprio()
 
 
-_POR_TRIBUNAL = {"STF": _stf, "STJ": _stj, "STM": _stm, "TSE": _tse, "TST": _tst}
+def cadeia_de_classe(texto: str) -> tuple:
+    return CadeiaDeClasse.ler(texto)
 
 
-def numero_proprio(texto: str, tribunal: str) -> Proprio:
-    f = _POR_TRIBUNAL.get((tribunal or "").upper())
-    p = f(texto) if f else Proprio(fonte="tribunal_desconhecido")
-    if p.chaves:
-        return p
-    # Formato raro (exportação do STJ, extrato de ata do STM, OCR ruim no TSE).
-    # No TST o fallback genérico é perigoso: o cabeçalho não traz o número e o
-    # primeiro "CLASSE Nº" costuma ser um processo CITADO — por isso fica de fora.
-    if (tribunal or "").upper() == "TST":
-        return p
-    g = _generico(texto)
-    return g if g.chaves else p
+def numero_proprio(texto: str, tribunal: str) -> NumeroProprio:
+    return _LEITOR.ler(texto, tribunal)
