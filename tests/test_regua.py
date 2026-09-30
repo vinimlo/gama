@@ -74,6 +74,7 @@ def _esquerda(texto, numero, limite=80):
     ("o REsp !!!! 123", ""),                                 # lixo demais entre o prefixo e o número
     ("o REsp !! 123", "REsp !! "),
     ("Ver o processo. AgInt 123", "AgInt "),                 # "processo" é vocabulário, mas a frase acabou
+    ("o AgInt no REsp\u00a0\u00a0\u00a0nº 123", "AgInt no REsp\u00a0\u00a0\u00a0nº "),  # espaço não separável é borda
 ])
 def test_estende_esquerda(texto, prefixo):
     assert _esquerda(texto, "123") == prefixo

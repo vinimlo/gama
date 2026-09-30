@@ -120,7 +120,7 @@ class PadroesDaRegua:
         re.I,
     )
 
-    LIXO_BORDA = " .,:-()nN–—º° "
+    LIXO_BORDA = " .,:-()nN–—º°\u00a0"                 # o último é o espaço não separável
 
     # Abreviacoes cujo ponto NAO encerra sentenca. Sem esta lista, o corte de
     # fronteira dispara dentro de "AgRg no Rec. Esp. n. 1.522.200" e decepa o

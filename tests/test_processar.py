@@ -114,7 +114,8 @@ def _entrada(tmp_path, textos):
 
 def test_main_gera_o_json_de_referencia(tmp_path, db):
     ent = _entrada(tmp_path, {"doc1.txt": TEXTO, "ignorado.md": "REsp 1"})
-    assert Aplicacao().executar(["--input", str(ent), "--output", str(tmp_path / "out"), "--db", str(db)]) == 0
+    assert Aplicacao().executar(["--input", str(ent), "--output", str(tmp_path / "out"), "--db", str(db),
+                                 "--extrator", "regua"]) == 0                      # com pesos, o padrão é o neural
     assert sorted(p.name for p in (tmp_path / "out").iterdir()) == ["doc1.json"]
     saida = (tmp_path / "out" / "doc1.json").read_text(encoding="utf-8")
     assert json.loads(saida) == json.loads(GOLDEN.read_text(encoding="utf-8"))
