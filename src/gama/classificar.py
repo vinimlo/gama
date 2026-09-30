@@ -17,8 +17,8 @@ import json
 import pathlib
 from dataclasses import dataclass, field
 
-from .span import Span
 from .resolver import Resolucao
+from .span import Intervalo, Span
 
 # (via, situacao) -> confianca. Reescrito por avaliacao/calibrar.py.
 CONFIANCA = {
@@ -41,20 +41,35 @@ _CALIBRACAO = pathlib.Path(__file__).with_name("calibracao.json")
 TABELA = json.loads(_CALIBRACAO.read_text(encoding="utf-8")) if _CALIBRACAO.exists() else {}
 
 
-def faixa(conf_modelo: float | None) -> str:
-    """Faixa da confiança do extrator: regra (sem modelo), alta ou baixa."""
-    if conf_modelo is None:
-        return "regra"
-    return "alta" if conf_modelo >= 0.98 else "baixa"
+class TabelaDeConfianca:
+    """Confiança de cada balde (via, classe, faixa do extrator): a medida, quando o balde
+    foi medido; senão o prior da (via, classe); senão o padrão."""
 
+    def __init__(self, medida: dict | None = None, priores: dict = CONFIANCA, padrao: float = CONFIANCA_PADRAO):
+        self.medida = medida if medida is not None else {}
+        self.priores = priores
+        self.padrao = padrao
 
-def _conf(via: str, classe: str, span: Span, prior: float) -> tuple[float, tuple]:
-    balde = (via, classe, faixa(span.confianca))
-    return TABELA.get("|".join(balde), prior), balde
+    @classmethod
+    def calibrada(cls) -> TabelaDeConfianca:
+        """Com a tabela medida do módulo, lida a cada chamada (avaliacao/calibrar.py a troca)."""
+        return cls(TABELA)
+
+    @staticmethod
+    def faixa(conf_modelo: float | None) -> str:
+        """Faixa da confiança do extrator: regra (sem modelo), alta ou baixa."""
+        if conf_modelo is None:
+            return "regra"
+        return "alta" if conf_modelo >= 0.98 else "baixa"
+
+    def confianca(self, via: str, classe: str, conf_modelo: float | None) -> tuple[float, tuple]:
+        balde = (via, classe, self.faixa(conf_modelo))
+        prior = self.priores.get((via, classe), self.padrao)
+        return self.medida.get("|".join(balde), prior), balde
 
 
 @dataclass
-class Citacao:
+class Citacao(Intervalo):
     inicio: int
     fim: int
     trecho: str
@@ -78,36 +93,45 @@ class Citacao:
         }
 
 
-def classificar(span: Span, res: Resolucao) -> Citacao:
+class Classificador:
     """Cardinalidade -> classe.
 
     1 candidato  -> real (com o id)
     0 candidatos -> inventada
-    2+           -> incompleta (buscavel, sem criterio de desempate)
+    2+           -> real com o primeiro (D-002), no balde do empate
 
     Assimetria que o kaggle_metric.py cria e que vale explorar: `real` com link
     errado custa SO fp[real]; chamar de `inventada` algo que era `real` custa
     fn[real] E fp[inventada], machucando duas classes. Entao, havendo qualquer
     candidato, entregar `real` domina rebaixar para `inventada`.
     """
-    if res.via == "vaga":
-        conf, balde = _conf("vaga", "incompleta", span, CONFIANCA[("vaga", "incompleta")])
-        return Citacao(span.inicio, span.fim, span.trecho, span.tipo,
-                       "incompleta", None, conf, balde)
 
-    if len(res.ids) == 1:
-        classe, id_canonico = "real", str(res.ids[0])
-        conf, balde = _conf(res.via, classe, span, CONFIANCA.get((res.via, classe), CONFIANCA_PADRAO))
-    elif not res.ids:
-        classe, id_canonico = "inventada", None
-        conf, balde = _conf(res.via, classe, span, CONFIANCA.get((res.via, classe), CONFIANCA_PADRAO))
-    else:
-        # 2+ candidatos para uma citacao NUMERADA. No gabarito nenhuma
-        # `incompleta` tem numero -- todas sao da forma vaga --, entao o empate
-        # e artefato do nosso indice, nao ambiguidade do dado. Somado a
-        # assimetria da metrica (link errado custa so fp[real]; rebaixar para
-        # incompleta custa fn[real] E fp[incompleta]), entregar `real` domina.
-        classe, id_canonico = "real", str(res.ids[0])
-        conf, balde = _conf("processo", "real_ambiguo", span, CONFIANCA[("processo", "real_ambiguo")])
-    return Citacao(span.inicio, span.fim, span.trecho, span.tipo,
-                   classe, id_canonico, conf, balde)
+    def __init__(self, tabela: TabelaDeConfianca | None = None):
+        self.tabela = tabela or TabelaDeConfianca.calibrada()
+
+    def classificar(self, span: Span, res: Resolucao) -> Citacao:
+        if res.via == "vaga":
+            classe, id_canonico, balde = "incompleta", None, ("vaga", "incompleta")
+        elif len(res.ids) == 1:
+            classe, id_canonico, balde = "real", str(res.ids[0]), (res.via, "real")
+        elif not res.ids:
+            classe, id_canonico, balde = "inventada", None, (res.via, "inventada")
+        else:
+            # 2+ candidatos para uma citacao NUMERADA. No gabarito nenhuma
+            # `incompleta` tem numero -- todas sao da forma vaga --, entao o empate
+            # e artefato do nosso indice, nao ambiguidade do dado. Somado a
+            # assimetria da metrica (link errado custa so fp[real]; rebaixar para
+            # incompleta custa fn[real] E fp[incompleta]), entregar `real` domina.
+            classe, id_canonico, balde = "real", str(res.ids[0]), ("processo", "real_ambiguo")
+        conf, balde = self.tabela.confianca(*balde, span.confianca)
+        return Citacao(span.inicio, span.fim, span.trecho, span.tipo, classe, id_canonico, conf, balde)
+
+
+# ------------------------------------------------------------------ fachadas (até a leva 8)
+
+def faixa(conf_modelo: float | None) -> str:
+    return TabelaDeConfianca.faixa(conf_modelo)
+
+
+def classificar(span: Span, res: Resolucao) -> Citacao:
+    return Classificador().classificar(span, res)
