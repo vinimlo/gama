@@ -73,3 +73,12 @@ def test_extrator_guardado_apara_antes_de_guardar():
     ext = ExtratorGuardado(_Fixo([fragmento, juris]), _Fixo([regua]))
     assert [s.trecho for s in ext.extrair(t)] == [
         "art. 927, parágrafo único, do Código Civil", "REsp 1.234.567/SP"]
+
+
+def test_limiar_lido_a_cada_chamada(monkeypatch):
+    """`bench.controles.avaliar.limiar` troca CONFIANCA_MINIMA durante a medida."""
+    from gama.extratores import guarda
+    t = "DJe 19/08/2019."
+    s = _s(t, "DJe 19/08/2019", conf=0.7)
+    monkeypatch.setattr(guarda, "CONFIANCA_MINIMA", 0.5)
+    assert guardar([s], []) == [s]

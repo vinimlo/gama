@@ -34,6 +34,7 @@ import sys
 import time
 
 from bench.controles import avaliar
+from gama.span import aparar_todos
 from bench.controles.verificador import nucleo as vn
 
 SAIDA = avaliar.SAIDA / "verificador_treinado" / "laya_ft"     # /app/saidas/bench/controles/verificador_treinado/laya_ft
@@ -194,8 +195,8 @@ def cmd_dev(a) -> None:
             chave(la[("dev", d)]["spans"]) != chave(lido["gama"][("dev", d)]["spans"]) for d in textos if ("dev", d) in la)}
     docs, estados = {}, {}
     for d, t in textos.items():
-        G = avaliar._aparados([avaliar._span(t, s) for s in lido["gama"][("dev", d)]["spans"]], t)
-        R = avaliar._aparados([avaliar._span(t, s) for s in lido["regua"][("dev", d)]["spans"]], t)
+        G = aparar_todos([avaliar._span(t, s) for s in lido["gama"][("dev", d)]["spans"]], t)
+        R = aparar_todos([avaliar._span(t, s) for s in lido["regua"][("dev", d)]["spans"]], t)
         docs[d] = ([vn.Cand(f"dev/{d}/gama/{s.inicio}-{s.fim}", "gama", s) for s in G],
                    [vn.Cand(f"dev/{d}/regua/{s.inicio}-{s.fim}", "regua", s) for s in R])
         for c in docs[d][0] + docs[d][1]:

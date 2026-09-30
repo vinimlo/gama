@@ -24,18 +24,17 @@ VAGA_COLADA = 2            # caracteres entre a VAGA e o span vizinho
 CONFIANCA_MINIMA = 0.95
 
 
-def confiante(s: Span, minimo: float = CONFIANCA_MINIMA) -> bool:
+def confiante(s: Span, minimo: float) -> bool:
     return s.confianca is None or s.confianca >= minimo
 
 
-def sem_vaga_colada(spans: list[Span], limite: int = VAGA_COLADA) -> list[Span]:
+def sem_vaga_colada(spans: list[Span], limite: int) -> list[Span]:
     """Regra 1: VAGA a até `limite` caracteres de outro span sai."""
     return [s for s in spans if s.forma != "vaga" or all(
         distancia(s, o) > limite for o in spans if o is not s)]
 
 
-def trocar_fracos_pela_regua(spans: list[Span], regua: list[Span],
-                             minimo: float = CONFIANCA_MINIMA) -> list[Span]:
+def trocar_fracos_pela_regua(spans: list[Span], regua: list[Span], minimo: float) -> list[Span]:
     """Regra 2: span com confiança < `minimo` sai; entra o span da régua que o cruza, se
     não cruzar um span confiante. Devolve ordenado por início."""
     fortes = [s for s in spans if confiante(s, minimo)]
@@ -49,8 +48,9 @@ def guardar(spans: list[Span], regua: list[Span]) -> list[Span]:
     """Spans do modelo e da régua, já aparados -> spans que ficam, ordenados.
 
     A ordem das regras é a medida na D-008: a VAGA é comparada também com os spans fracos
-    que a regra 2 vai tirar."""
-    return trocar_fracos_pela_regua(sem_vaga_colada(spans), regua)
+    que a regra 2 vai tirar. Os limites são lidos a cada chamada: `bench.controles.avaliar`
+    troca CONFIANCA_MINIMA durante a medida."""
+    return trocar_fracos_pela_regua(sem_vaga_colada(spans, VAGA_COLADA), regua, CONFIANCA_MINIMA)
 
 
 class ExtratorGuardado:

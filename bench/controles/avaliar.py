@@ -16,7 +16,7 @@ Conjuntos (valor do campo `conjunto` no JSONL)
               CONFIRMAÇÃO. Mesma métrica das 305. Nunca informa escolha.
 
 Variantes de cada candidato
-    cru          os spans do arquivo, aparados (`gama.pipeline.aparar`)
+    cru          os spans do arquivo, aparados (`gama.span.aparar`)
     guarda@0.95  a guarda de produção com o limiar de produção
     guarda@<t*>  a mesma guarda com o limiar escolhido nas 305 numa grade de 0,50 a 0,99 (passo
                  0,01). Critério: maior F1 exato nas 305; empate -> mais perto de 0,95; depois o
@@ -90,7 +90,7 @@ from gama.extratores import guarda
 from gama.extratores.regua import ExtratorRegua
 from gama.formas import span_de
 from gama.indice import construir
-from gama.pipeline import aparar
+from gama.span import aparar_todos
 
 from .. import alunos, pontuar
 
@@ -152,16 +152,12 @@ def _span(texto: str, s: list):
     return pontuar.para_span(texto, s)
 
 
-def _aparados(ss, texto: str) -> list:
-    return [s for s in (aparar(x, texto) for x in ss) if s]
-
-
 def spans(linhas: dict, conjunto: str) -> dict | None:
     """Spans aparados por documento do conjunto, ou None se falta algum documento."""
     textos, _ = textos_e_ouro(conjunto)
     if any((conjunto, d) not in linhas for d in textos):
         return None
-    return {d: _aparados([_span(t, s) for s in linhas[(conjunto, d)]["spans"]], t) for d, t in textos.items()}
+    return {d: aparar_todos([_span(t, s) for s in linhas[(conjunto, d)]["spans"]], t) for d, t in textos.items()}
 
 
 _REGUA: dict = {}
@@ -194,7 +190,7 @@ def regua(conjunto: str) -> dict:
 
 @contextlib.contextmanager
 def limiar(t: float):
-    """A guarda de produção com outro limiar: `_confiante` lê o global a cada chamada."""
+    """A guarda de produção com outro limiar: `guardar` lê o global a cada chamada."""
     antes = guarda.CONFIANCA_MINIMA
     guarda.CONFIANCA_MINIMA = t
     try:
@@ -419,7 +415,7 @@ def _sanidade() -> dict:
     for c in CONJUNTOS:
         textos, _ = textos_e_ouro(c)
         gravada = regua(c)
-        agora = {d: _aparados(ext.extrair(t), t) for d, t in textos.items()}
+        agora = {d: aparar_todos(ext.extrair(t), t) for d, t in textos.items()}
         out[f"regua_gravada_igual_codigo_atual_{c}"] = {
             "docs": len(textos),
             "diferentes": sum([(s.inicio, s.fim, s.tipo, s.forma) for s in gravada[d]]
