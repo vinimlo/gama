@@ -36,10 +36,18 @@ class Documento:
 
     @classmethod
     def ler(cls, arq) -> Documento:
-        """Texto exatamente como veio: newline="" preserva \r\n. read_text() trocaria por
-        \n e deslocaria todos os offsets depois da primeira quebra (revisão independente, rodada 1, achado 2)."""
-        with open(arq, encoding="utf-8", newline="") as fh:
-            return cls(pathlib.Path(arq).stem, fh.read())
+        """Texto exatamente como veio: os bytes decodificados sem traduzir \r\n. read_text()
+        trocaria por \n e deslocaria todos os offsets depois da primeira quebra (revisão
+        independente, rodada 1, achado 2). Fora do UTF-8, o arquivo é lido como cp1252 (um
+        caractere por byte) com um aviso, em vez de derrubar a execução inteira."""
+        arq = pathlib.Path(arq)
+        bruto = arq.read_bytes()
+        try:
+            texto = bruto.decode("utf-8")
+        except UnicodeDecodeError:
+            print(f"AVISO: {arq.name} não está em UTF-8; lido como cp1252", file=sys.stderr)
+            texto = bruto.decode("cp1252", errors="replace")
+        return cls(arq.stem, texto)
 
 
 class Pipeline:

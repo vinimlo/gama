@@ -45,7 +45,7 @@ E a execução precisa respeitar:
 | Do zero, em máquina limpa, sem caminho absoluto nem passo manual | o `run.sh` resolve os caminhos a partir de onde está e prepara o que faltar; testado num clone limpo, com a base em outro caminho |
 | Pré-processamento do `.db` a partir do formato original | não há artefato pré-calculado: o índice canônico é montado do `.db` recebido a cada execução (`src/gama/indice.py`) |
 | Seeds fixas e sem amostragem, para resultado estável | `eval()`, algoritmos determinísticos do torch, `PYTHONHASHSEED=0`; GPU e CPU dão a mesma saída |
-| Disco com bom senso | imagem de cerca de 4 GB e 1,03 GB de pesos |
+| Disco com bom senso | imagem de cerca de 7,4 GB em disco (3,9 GB comprimida; 6,7 GB são o torch com CUDA) e 1,03 GB de pesos |
 
 ## O regulamento, ponto a ponto
 

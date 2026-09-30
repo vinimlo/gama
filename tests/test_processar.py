@@ -74,6 +74,22 @@ def test_ler_texto_preserva_crlf(tmp_path):
     assert Documento.ler(arq) == Documento("a", "linha 1\r\nlinha 2\n")
 
 
+def test_ler_texto_mantem_o_bom(tmp_path):
+    arq = tmp_path / "a.txt"
+    arq.write_bytes(b"\xef\xbb\xbfREsp 1")
+    assert Documento.ler(arq).texto == "\ufeffREsp 1"                          # o BOM conta no offset
+
+
+def test_ler_texto_fora_do_utf8_vira_cp1252(tmp_path, capsys):
+    arq = tmp_path / "a.txt"
+    bruto = "Súmula 7 do STJ – art. 5º\r\n".encode("cp1252") + b"\x81"      # 0x81 não existe no cp1252
+    arq.write_bytes(bruto)
+    doc = Documento.ler(arq)
+    assert doc.texto == "Súmula 7 do STJ – art. 5º\r\n\ufffd"
+    assert len(doc.texto) == len(bruto)                                        # um caractere por byte
+    assert "a.txt não está em UTF-8" in capsys.readouterr().err
+
+
 class _Fixo:
     nome = "fixo"
 
@@ -125,6 +141,18 @@ def test_main_gera_o_json_de_referencia(tmp_path, db):
 def test_offsets_do_json_batem_com_o_texto():
     doc = json.loads(GOLDEN.read_text(encoding="utf-8"))
     assert [c["trecho"] for c in doc["citacoes"]] == [TEXTO[c["inicio"]:c["fim"]] for c in doc["citacoes"]]
+
+
+def test_main_segue_com_txt_fora_do_utf8(tmp_path, db, capsys):
+    ent = _entrada(tmp_path, {"doc1.txt": TEXTO})
+    (ent / "doc2.txt").write_bytes("Conforme a Súmula 211 do STJ.".encode("cp1252"))
+    assert Aplicacao().executar(["--input", str(ent), "--output", str(tmp_path / "out"), "--db", str(db),
+                                 "--extrator", "regua"]) == 0
+    assert sorted(p.name for p in (tmp_path / "out").iterdir()) == ["doc1.json", "doc2.json"]
+    assert json.loads((tmp_path / "out" / "doc1.json").read_text()) == json.loads(GOLDEN.read_text())
+    doc2 = json.loads((tmp_path / "out" / "doc2.json").read_text(encoding="utf-8"))
+    assert [c["trecho"] for c in doc2["citacoes"]] == ["Súmula 211"]
+    assert "doc2.txt não está em UTF-8" in capsys.readouterr().err
 
 
 def test_main_sem_txt_devolve_1(tmp_path, db, capsys):
