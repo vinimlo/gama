@@ -65,6 +65,11 @@ cada execução (`src/gama/indice.py`), então um `.db` novo no formato original
 Testado num clone limpo, com a base do dev copiada para outro caminho e outro nome: o CSV
 saiu idêntico, byte a byte, ao da submissão do v1.3.
 
+A imagem também rodou numa NVIDIA L4 de 24 GB. Nos 905 documentos do benchmark, o extrator
+dá em GPU os mesmos trechos que em CPU, a 0,046 s por documento no estresse difícil, com
+pico de 1.108 MiB de VRAM. Foi esse teste que mostrou que a imagem precisa de um compilador
+C para rodar em GPU ([imagem em GPU](wiki/experimentos/2026-09-30_imagem-em-gpu.md)).
+
 ### Como conferir que rodou certo
 
 A execução termina com linhas como estas (aqui, os 26 documentos do dev num notebook, em
@@ -133,7 +138,7 @@ item está:
 | Pesos em revisão fixa, baixáveis antes da execução | [`vinimlo/gama`](https://huggingface.co/vinimlo/gama) na revisão do [MODELO.md](MODELO.md), baixados por `bash run.sh --preparar` |
 | Ponto de entrada único, que recebe o `.db` e a pasta de `.txt` | `bash run.sh <caminho_db> <pasta_txt> <arquivo_saida.csv>` |
 | Saída no formato das submissões | CSV pelo conversor oficial, o mesmo usado no Kaggle |
-| GPU de até 24 GB | pesos de 1,03 GB em FP32; o v1.2, que é maior, teve pico de 1.285 MiB de VRAM numa L4 de 24 GB |
+| GPU de até 24 GB | pesos de 1,03 GB em FP32; pico de 1.108 MiB de VRAM numa L4 de 24 GB, medido com esta imagem |
 | Execução sem internet | `--network none` no container, `HF_HUB_OFFLINE=1` na imagem |
 | Do zero, em máquina limpa | sem caminho absoluto nem passo manual; testado num clone limpo, com CSV idêntico |
 | Pré-processamento do `.db` | nenhum artefato pré-calculado: o índice é montado do `.db` recebido a cada execução |

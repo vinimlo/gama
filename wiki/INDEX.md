@@ -88,6 +88,10 @@ que o bruto.
   [D-002](decisoes/D-002_empate-resolve-para-real.md).
 - A regra EXTRA perdoa sub-spans. Predição sem par ≥ 90% contida numa citação já
   casada é ignorada, não vira falso positivo.
+- A imagem precisa de compilador C para rodar em GPU. O torch 2.14 com CUDA passa uma
+  operação do mmBERT por um kernel do Triton, que compila um módulo C na primeira chamada;
+  sem `gcc` a imagem quebrava no primeiro documento com a GPU visível, e em CPU nada
+  acusava. Ver [imagem em GPU](experimentos/2026-09-30_imagem-em-gpu.md).
 - Jev (TypeSafe) e Sabiá-2/3 (Maritaca) desclassificam. Ver
   [modelos elegíveis](conceitos/modelos-elegiveis.md).
 
@@ -114,6 +118,7 @@ que o bruto.
 - [Controles](experimentos/2026-09-29_controles.md): encoder congelado, GLiNER e BERTimbau treinados nos mesmos dados, sementes do v1.2 e do v1.3, auditoria dos trechos do Qwen e confiança fora do molde
 - [GLiNER 2.5 multi](experimentos/2026-09-29_gliner-2-5.md): a versão 2.5 no lugar da v2.1 no benchmark, no fine-tune, na reserva da guarda e no verificador de candidatos
 - [Verificador de candidatos](experimentos/2026-09-29_verificador-de-candidatos.md): tetos, reservas da guarda, Laya sem treino e quatro juízes treinados em ementas com rótulo prata
+- [Imagem em GPU](experimentos/2026-09-30_imagem-em-gpu.md): a imagem Docker numa L4 de 24 GB; sem compilador C ela quebrava em GPU, e com ele dá os mesmos trechos que em CPU nos 905 documentos do benchmark
 
 ## Conceitos
 

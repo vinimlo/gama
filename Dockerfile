@@ -10,6 +10,13 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
+# Compilador C: em GPU, o torch 2.14 passa operações do modelo por kernels do Triton, e o Triton
+# compila um módulo C na primeira chamada. Sem compilador a imagem quebra no primeiro documento
+# quando a GPU está visível (em CPU não faz falta).
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gcc libc6-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 # torch primeiro, do índice do alvo. Padrão: CUDA 12.6 — roda com drivers NVIDIA a partir
 # de ~525; o torch 2.14 do PyPI traz CUDA 13, que exige driver bem mais novo, e a máquina
 # da avaliação não é nossa. Sem GPU visível o extrator cai para CPU (cerca de 1 s por

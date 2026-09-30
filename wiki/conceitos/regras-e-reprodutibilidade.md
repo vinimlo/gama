@@ -40,12 +40,12 @@ E a execução precisa respeitar:
 
 | Regra | Como a solução cumpre |
 |---|---|
-| GPU de até 24 GB de VRAM | pesos de 1,03 GB em FP32; 0,046 s por documento numa L4 de 24 GB e 0,93 s só em CPU; o v1.2, que é maior, teve pico de 1.285 MiB |
+| GPU de até 24 GB de VRAM | pesos de 1,03 GB em FP32; com a imagem numa L4 de 24 GB, 0,046 s por documento e pico de 1.108 MiB de VRAM ([imagem em GPU](../experimentos/2026-09-30_imagem-em-gpu.md)); 0,93 s por documento só em CPU |
 | Sem internet nem API externa | o container roda com `--network none`; a imagem tem `HF_HUB_OFFLINE=1` |
 | Do zero, em máquina limpa, sem caminho absoluto nem passo manual | o `run.sh` resolve os caminhos a partir de onde está e prepara o que faltar; testado num clone limpo, com a base em outro caminho |
 | Pré-processamento do `.db` a partir do formato original | não há artefato pré-calculado: o índice canônico é montado do `.db` recebido a cada execução (`src/gama/indice.py`) |
 | Seeds fixas e sem amostragem, para resultado estável | `eval()`, algoritmos determinísticos do torch, `PYTHONHASHSEED=0`; GPU e CPU dão a mesma saída |
-| Disco com bom senso | imagem de 3,9 GB e 1,03 GB de pesos |
+| Disco com bom senso | imagem de cerca de 4 GB e 1,03 GB de pesos |
 
 ## O regulamento, ponto a ponto
 

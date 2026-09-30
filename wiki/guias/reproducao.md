@@ -171,6 +171,10 @@ hf jobs uv run --flavor l4x1 --secrets HF_TOKEN treino/ensaio.py \
   --dados vinimlo/gama-goldenset --revisao <sha> --pesos vinimlo/gama --pesos-rev <sha>
 ```
 
+O ensaio roda pelos scripts, numa imagem que não é a da entrega. A imagem do `Dockerfile`
+precisa de um teste próprio em GPU: foi ele que mostrou que ela quebrava sem compilador C.
+Como foi feito e o que deu em [imagem em GPU](../experimentos/2026-09-30_imagem-em-gpu.md).
+
 ## Ementas reais e benchmark
 
 As ementas do [`celsowm/jurisprudencias_br`](https://huggingface.co/datasets/celsowm/jurisprudencias_br)
