@@ -26,15 +26,6 @@ OCR_PARA_DIGITO = {
     "g": "9", "q": "9",
 }
 
-# Confusões no sentido dígito -> letra, para normalizar o texto corrido
-# ("5úmula" -> "súmula", "Temã" -> "tema").
-OCR_PARA_LETRA = {"0": "o", "1": "l", "5": "s", "3": "e", "4": "a", "8": "b"}
-
-
-def nfc(texto: str) -> str:
-    """Unicode NFC. Os .txt já vêm normalizados; não os altere — só comparamos."""
-    return unicodedata.normalize("NFC", texto)
-
 
 def sem_acento(texto: str) -> str:
     d = unicodedata.normalize("NFD", texto)
@@ -71,38 +62,6 @@ def so_digitos(bruto: str) -> str:
         elif ch in OCR_PARA_DIGITO:
             saida.append(OCR_PARA_DIGITO[ch])
     return "".join(saida)
-
-
-def agrupar_milhares(digitos: str) -> str:
-    """'1741784' -> '1.741.784'.
-
-    O índice FTS5 usa tokenizador unicode61, que quebra em qualquer caractere
-    não alfanumérico: '1.741.784' vira os tokens 1|741|784. Buscar '1741784'
-    é um token só, que não existe no índice. Reagrupar é obrigatório.
-    """
-    if not digitos:
-        return ""
-    partes = []
-    while len(digitos) > 3:
-        partes.insert(0, digitos[-3:])
-        digitos = digitos[:-3]
-    partes.insert(0, digitos)
-    return ".".join(partes)
-
-
-CNJ_RE = re.compile(r"^(\d{7})(\d{2})(\d{4})(\d)(\d{2})(\d{4})$")
-
-
-def normalizar_cnj(digitos: str) -> str | None:
-    """20 dígitos -> 'NNNNNNN-DD.AAAA.J.TR.OOOO' (forma canônica do CNJ).
-
-    O gabarito traz CNJ com e sem pontuação ('0600316-4920206160182'),
-    então a chave de comparação é sempre a sequência de 20 dígitos.
-    """
-    m = CNJ_RE.match(digitos)
-    if not m:
-        return None
-    return "{}-{}.{}.{}.{}.{}".format(*m.groups())
 
 
 def chave_processo(bruto: str) -> str:
@@ -155,16 +114,3 @@ def nucleo_numerico(trecho: str) -> str:
                 melhor, melhor_reais = "".join(seq), reais
             seq, reais = [], 0
     return chave_processo(melhor) if melhor else ""
-
-
-def variantes_fts(digitos: str) -> list[str]:
-    """Formas de frase que o FTS5 consegue casar para o mesmo número."""
-    if not digitos:
-        return []
-    saida = [agrupar_milhares(digitos)]
-    cnj = normalizar_cnj(digitos)
-    if cnj:
-        saida.append(cnj)
-    if len(digitos) <= 6:
-        saida.append(digitos)
-    return list(dict.fromkeys(saida))

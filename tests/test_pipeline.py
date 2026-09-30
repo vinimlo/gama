@@ -8,7 +8,7 @@ import pytest
 
 from gama.extrair import extrair
 from gama.indice import construir
-from gama.normalizar import agrupar_milhares, chave_processo, so_digitos
+from gama.normalizar import chave_processo, so_digitos
 from gama.pipeline import processar
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
@@ -31,12 +31,6 @@ def idx():
 ])
 def test_ocr_letra_vira_digito(bruto, esperado):
     assert so_digitos(bruto) == esperado
-
-
-def test_agrupar_milhares_para_o_fts():
-    # O tokenizador unicode61 quebra em nao-alfanumerico: '1741784' e um token
-    # so, que nao existe no indice; '1.741.784' vira 1|741|784 e casa.
-    assert agrupar_milhares("1741784") == "1.741.784"
 
 
 def test_chave_ignora_zeros_a_esquerda():

@@ -68,7 +68,6 @@ class Indice:
     dispositivos: dict = field(default_factory=dict)  # (artigo, chave_lei) -> id
     meta: dict = field(default_factory=dict)          # id -> (tribunal, ano, relator)
     cadeia: dict = field(default_factory=dict)        # id -> cadeia de classe ('ED', 'AgR', 'REspe')
-    acordaos_por_trib_ano: dict = field(default_factory=lambda: defaultdict(list))
 
     def candidatos_processo(self, digitos: str) -> list:
         return self.por_processo.get(chave_processo(digitos), [])
@@ -115,8 +114,6 @@ def construir(caminho_db) -> Indice:
             for chave in proprio.chaves:
                 if doc_id not in idx.por_processo[chave]:
                     idx.por_processo[chave].append(doc_id)
-            if tribunal and ano:
-                idx.acordaos_por_trib_ano[(tribunal, int(ano))].append(doc_id)
 
         elif natureza == "sumula":
             m = _CAB_SUMULA.search(texto[:120])

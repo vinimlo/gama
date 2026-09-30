@@ -78,12 +78,6 @@ def test_numero_ausente_sem_candidato(idx):
     assert idx.candidatos_processo("9999999") == []
 
 
-def test_acordaos_por_tribunal_e_ano(idx):
-    assert idx.acordaos_por_trib_ano[("STJ", 2011)] == ["stj-agrg"]
-    assert idx.acordaos_por_trib_ano[("STF", 2015)] == ["stf-ms"]
-    assert not any(t == "TST" for t, _ in idx.acordaos_por_trib_ano)     # sem ano, fica de fora
-
-
 def test_sumulas_pelo_cabecalho(idx):
     assert idx.sumulas == {("211", "STJ", False): "sum-211", ("10", "STF", True): "sum-v10"}
 
