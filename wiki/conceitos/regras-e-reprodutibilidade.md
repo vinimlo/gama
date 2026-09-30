@@ -1,30 +1,58 @@
 # Regras e reprodutibilidade
 
-O que as regras exigem, relidas em 23/09/2026 no site do desafio, no FAQ, nas páginas da
-competição no Kaggle (incluindo as regras-base do Kaggle, que prevalecem em conflito) e no
-[webinar](webinar-achados.md), e como a solução cumpre cada ponto.
+O que as regras exigem e como a solução cumpre cada ponto. Duas fontes: o regulamento,
+relido em 23/09/2026 no site do desafio, no FAQ, nas páginas da competição no Kaggle
+(incluindo as regras-base do Kaggle, que prevalecem em conflito) e no
+[webinar](webinar-achados.md); e as regras de envio da solução final, que a organização
+mandou às equipes em 30/09/2026.
 
 ## O que é reproduzido
 
-A organização re-executa a solução sobre o conjunto cego e ranqueia por essa execução. O
-objeto da reprodução é a inferência: "o comando exato que reproduz as saídas submetidas" e
-"o critério é a reprodutibilidade da inferência, não onde você rodou" (FAQ). O envelope de
-execução vale para "a solução completa", o pipeline que gera as saídas: 1 GPU de 24 GB,
-cerca de 8 vCPUs e 32 GB de RAM. O que não cabe nele é tratado como não reproduzível e
-desclassificado.
+A organização executa o código de cada equipe sobre um `.db` novo e um conjunto novo de
+documentos, no mesmo formato da amostra de desenvolvimento, e a nota oficial vem dessa
+execução. Não há comparação entre CSVs, e o leaderboard do Kaggle não entra no ranking
+final. O objeto da reprodução é a inferência: "o critério é a reprodutibilidade da
+inferência, não onde você rodou" (FAQ). O envelope vale para a execução da solução: no
+regulamento, 1 GPU de 24 GB, cerca de 8 vCPUs e 32 GB de RAM; nas regras de envio, uma GPU
+de até 24 GB de VRAM, sem internet e sem API externa. O que não cabe nele é tratado como
+não reproduzível.
 
 Treino e preparo de dados não são re-executados. Para fine-tune, a exigência é publicar os
-pesos resultantes com link e revisão fixa, "de modo que a organização consiga carregá-los e
-executá-los".
+pesos resultantes com link e revisão fixa, disponíveis para download antes da execução.
+Modelos usados só para preparar dados de treino, como os que ampliaram frases e anotaram
+ementas aqui, podem ficar fora do limite de hardware, desde que não participem da execução.
 
-## Exigências e como a solução cumpre
+## Envio da solução final
+
+Prazo: 01/10/2026, 23h59, horário de Brasília. Vai por e-mail à organização o nome da
+equipe e dos integrantes, o link do repositório e o hash do commit da versão final. O
+repositório precisa trazer:
+
+| Exigência | Onde está |
+|---|---|
+| Código completo da solução | `src/gama`, `vendor/` e `run.sh` |
+| README com a abordagem e o passo a passo de execução | [README](../../README.md), seções "Para quem vai avaliar" e "Como funciona" |
+| Ambiente declarado em Docker | `Dockerfile` (Python 3.12, torch 2.14.0 com CUDA 12.6) e `requirements.txt` |
+| Pesos incluídos ou referenciados em revisão fixa, baixáveis antes da execução | `vinimlo/gama`, revisão no `MODELO.md`; `bash run.sh --preparar` baixa |
+| Ponto de entrada único, que recebe o `.db` e a pasta de `.txt` e gera a saída no formato das submissões | `bash run.sh <caminho_db> <pasta_txt> <arquivo_saida.csv>` |
+
+E a execução precisa respeitar:
+
+| Regra | Como a solução cumpre |
+|---|---|
+| GPU de até 24 GB de VRAM | pesos de 1,03 GB em FP32; 0,046 s por documento numa L4 de 24 GB e 0,93 s só em CPU; o v1.2, que é maior, teve pico de 1.285 MiB |
+| Sem internet nem API externa | o container roda com `--network none`; a imagem tem `HF_HUB_OFFLINE=1` |
+| Do zero, em máquina limpa, sem caminho absoluto nem passo manual | o `run.sh` resolve os caminhos a partir de onde está e prepara o que faltar; testado num clone limpo, com a base em outro caminho |
+| Pré-processamento do `.db` a partir do formato original | não há artefato pré-calculado: o índice canônico é montado do `.db` recebido a cada execução (`src/gama/indice.py`) |
+| Seeds fixas e sem amostragem, para resultado estável | `eval()`, algoritmos determinísticos do torch, `PYTHONHASHSEED=0`; GPU e CPU dão a mesma saída |
+| Disco com bom senso | imagem de 3,9 GB e 1,03 GB de pesos |
+
+## O regulamento, ponto a ponto
 
 | Exigência | Onde está |
 |---|---|
 | Só pesos e código abertos, sem chave de API nem serviço pago na execução | mmBERT-base (MIT), pesos do Gama no Hub com revisão fixa (`MODELO.md`); dependências com licença aberta; o container roda sem rede |
-| Pesos de fine-tune publicados, link e revisão | `vinimlo/gama`, revisão no `MODELO.md` (repositório público na entrega) |
-| Envelope de 1 GPU de 24 GB, ~8 vCPUs, 32 GB | 0,07 s por documento numa L4 de 24 GB; 1,6 a 3 s por documento só em CPU; pesos de 1,2 GB |
-| Bundle: repositório, README, modelos, ambiente, comando exato | este repositório, `Dockerfile`, `requirements.txt`, `make predizer` e o comando no README |
+| Pesos de fine-tune publicados, link e revisão | `vinimlo/gama`, revisão no `MODELO.md` |
 | Decodificação determinística | `eval()`, sem amostragem, algoritmos determinísticos do torch; duas execuções na L4 deram os mesmos spans byte a byte |
 | Qualquer dataset público no treino | documentos sintéticos gerados aqui e, na destilação do v1.3, 1.818 ementas sem rótulo de [`celsowm/jurisprudencias_br`](https://huggingface.co/datasets/celsowm/jurisprudencias_br) (público, CC-BY-4.0); as ementas anotadas ficam só na avaliação. Ver [ementas reais](ementas-reais.md) |
 | Nada de extrair ou inferir o conjunto de teste privado | nenhum dado do cego entra no desenvolvimento |
@@ -40,4 +68,6 @@ executá-los".
 - O treino roda em GPU alugada (HF Jobs). A mesma receita (mmBERT-base, 3 épocas,
   `max_len` 1024) treinou os modelos da validação por dobras numa A10G de 24 GB, a mesma
   classe de máquina do envelope; a A100 do v1.2 só encurtou o tempo.
+- O caminho inteiro, com o comando de cada passo, está em
+  [reprodução passo a passo](../guias/reproducao.md).
 - Modelos avaliados e descartados estão em [modelos elegíveis](modelos-elegiveis.md).

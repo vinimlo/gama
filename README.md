@@ -14,6 +14,132 @@ pessoas nos tribunais citando a lei com precisão.
 [pesos do extrator](https://huggingface.co/vinimlo/gama) ·
 [manifesto do modelo](MODELO.md) · [base de conhecimento](wiki/INDEX.md)
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/figuras/pipeline-escuro.svg">
+  <img alt="Do texto ao veredito. Um trecho de documento com três citações passa por cinco etapas: extrator Gama, guarda, normalização do ruído de OCR, índice do acervo e classificação. A primeira citação, com ruído de OCR, casa com um registro e sai como real; a segunda não casa com nenhum e sai como inventada; a terceira não tem número e sai como incompleta." src="docs/figuras/pipeline-claro.svg">
+</picture>
+
+Neste README: [para quem vai avaliar](#para-quem-vai-avaliar) ·
+[resultados](#resultados) · [como funciona](#como-funciona) ·
+[desenvolvimento](#desenvolvimento) · [reproduzir do zero](#reproduzir-do-zero) ·
+[reprodutibilidade](#reprodutibilidade) · [estrutura](#estrutura) ·
+[referências](#referências)
+
+## Para quem vai avaliar
+
+A máquina só precisa de bash e Docker. Para usar a GPU, o Docker precisa do NVIDIA Container
+Toolkit; sem ele a solução roda em CPU, dentro do teto de tempo. Nenhum Python, biblioteca
+ou arquivo de fora deste repositório.
+
+```bash
+git clone https://github.com/vinimlo/gama && cd gama
+git checkout <hash do commit da versão final>
+
+bash run.sh --preparar                                      # com rede, uma vez
+bash run.sh <caminho_db> <pasta_txt> <arquivo_saida.csv>    # sem rede
+```
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/figuras/execucao-escuro.svg">
+  <img alt="O que o run.sh faz. Preparação, com rede e uma vez: bash run.sh --preparar constrói a imagem Docker e baixa os pesos vinimlo/gama na revisão 5f924ca para a pasta modelos. Execução, sem rede: o .db, a pasta de .txt e os pesos entram só para leitura; o container monta o índice a partir do .db recebido, extrai, aplica a guarda, resolve, grava um JSON por documento e converte para o CSV da submissão." src="docs/figuras/execucao-claro.svg">
+</picture>
+
+O primeiro comando constrói a imagem (alvo padrão do `Dockerfile`, torch com CUDA 12.6) e
+baixa os pesos para `./modelos`, na revisão fixa do [MODELO.md](MODELO.md). No fim ele
+informa a versão do torch e se a GPU está visível dentro do Docker. É a única parte que usa
+rede.
+
+O segundo monta o `.db`, a pasta de `.txt` e os pesos só para leitura, roda com
+`--network none` e grava duas coisas:
+
+| Saída | O que é |
+|---|---|
+| `<arquivo_saida.csv>` | o formato da submissão, gerado pelo conversor oficial (`vendor/json_to_submission.py`) |
+| `<arquivo_saida>.json/` | um JSON por documento, no formato do contrato de saída |
+
+Quem pular o `--preparar` não perde nada: a execução prepara o que faltar antes de rodar,
+e nesse caso é a primeira chamada que precisa de rede.
+
+Não há pré-processamento do `.db`. O índice canônico é montado a partir da base recebida a
+cada execução (`src/gama/indice.py`), então um `.db` novo no formato original entra direto.
+Testado num clone limpo, com a base do dev copiada para outro caminho e outro nome: o CSV
+saiu idêntico, byte a byte, ao da submissão do v1.3.
+
+### Como conferir que rodou certo
+
+A execução termina com linhas como estas (aqui, os 26 documentos do dev num notebook, em
+CPU):
+
+```
+extrator: neural
+26 documentos, 192 citacoes -> /data/out
+indice 4.38s | total 15.03s | 578 ms/documento
+/data/csv/saida.csv: 26 documentos.
+pronto: /caminho/saida.csv (26 documentos; um JSON por documento em /caminho/saida.json)
+```
+
+`extrator: neural` diz que os pesos foram carregados. Se no lugar aparecer
+`AVISO: sem pesos em /models`, o pipeline seguiu com a régua de regex, porque uma saída
+válida vale mais que uma submissão vazia. Essa não é a solução avaliada: rode
+`bash run.sh --preparar` com rede e execute de novo.
+
+### Opções e problemas comuns
+
+| Variável | Para quê | Padrão |
+|---|---|---|
+| `GAMA_GPU=0` ou `1` | força CPU ou GPU | detecta o runtime NVIDIA no Docker |
+| `GAMA_IMAGEM=nome` | tag da imagem | `gama` |
+| `GAMA_MODELOS_DIR=pasta` | onde ficam os pesos | `./modelos` |
+| `GAMA_TORCH_INDEX=url` | índice do torch no build | CUDA 12.6, o do `Dockerfile` |
+
+- O `--preparar` diz "GPU visível: não". O Docker está sem o runtime NVIDIA. A solução roda
+  assim mesmo, em CPU, a cerca de 1 s por documento. Com o NVIDIA Container Toolkit
+  instalado, `GAMA_GPU=1` força o `--gpus all`.
+- Driver NVIDIA antigo. A imagem usa CUDA 12.6, que roda com drivers a partir da série 525.
+- Já existe uma imagem `gama` de outro commit. O `run.sh` reaproveita a imagem que encontrar
+  com esse nome. Apague-a com `docker rmi gama` ou escolha outra tag com `GAMA_IMAGEM`.
+- No Linux, os arquivos de saída ficam com dono root, porque o container roda como root.
+
+<details>
+<summary>O que o run.sh executa, para quem preferir rodar à mão</summary>
+
+```bash
+docker build -t gama .
+docker run --rm -e HF_HUB_OFFLINE=0 -v "$PWD/modelos:/models" --entrypoint python gama \
+  -c "from huggingface_hub import snapshot_download as s; s('vinimlo/gama', revision='5f924ca2fa77c2aae6afe6d770c78ca4438f52f3', local_dir='/models')"
+
+docker run --rm --gpus all --network none \
+  -v /caminho/acervo.db:/data/acervo.db:ro \
+  -v /caminho/txt:/data/in:ro \
+  -v "$PWD/modelos:/models:ro" \
+  -v /caminho/saida:/data/out \
+  gama --input /data/in --output /data/out --db /data/acervo.db
+docker run --rm --network none -v /caminho/saida:/data/out --entrypoint python gama \
+  vendor/json_to_submission.py /data/out /data/out/submission.csv
+```
+
+</details>
+
+### As regras de envio, ponto a ponto
+
+O que a organização pediu nas regras de envio da solução final, de 30/09/2026, e onde cada
+item está:
+
+| Exigência | Onde está |
+|---|---|
+| Código completo da solução | este repositório: `src/gama` (pipeline), `vendor/` (métrica e conversor oficiais), `run.sh` |
+| README com a abordagem e o passo a passo | este arquivo: [como funciona](#como-funciona) e a seção acima |
+| Ambiente declarado em Docker | `Dockerfile` (Python 3.12, torch 2.14.0) e `requirements.txt` |
+| Pesos em revisão fixa, baixáveis antes da execução | [`vinimlo/gama`](https://huggingface.co/vinimlo/gama) na revisão do [MODELO.md](MODELO.md), baixados por `bash run.sh --preparar` |
+| Ponto de entrada único, que recebe o `.db` e a pasta de `.txt` | `bash run.sh <caminho_db> <pasta_txt> <arquivo_saida.csv>` |
+| Saída no formato das submissões | CSV pelo conversor oficial, o mesmo usado no Kaggle |
+| GPU de até 24 GB | pesos de 1,03 GB em FP32; o v1.2, que é maior, teve pico de 1.285 MiB de VRAM numa L4 de 24 GB |
+| Execução sem internet | `--network none` no container, `HF_HUB_OFFLINE=1` na imagem |
+| Do zero, em máquina limpa | sem caminho absoluto nem passo manual; testado num clone limpo, com CSV idêntico |
+| Pré-processamento do `.db` | nenhum artefato pré-calculado: o índice é montado do `.db` recebido a cada execução |
+| Modelos só de desenvolvimento | os LLMs ampliaram frases e anotaram ementas de teste; nenhum roda na solução |
+| Seeds fixas, sem amostragem | `eval()`, algoritmos determinísticos do torch, `PYTHONHASHSEED=0`; mesma saída em GPU e em CPU |
+
 ## Resultados
 
 Tudo medido com a métrica oficial (`vendor/kaggle_metric.py`, cópia exata da que roda no
@@ -149,6 +275,11 @@ justamente a alucinação que o desafio quer pegar.
 
 ### A guarda
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/figuras/guarda-escuro.svg">
+  <img alt="A guarda. Eixo de confiança de 0,50 a 1,00 com o limiar em 0,95. Abaixo do limiar o trecho do modelo sai e entra o da régua, se ela achou algo ali; do limiar para cima vale o modelo. A mediana dos falsos positivos em ementa real fica em 0,83; o menor dos 4.447 acertos no estresse difícil fica em 0,9993. No estilo da organização, 4.626 documentos saem iguais com e sem a guarda. Em texto real, 305 ementas, o F1 de extração vai de 0,620 a 0,818." src="docs/figuras/guarda-claro.svg">
+</picture>
+
 A guarda é o passo entre o extrator e a normalização. Ela existe porque o Gama foi treinado
 no estilo da organização e, fora dele, erra de um jeito previsível. Numa ementa com "...;
 STJ, REsp 1.999.624/PR, Rel. Min. Fulano, julgado em 10/05/2022", o modelo sozinho acha o
@@ -210,6 +341,11 @@ mudou de 29 a 52 documentos do estresse com qualquer um deles. Detalhes em
 
 ### Treino com documentos sintéticos
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/figuras/linhagem-escuro.svg">
+  <img alt="De onde vêm os dados e os pesos. O dev set da organização, que não sai da máquina, é desmontado em bancos de frases; LLMs abertos só ampliam as frases; o gerador por moldes produz o gama-goldenset, com 6.000 documentos na pasta final_v3. O mmBERT-base na revisão c595503 é ajustado nesses documentos e vira o Gama v1.2, revisão ad06ffd; o v1.2 é destilado nas 12 primeiras camadas, com os mesmos documentos e 1.818 ementas reais sem rótulo do celsowm/jurisprudencias_br, e vira o Gama v1.3, revisão 5f924ca, que é o extrator da solução." src="docs/figuras/linhagem-claro.svg">
+</picture>
+
 A organização gera os documentos do desafio por moldes: 62% das frases se repetem entre
 documentos, cada documento usa uma única data e a quebra de linha segue uma regra que
 conseguimos reproduzir byte a byte. Então desmontamos os 26 documentos do dev set em
@@ -224,6 +360,11 @@ treinado em 6.000 documentos, 3 épocas, semente 13. O v1.3 é destilado dele, n
 mesmos documentos e em 1.818 [ementas reais](#ementas-reais) sem rótulo, onde só vale a
 imitação do v1.2.
 
+O gerador também serviu de teste para o resolver: cada citação renderizada tem rótulo
+conhecido, então toda discordância é bug. Foi assim que achamos, por exemplo, uma súmula
+do TSE resolvendo como a de mesmo número do STJ, um falso `real` que custaria caro no
+conjunto cego.
+
 ### Ementas reais
 
 O dev set e o gerador falam a mesma língua, a dos moldes da organização. Um modelo pode
@@ -233,7 +374,7 @@ nos deixasse publicar o que fizéssemos com ele.
 
 Quem resolveu isso foi o [`celsowm/jurisprudencias_br`](https://huggingface.co/datasets/celsowm/jurisprudencias_br),
 que o Celso F. publica no Hugging Face: cerca de 781 mil decisões do STF, do STJ e do TJRJ,
-coletadas pelo [Juriscraper](https://github.com/celsowm/juriscraper), ferramenta dele, sob
+coletadas pelo Juriscraper, ferramenta dele, sob
 CC-BY-4.0. Foi nesse texto que o Gama mostrou o ponto fraco. Sem ele, a gente só ia
 descobrir no conjunto cego, se descobrisse.
 
@@ -256,11 +397,6 @@ processo real vindo daqui que coincidisse com um número inventado pela organiza
 está; quem diz se ela existe continua sendo só o acervo. Proveniência, amostragem e limites
 em [ementas reais](wiki/conceitos/ementas-reais.md).
 
-O gerador também serviu de teste para o resolver: cada citação renderizada tem rótulo
-conhecido, então toda discordância é bug. Foi assim que achamos, por exemplo, uma súmula
-do TSE resolvendo como a de mesmo número do STJ, um falso `real` que custaria caro no
-conjunto cego.
-
 ### Decisões de projeto
 
 Cada escolha que fechou uma porta tem registro próprio, com contexto, conta e medida:
@@ -273,59 +409,45 @@ Cada escolha que fechou uma porta tem registro próprio, com contexto, conta e m
 - [D-008](wiki/decisoes/D-008_guarda-do-extrator.md): onde o modelo hesita (confiança < 0,95) vale a régua, porque no estilo da organização ele nunca hesita e fora dele é aí que erra; o resolver desempata pela cadeia de classe compatível.
 - [D-009](wiki/decisoes/D-009_gama-v1-3-destilado.md): o extrator é o v1.2 destilado em 12 camadas, porque entrega o mesmo JSON no estilo da organização e roda mais rápido; em texto real fica no mesmo nível do v1.2.
 
-## Como rodar
+## Desenvolvimento
 
-Tudo roda em container. Os dados da organização não são redistribuídos: baixe a aba Data
-da competição e coloque `desafio1_bracis.db` e a pasta `txt/` em `dados/`.
+Para trabalhar no código, tudo roda em container pelo `Makefile`. Os dados da organização
+não são redistribuídos: baixe a aba Data da competição e coloque `desafio1_bracis.db` e a
+pasta `txt/` em `dados/`.
 
 ```bash
-scripts/baixar_pesos.sh   # pesos na revisão fixa do MODELO.md, em ./modelos
-make build                # imagem de desenvolvimento
+make build                # imagem de desenvolvimento (torch de CPU)
+make pesos                # pesos na revisão fixa do MODELO.md, em ./modelos
 make dados                # confere se os dados estão no lugar
 make predizer             # dados/txt → saidas/json
 make avaliar              # métrica oficial, por nível
 make erros                # erros restantes por categoria
 make submissao            # saidas/submission.csv pelo conversor oficial
 make test                 # testes
+make figuras              # redesenha as figuras deste README
 ```
 
-### Execução pela organização
+`make help` lista todos os alvos. Quem já tem a CLI `hf` no host pode baixar os pesos com
+`scripts/baixar_pesos.sh`, sem passar pelo container.
 
-Um comando só, que recebe o `.db`, a pasta com os `.txt` e o arquivo de saída:
+## Reproduzir do zero
 
-```bash
-bash run.sh <caminho_db> <pasta_txt> <arquivo_saida.csv>
-```
+Rodar a solução só pede os dois comandos do começo. Refazer o caminho inteiro, dos 26
+documentos do dev até os pesos publicados, tem sete passos, cada um com o comando exato em
+[reprodução passo a passo](wiki/guias/reproducao.md):
 
-Ele grava `<arquivo_saida.csv>` no formato da submissão (pelo conversor oficial,
-`vendor/json_to_submission.py`) e, ao lado, a pasta `<arquivo_saida>.json/` com um JSON por
-documento no formato do contrato. Só depende de Docker. Na primeira vez constrói a imagem
-(alvo padrão do `Dockerfile`, torch com CUDA 12.6) e baixa os pesos na revisão fixa do
-[MODELO.md](MODELO.md), e para isso precisa de rede; depois disso a execução roda com
-`--network none`. Com runtime NVIDIA no Docker ele usa a GPU; sem GPU visível o extrator roda
-em CPU, em cerca de 1 s por documento, dentro do teto de 60 s.
+| Passo | O que faz | Onde roda |
+|---|---|---|
+| 1. Bancos de frases | desmonta o dev set em peças e amplia as frases com LLMs abertos | container `lab` |
+| 2. Goldenset | gera os documentos sintéticos, com os portões de qualidade | container |
+| 3. Pacote de treino | junta os conjuntos e publica no Hub, em revisão fixa | container `lab` |
+| 4. Treino do v1.2 | fine-tune do mmBERT-base | HF Jobs, A100 |
+| 5. Destilação do v1.3 | poda para 12 camadas e imitação do v1.2 | HF Jobs, A100 |
+| 6. Calibração | mede a taxa de acerto por balde e grava `calibracao.json` | container |
+| 7. Conferência de entrega | testes, sondas de ruído, ensaio em GPU de 24 GB, imagem sem rede | container e HF Jobs, L4 |
 
-Não há pré-processamento do `.db`: o índice canônico é montado a partir da base recebida a
-cada execução, então um `.db` novo no formato original entra direto. Testado num clone limpo
-com a base do dev copiada para outro caminho e outro nome: o CSV saiu idêntico, byte a byte,
-ao da submissão do v1.3.
-
-O que o `run.sh` executa, para quem preferir rodar à mão:
-
-```bash
-docker build -t gama .
-docker run --rm --gpus all --network none \
-  -v /caminho/acervo.db:/data/acervo.db:ro \
-  -v /caminho/txt:/data/in:ro \
-  -v "$PWD/modelos:/models:ro" \
-  -v /caminho/saida:/data/out \
-  gama --input /data/in --output /data/out --db /data/acervo.db
-docker run --rm --network none -v /caminho/saida:/data/out --entrypoint python gama \
-  vendor/json_to_submission.py /data/out /data/out/submission.csv
-```
-
-O stderr informa `extrator: neural`. Se o volume dos pesos faltar, aparece um aviso e o
-pipeline segue com a régua, porque uma saída válida vale mais que uma submissão vazia.
+Os passos 1 a 3 dependem dos dados da organização, que só as equipes inscritas têm. Do
+passo 4 em diante tudo parte do dataset e dos pesos, em revisão fixa.
 
 ## Reprodutibilidade
 
@@ -333,20 +455,20 @@ pipeline segue com a régua, porque uma saída válida vale mais que uma submiss
 |---|---|
 | Código | este repositório; cada submissão cita o commit que produziu as saídas |
 | Modelo | [`vinimlo/gama`](https://huggingface.co/vinimlo/gama), revisão fixa no [MODELO.md](MODELO.md); destilado do v1.2, que parte de [`jhu-clsp/mmBERT-base`](https://huggingface.co/jhu-clsp/mmBERT-base) (MIT), também com revisão fixa |
-| Ambiente | `Dockerfile` (Python 3.12, torch 2.14.0) e `requirements.txt` com versões fixadas |
-| Comando | `bash run.sh <caminho_db> <pasta_txt> <arquivo_saida.csv>` |
+| Ambiente | `Dockerfile` (Python 3.12, torch 2.14.0) e `requirements.txt`, com as versões de transformers, tokenizers, numpy e pandas fixadas |
+| Comando | `bash run.sh --preparar` e `bash run.sh <caminho_db> <pasta_txt> <arquivo_saida.csv>` |
 | Determinismo | inferência em `eval()` sem amostragem, algoritmos determinísticos do torch, `PYTHONHASHSEED=0`; a saída é a mesma em GPU e em CPU |
-| Rede | nenhuma chamada em tempo de execução (`HF_HUB_OFFLINE=1`) |
+| Rede | nenhuma chamada em tempo de execução (`--network none`, `HF_HUB_OFFLINE=1`) |
 | Dados | fora da imagem e fora do repositório; chegam por volume |
 | Dados de treino | [`vinimlo/gama-goldenset`](https://huggingface.co/datasets/vinimlo/gama-goldenset), revisão no [MODELO.md](MODELO.md): documentos sintéticos (MIT) e ementas de [`celsowm/jurisprudencias_br`](https://huggingface.co/datasets/celsowm/jurisprudencias_br) (CC-BY-4.0) |
 
-O treino é um script UV (`treino/treinar.py`, dependências fixadas no cabeçalho) que roda
-em HF Jobs, lê o goldenset numa revisão fixa do Hub e publica os pesos:
+O treino é um script UV (`treino/treinar.py`, com torch e transformers fixados no
+cabeçalho) que roda em HF Jobs, lê o goldenset numa revisão fixa do Hub e publica os pesos:
 
 ```bash
-hf jobs uv run --flavor a10g-large --secrets HF_TOKEN treino/treinar.py \
-  --dados vinimlo/gama-goldenset --revisao <sha> \
-  --modelo-base jhu-clsp/mmBERT-base --saida vinimlo/gama
+hf jobs uv run --flavor a100-large --secrets HF_TOKEN treino/treinar.py \
+  --dados vinimlo/gama-goldenset --revisao 31474b1f7db9096c4ca4f2a4eae2e9b82852d7a7 \
+  --subpasta final_v3 --modelo-base jhu-clsp/mmBERT-base --max-len 1024 --saida vinimlo/gama
 ```
 
 O v1.3 sai do v1.2 por destilação (`treino/destilar.py`, mesmo formato; revisões no
@@ -354,23 +476,27 @@ O v1.3 sai do v1.2 por destilação (`treino/destilar.py`, mesmo formato; revis�
 
 ```bash
 hf jobs uv run --flavor a100-large --timeout 3h --secrets HF_TOKEN treino/destilar.py \
-  --dados vinimlo/gama-goldenset --revisao <sha> \
-  --professor vinimlo/gama --professor-rev <sha do v1.2> \
+  --dados vinimlo/gama-goldenset --revisao ec430c0373f6ef96ba3bb91a3f11b24e391c5e6a \
+  --professor vinimlo/gama --professor-rev ad06ffd34e838bf3496645d9c16281dfc70cb871 \
   --aluno podado --camadas 0,1,2,3,4,5,6,7,8,9,10,11 --saida vinimlo/gama
 ```
 
 ## Estrutura
 
 ```
-src/gama/     pipeline: extração, normalização, índice, resolver, classificação
+run.sh        ponto de entrada único: prepara a imagem e os pesos, executa sem rede
+MODELO.md     manifesto do modelo: repositório e revisão fixa dos pesos, versões, submissões
+src/gama/     pipeline: extração, guarda, normalização, índice, resolver, classificação
 avaliacao/    harness da métrica oficial, catálogo de erros, calibração, inspeção sem gabarito
 geracao/      gerador sintético pelos moldes da organização e expansão dos bancos por LLM
-treino/       fine-tune, validação por dobras, ensaio no hardware-alvo
+treino/       fine-tune, destilação, validação por dobras, ensaio no hardware-alvo
 reais/        ementas do celsowm/jurisprudencias_br: ingestão, anotação, adjudicação, sorteio do teste
 vendor/       código da organização, intocado (métrica e conversor oficiais)
 tests/        regressões do resolver, sondas de ruído, determinismo
-bench/        benchmark contra extratores sem treino (GLiNER, Qwen3-8B, régua)
-wiki/         decisões, experimentos e conceitos
+bench/        benchmark contra extratores sem treino e controles treinados nos mesmos dados
+docs/figuras/ figuras deste README e o script que as desenha
+scripts/      download dos pesos na revisão fixa
+wiki/         decisões, experimentos, conceitos e o guia de reprodução
 ```
 
 Quatro invariantes quebram em silêncio se forem violadas:
@@ -384,6 +510,25 @@ Quatro invariantes quebram em silêncio se forem violadas:
    (`em 2024`) é capturado como número de processo.
 4. A confiança vem de `src/gama/calibracao.json`, medida por `avaliacao/calibrar.py` e
    nunca escrita à mão. Nunca 1,0: confiança alta em cima de erro é o pior caso do Brier.
+
+## Referências
+
+O que a solução usa ou compara, com a fonte de cada coisa. A lista comentada, com o que
+cada paper afirma e o que medimos aqui, está em [literatura](wiki/conceitos/literatura.md).
+
+Modelos e dados:
+
+- [`jhu-clsp/mmBERT-base`](https://huggingface.co/jhu-clsp/mmBERT-base) (MIT), o encoder de partida: Marone et al., [mmBERT](https://arxiv.org/abs/2509.06888), 2025, sobre a arquitetura de Warner et al., [ModernBERT](https://arxiv.org/abs/2412.13663), 2024.
+- [`celsowm/jurisprudencias_br`](https://huggingface.co/datasets/celsowm/jurisprudencias_br) (CC-BY-4.0), de Celso F., coletado pelo Juriscraper: todo o texto real do projeto.
+- Comparações: [`neuralmind/bert-base-portuguese-cased`](https://huggingface.co/neuralmind/bert-base-portuguese-cased) (BERTimbau; Souza et al., [1909.10649](https://arxiv.org/abs/1909.10649)), [`fastino/gliner2.5-multi-v1`](https://huggingface.co/fastino/gliner2.5-multi-v1) (Zaratiana et al., [GLiNER](https://arxiv.org/abs/2311.08526), 2023) e [`Qwen/Qwen3-8B`](https://huggingface.co/Qwen/Qwen3-8B).
+
+Ideias em que cada parte se apoia:
+
+- O problema: Dahl et al., [Large Legal Fictions](https://arxiv.org/abs/2401.01301), 2024, e Magesh et al., [Hallucination-Free?](https://arxiv.org/abs/2405.20362), 2024. Citação inventada se pega por consulta a um acervo, não por inferência de modelo.
+- A guarda: Geifman e El-Yaniv, [Selective Classification for Deep Neural Networks](https://arxiv.org/abs/1705.08500), 2017. Rejeitar a predição incerta reduz o erro; aqui, o trecho rejeitado tem uma reserva.
+- A confiança publicada: Guo et al., [On Calibration of Modern Neural Networks](https://arxiv.org/abs/1706.04599), 2017. Redes modernas são mal calibradas por padrão, por isso a confiança é medida por balde.
+- A destilação: Hinton et al., [Distilling the Knowledge in a Neural Network](https://arxiv.org/abs/1503.02531), 2015, e Sajjad et al., [On the Effect of Dropping Layers of Pre-trained Transformer Models](https://arxiv.org/abs/2004.03844), 2020, de onde vem a poda das camadas de cima.
+- O ruído sintético: März et al., [Data Centric Domain Adaptation for Historical Text with OCR Errors](https://arxiv.org/abs/2107.00927), 2021.
 
 ## Licença
 

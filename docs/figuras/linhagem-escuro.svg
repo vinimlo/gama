@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="532" viewBox="0 0 880 532" role="img" aria-labelledby="t d" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+<title id="t">De onde vêm os dados e os pesos</title>
+<desc id="d">Dados: o dev set da organização, que não sai da máquina, é desmontado em bancos de frases; LLMs abertos só ampliam as frases; o gerador por moldes produz o gama-goldenset, com 6.000 documentos na pasta final_v3. Modelos: o mmBERT-base na revisão c595503 é ajustado nesses documentos e vira o Gama v1.2, revisão ad06ffd; o v1.2 é destilado nas 12 primeiras camadas, com os mesmos documentos e 1.818 ementas reais sem rótulo do celsowm/jurisprudencias_br, e vira o Gama v1.3, revisão 5f924ca, que é o extrator da solução.</desc>
+<rect x="0.5" y="0.5" width="879" height="531" rx="10" fill="#1a1a19" stroke="rgba(255,255,255,0.10)"/>
+<text x="28.0" y="40.0" font-size="17" font-weight="600" fill="#ffffff">De onde vêm os dados e os pesos</text>
+<text x="28.0" y="62.0" font-size="12.5" font-weight="400" fill="#c3c2b7">Cada caixa tem revisão fixa. Os dados da organização não são redistribuídos.</text>
+<text x="28.0" y="96.0" font-size="11" font-weight="600" fill="#898781">DADOS</text>
+<rect x="28.0" y="106.0" width="194.0" height="100.0" rx="8" fill="#242422" stroke="#383835" stroke-width="1.2"/>
+<text x="40.0" y="130.0" font-size="13" font-weight="600" fill="#ffffff">Dev set da organização</text>
+<text x="40.0" y="150.0" font-size="11" font-weight="400" fill="#c3c2b7">26 documentos e o acervo;</text>
+<text x="40.0" y="165.0" font-size="11" font-weight="400" fill="#c3c2b7">não saem da máquina</text>
+<text x="40.0" y="180.0" font-size="11" font-weight="400" fill="#c3c2b7">nem entram no repositório</text>
+<rect x="238.0" y="106.0" width="194.0" height="100.0" rx="8" fill="#242422" stroke="#383835" stroke-width="1.2"/>
+<text x="250.0" y="130.0" font-size="13" font-weight="600" fill="#ffffff">Bancos de frases</text>
+<text x="250.0" y="150.0" font-size="11" font-weight="400" fill="#c3c2b7">os documentos desmontados</text>
+<text x="250.0" y="165.0" font-size="11" font-weight="400" fill="#c3c2b7">em peças; LLMs abertos</text>
+<text x="250.0" y="180.0" font-size="11" font-weight="400" fill="#c3c2b7">só ampliam as frases</text>
+<polyline points="223.0,156.0 237.0,156.0" fill="none" stroke="#898781" stroke-width="1.4"/><polygon points="237,156 229.0,151.0 229.0,161.0" fill="#898781"/>
+<rect x="448.0" y="106.0" width="194.0" height="100.0" rx="8" fill="#242422" stroke="#383835" stroke-width="1.2"/>
+<text x="460.0" y="130.0" font-size="13" font-weight="600" fill="#ffffff">Gerador por moldes</text>
+<text x="460.0" y="150.0" font-size="11" font-weight="400" fill="#c3c2b7">cita registros do acervo,</text>
+<text x="460.0" y="165.0" font-size="11" font-weight="400" fill="#c3c2b7">rótulo exato por construção,</text>
+<text x="460.0" y="180.0" font-size="11" font-weight="400" fill="#c3c2b7">ruído de OCR calibrado</text>
+<polyline points="433.0,156.0 447.0,156.0" fill="none" stroke="#898781" stroke-width="1.4"/><polygon points="447,156 439.0,151.0 439.0,161.0" fill="#898781"/>
+<rect x="658.0" y="106.0" width="194.0" height="100.0" rx="8" fill="#1c2f49" stroke="#3987e5" stroke-width="1.2"/>
+<text x="670.0" y="130.0" font-size="13" font-weight="600" fill="#ffffff">gama-goldenset</text>
+<text x="670.0" y="150.0" font-size="11" font-weight="400" fill="#c3c2b7">final_v3: 6.000 documentos</text>
+<text x="670.0" y="165.0" font-size="11" font-weight="400" fill="#c3c2b7">(5.410 de treino, 590 de</text>
+<text x="670.0" y="180.0" font-size="11" font-weight="400" fill="#c3c2b7">reserva); 44.234 citações</text>
+<polyline points="643.0,156.0 657.0,156.0" fill="none" stroke="#898781" stroke-width="1.4"/><polygon points="657,156 649.0,151.0 649.0,161.0" fill="#898781"/>
+<polyline points="755.0,206 755.0,236 335.0,236" fill="none" stroke="#898781" stroke-width="1.4"/>
+<polyline points="335.0,236.0 335.0,270.0" fill="none" stroke="#898781" stroke-width="1.4"/><polygon points="335.0,270 330.0,262.0 340.0,262.0" fill="#898781"/>
+<polyline points="545.0,236.0 545.0,270.0" fill="none" stroke="#898781" stroke-width="1.4"/><polygon points="545.0,270 540.0,262.0 550.0,262.0" fill="#898781"/>
+<text x="345.0" y="256.0" font-size="10.5" font-weight="400" fill="#898781">treino, dataset em 31474b1</text>
+<text x="555.0" y="256.0" font-size="10.5" font-weight="400" fill="#898781">destilação, dataset em ec430c0</text>
+<text x="28.0" y="262.0" font-size="11" font-weight="600" fill="#898781">MODELOS</text>
+<rect x="28.0" y="272.0" width="194.0" height="100.0" rx="8" fill="#242422" stroke="#383835" stroke-width="1.2"/>
+<text x="40.0" y="296.0" font-size="13" font-weight="600" fill="#ffffff">mmBERT-base</text>
+<text x="40.0" y="316.0" font-size="11" font-weight="400" fill="#c3c2b7">jhu-clsp/mmBERT-base</text>
+<text x="40.0" y="331.0" font-size="11" font-weight="400" fill="#c3c2b7">revisão c595503, MIT</text>
+<text x="40.0" y="346.0" font-size="11" font-weight="400" fill="#c3c2b7">encoder multilíngue</text>
+<rect x="238.0" y="272.0" width="194.0" height="100.0" rx="8" fill="#242422" stroke="#383835" stroke-width="1.2"/>
+<text x="250.0" y="296.0" font-size="13" font-weight="600" fill="#ffffff">Gama v1.2</text>
+<text x="250.0" y="316.0" font-size="11" font-weight="400" fill="#c3c2b7">22 camadas, 307,5M</text>
+<text x="250.0" y="331.0" font-size="11" font-weight="400" fill="#c3c2b7">revisão ad06ffd (tag v1.2)</text>
+<text x="250.0" y="346.0" font-size="11" font-weight="400" fill="#c3c2b7">o professor</text>
+<polyline points="223.0,322.0 237.0,322.0" fill="none" stroke="#898781" stroke-width="1.4"/><polygon points="237,322 229.0,317.0 229.0,327.0" fill="#898781"/>
+<rect x="448.0" y="272.0" width="194.0" height="100.0" rx="8" fill="#1c2f49" stroke="#3987e5" stroke-width="1.2"/>
+<text x="460.0" y="296.0" font-size="13" font-weight="600" fill="#ffffff">Gama v1.3</text>
+<text x="460.0" y="316.0" font-size="11" font-weight="400" fill="#c3c2b7">12 camadas, 257,4M</text>
+<text x="460.0" y="331.0" font-size="11" font-weight="400" fill="#c3c2b7">revisão 5f924ca (tag v1.3)</text>
+<text x="460.0" y="346.0" font-size="11" font-weight="400" fill="#c3c2b7">o que a solução usa</text>
+<polyline points="433.0,322.0 447.0,322.0" fill="none" stroke="#898781" stroke-width="1.4"/><polygon points="447,322 439.0,317.0 439.0,327.0" fill="#898781"/>
+<rect x="658.0" y="272.0" width="194.0" height="100.0" rx="8" fill="#242422" stroke="#383835" stroke-width="1.2"/>
+<text x="670.0" y="296.0" font-size="13" font-weight="600" fill="#ffffff">Solução</text>
+<text x="670.0" y="316.0" font-size="11" font-weight="400" fill="#c3c2b7">extrator + guarda +</text>
+<text x="670.0" y="331.0" font-size="11" font-weight="400" fill="#c3c2b7">consulta ao acervo;</text>
+<text x="670.0" y="346.0" font-size="11" font-weight="400" fill="#c3c2b7">um comando, sem rede</text>
+<polyline points="643.0,322.0 657.0,322.0" fill="none" stroke="#898781" stroke-width="1.4"/><polygon points="657,322 649.0,317.0 649.0,327.0" fill="#898781"/>
+<rect x="448.0" y="404.0" width="404.0" height="64.0" rx="8" fill="#242422" stroke="#383835" stroke-width="1.2"/>
+<text x="460.0" y="428.0" font-size="13" font-weight="600" fill="#ffffff">1.818 ementas reais, sem rótulo</text>
+<text x="460.0" y="448.0" font-size="11" font-weight="400" fill="#c3c2b7">celsowm/jurisprudencias_br, CC-BY-4.0; nelas só vale a imitação do v1.2</text>
+<polyline points="545.0,404.0 545.0,373.0" fill="none" stroke="#898781" stroke-width="1.4"/><polygon points="545.0,373 540.0,381.0 550.0,381.0" fill="#898781"/>
+<text x="28.0" y="498.0" font-size="11" font-weight="400" fill="#c3c2b7">Os LLMs de pesos abertos (DeepSeek-V4-Pro, Kimi-K3, GLM-5.3) ficam no preparo dos dados: ampliam frases e anotam ementas de teste.</text>
+<text x="28.0" y="514.0" font-size="11" font-weight="400" fill="#c3c2b7">Nenhum deles escreve citação, decide rótulo ou roda na solução avaliada.</text>
+</svg>

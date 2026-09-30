@@ -21,6 +21,9 @@ que o bruto.
   balde. A régua (regex) é o fallback sem pesos.
 - LLMs abertos (DeepSeek-V4-Pro, Kimi-K3, GLM-5.3): só no desenvolvimento, para
   expandir bancos de frases e anotar texto real. Nenhum em tempo de execução.
+- Execução: `bash run.sh --preparar` (com rede, uma vez) e
+  `bash run.sh <caminho_db> <pasta_txt> <arquivo_saida.csv>` (sem rede). O caminho inteiro,
+  dos dados aos pesos, está em [reprodução passo a passo](guias/reproducao.md).
 
 ## O que já sabemos (achados que mudam decisão)
 
@@ -121,8 +124,13 @@ que o bruto.
 - [Regras e reprodutibilidade](conceitos/regras-e-reprodutibilidade.md): o que é re-executado, o envelope vale para a inferência, e como a solução cumpre cada exigência
 - [Literatura](conceitos/literatura.md): papers do arXiv que sustentam cada parte da solução, e a lacuna que ela ocupa
 
+## Guias
+
+- [Reprodução passo a passo](guias/reproducao.md): rodar a solução em dois comandos e refazer o caminho inteiro, dos bancos de frases aos pesos, com o comando de cada passo e o que foi conferido
+
 ## Como registrar
 
 - Rodada medida nova → `experimentos/AAAA-MM-DD_<slug>.md` + linha acima.
 - Decisão que fecha uma porta → `decisoes/D-NNN_<slug>.md` + linha acima.
+- Passo novo no caminho dos dados ou dos pesos → `guias/reproducao.md`, com o comando exato.
 - Fato que muda decisão → item em "O que já sabemos", com link para a página.

@@ -3,7 +3,7 @@
 Todo o texto real do projeto vem de um lugar só: o
 [`celsowm/jurisprudencias_br`](https://huggingface.co/datasets/celsowm/jurisprudencias_br),
 publicado no Hugging Face pelo Celso F. São cerca de 781 mil decisões do STF, do STJ e do
-TJRJ, coletadas pelo [Juriscraper](https://github.com/celsowm/juriscraper), ferramenta do
+TJRJ, coletadas pelo Juriscraper, ferramenta do
 próprio autor, sob CC-BY-4.0. Usamos a revisão `9738075`.
 
 ## Por que precisávamos dele

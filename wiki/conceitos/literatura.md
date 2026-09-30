@@ -56,8 +56,8 @@ decide real, inventada ou incompleta. Nenhum LLM roda na inferência.
   (2026): extração de citações por regex em escala, com precisão 1,00 numa amostra de 200
   decisões. Sustenta a régua como reserva: no formato canônico, regex funciona.
 
-No nosso benchmark, o Gama fine-tunado marca 1,0997 no estresse difícil, contra 0,811 do
-Qwen3-8B zero-shot e 0,327 do GLiNER.
+No nosso benchmark, o Gama fine-tunado marca 1,09999 no estresse difícil, contra 0,811 do
+Qwen3-8B zero-shot e 0,444 do GLiNER 2.5.
 
 ## 3. Dados sintéticos e ruído de OCR
 

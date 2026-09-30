@@ -12,8 +12,8 @@ WORKDIR /app
 
 # torch primeiro, do índice do alvo. Padrão: CUDA 12.6 — roda com drivers NVIDIA a partir
 # de ~525; o torch 2.14 do PyPI traz CUDA 13, que exige driver bem mais novo, e a máquina
-# da avaliação não é nossa. Sem GPU visível o extrator cai para CPU (~3 s/documento,
-# dentro do teto de 60 s). Localmente (Mac/ARM) o compose passa o índice de CPU.
+# da avaliação não é nossa. Sem GPU visível o extrator cai para CPU (cerca de 1 s por
+# documento, dentro do teto de 60 s). Localmente (Mac/ARM) o compose passa o índice de CPU.
 ARG TORCH_INDEX="https://download.pytorch.org/whl/cu126"
 RUN if [ -n "$TORCH_INDEX" ]; then \
         pip install --no-cache-dir torch==2.14.0 --index-url "$TORCH_INDEX"; \
@@ -34,9 +34,10 @@ ENV PYTHONPATH=/app/src:/app \
     HF_HUB_OFFLINE=1 \
     TRANSFORMERS_OFFLINE=1
 
-# Contrato de execução exigido pela organização:
-#   docker run --gpus all -v <pesos>:/models:ro -v <acervo>:/app/dados:ro <img> \
-#       --input /data/in --output /data/out
+# Entrada da imagem. O ponto de entrada da solução é o run.sh, que monta os volumes e chama:
+#   docker run --gpus all --network none -v <pesos>:/models:ro -v <acervo.db>:/data/acervo.db:ro \
+#       -v <txt>:/data/in:ro -v <saida>:/data/out <img> \
+#       --input /data/in --output /data/out --db /data/acervo.db
 ENTRYPOINT ["python", "-m", "gama.pipeline"]
 CMD ["--input", "/data/in", "--output", "/data/out"]
 

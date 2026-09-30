@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="478" viewBox="0 0 880 478" role="img" aria-labelledby="t d" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+<title id="t">Do texto ao veredito</title>
+<desc id="d">Um trecho de documento com três citações passa por cinco etapas: extrator Gama, guarda, normalização do ruído de OCR, índice do acervo e classificação. A primeira citação, com ruído de OCR, casa com um registro e sai como real; a segunda não casa com nenhum e sai como inventada; a terceira não tem número e sai como incompleta.</desc>
+<rect x="0.5" y="0.5" width="879" height="477" rx="10" fill="#1a1a19" stroke="rgba(255,255,255,0.10)"/>
+<text x="28.0" y="40.0" font-size="17" font-weight="600" fill="#ffffff">Do texto ao veredito</text>
+<text x="28.0" y="62.0" font-size="12.5" font-weight="400" fill="#c3c2b7">O modelo só acha onde a citação está. Quem decide se ela existe é o acervo.</text>
+<rect x="28.0" y="84.0" width="824.0" height="84.0" rx="8" fill="#242422" stroke="#383835" stroke-width="1.2"/>
+<text x="44.0" y="106.0" font-size="11" font-weight="400" fill="#898781" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">documento.txt</text>
+<text x="44" y="130" font-size="13" fill="#c3c2b7">(…) na linha do que decidiu o <tspan font-weight="600" fill="#ffffff" text-decoration="underline">REsp nº l.234.S67/SP</tspan><tspan font-weight="600" fill="#3987e5"> ①</tspan>, e ainda o <tspan font-weight="600" fill="#ffffff" text-decoration="underline">HC 987.654/RJ</tspan><tspan font-weight="600" fill="#3987e5"> ②</tspan>, além de</text>
+<text x="44" y="152" font-size="13" fill="#c3c2b7"><tspan font-weight="600" fill="#ffffff" text-decoration="underline">julgado do STJ proferido em 2021 pela relatoria de Fulano de Tal</tspan><tspan font-weight="600" fill="#3987e5"> ③</tspan>, que reconhece o direito (…)</text>
+<polyline points="104.0,168.0 104.0,190.0" fill="none" stroke="#898781" stroke-width="1.4"/><polygon points="104,190 99.0,182.0 109.0,182.0" fill="#898781"/>
+<rect x="28.0" y="192.0" width="152.0" height="96.0" rx="8" fill="#1c2f49" stroke="#3987e5" stroke-width="1.2"/>
+<text x="40.0" y="216.0" font-size="13" font-weight="600" fill="#ffffff">1 · Extrator Gama</text>
+<text x="40.0" y="236.0" font-size="11" font-weight="400" fill="#c3c2b7">acha cada citação</text>
+<text x="40.0" y="251.0" font-size="11" font-weight="400" fill="#c3c2b7">e o tipo dela: JURIS,</text>
+<text x="40.0" y="266.0" font-size="11" font-weight="400" fill="#c3c2b7">LEI ou referência vaga</text>
+<rect x="196.0" y="192.0" width="152.0" height="96.0" rx="8" fill="#242422" stroke="#383835" stroke-width="1.2"/>
+<text x="208.0" y="216.0" font-size="13" font-weight="600" fill="#ffffff">2 · Guarda</text>
+<text x="208.0" y="236.0" font-size="11" font-weight="400" fill="#c3c2b7">onde o modelo hesita</text>
+<text x="208.0" y="251.0" font-size="11" font-weight="400" fill="#c3c2b7">(confiança &lt; 0,95)</text>
+<text x="208.0" y="266.0" font-size="11" font-weight="400" fill="#c3c2b7">vale o trecho da régua</text>
+<polyline points="181.0,240.0 195.0,240.0" fill="none" stroke="#898781" stroke-width="1.4"/><polygon points="195,240 187.0,235.0 187.0,245.0" fill="#898781"/>
+<rect x="364.0" y="192.0" width="152.0" height="96.0" rx="8" fill="#242422" stroke="#383835" stroke-width="1.2"/>
+<text x="376.0" y="216.0" font-size="13" font-weight="600" fill="#ffffff">3 · Normalização</text>
+<text x="376.0" y="236.0" font-size="11" font-weight="400" fill="#c3c2b7">desfaz o ruído de OCR</text>
+<text x="376.0" y="251.0" font-size="11" font-weight="400" fill="#c3c2b7">só no número:</text>
+<text x="376.0" y="266.0" font-size="11" font-weight="400" fill="#c3c2b7">l→1, S→5, O→0</text>
+<polyline points="349.0,240.0 363.0,240.0" fill="none" stroke="#898781" stroke-width="1.4"/><polygon points="363,240 355.0,235.0 355.0,245.0" fill="#898781"/>
+<rect x="532.0" y="192.0" width="152.0" height="96.0" rx="8" fill="#242422" stroke="#383835" stroke-width="1.2"/>
+<text x="544.0" y="216.0" font-size="13" font-weight="600" fill="#ffffff">4 · Índice do acervo</text>
+<text x="544.0" y="236.0" font-size="11" font-weight="400" fill="#c3c2b7">montado do .db recebido,</text>
+<text x="544.0" y="251.0" font-size="11" font-weight="400" fill="#c3c2b7">a cada execução;</text>
+<text x="544.0" y="266.0" font-size="11" font-weight="400" fill="#c3c2b7">consulta exata</text>
+<polyline points="517.0,240.0 531.0,240.0" fill="none" stroke="#898781" stroke-width="1.4"/><polygon points="531,240 523.0,235.0 523.0,245.0" fill="#898781"/>
+<rect x="700.0" y="192.0" width="152.0" height="96.0" rx="8" fill="#242422" stroke="#383835" stroke-width="1.2"/>
+<text x="712.0" y="216.0" font-size="13" font-weight="600" fill="#ffffff">5 · Classificação</text>
+<text x="712.0" y="236.0" font-size="11" font-weight="400" fill="#c3c2b7">1 registro: real</text>
+<text x="712.0" y="251.0" font-size="11" font-weight="400" fill="#c3c2b7">nenhum: inventada</text>
+<text x="712.0" y="266.0" font-size="11" font-weight="400" fill="#c3c2b7">sem número: incompleta</text>
+<polyline points="685.0,240.0 699.0,240.0" fill="none" stroke="#898781" stroke-width="1.4"/><polygon points="699,240 691.0,235.0 691.0,245.0" fill="#898781"/>
+<text x="52.0" y="322.0" font-size="11" font-weight="600" fill="#898781">Trecho no documento</text>
+<text x="372.0" y="322.0" font-size="11" font-weight="600" fill="#898781">Número lido</text>
+<text x="532.0" y="322.0" font-size="11" font-weight="600" fill="#898781">No acervo</text>
+<text x="692.0" y="322.0" font-size="11" font-weight="600" fill="#898781">Saída</text>
+<line x1="28" y1="331" x2="852" y2="331" stroke="#2c2c2a"/>
+<text x="28.0" y="350.0" font-size="13" font-weight="600" fill="#3987e5">①</text>
+<text x="52.0" y="350.0" font-size="12" font-weight="400" fill="#ffffff" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">REsp nº l.234.S67/SP</text>
+<text x="372.0" y="350.0" font-size="12" font-weight="400" fill="#c3c2b7">1234567  (l→1, S→5)</text>
+<text x="532.0" y="350.0" font-size="12" font-weight="400" fill="#c3c2b7">1 registro</text>
+<text x="692.0" y="350.0" font-size="12" font-weight="600" fill="#ffffff">real, com o doc_id dele</text>
+<line x1="28" y1="361" x2="852" y2="361" stroke="#2c2c2a"/>
+<text x="28.0" y="380.0" font-size="13" font-weight="600" fill="#3987e5">②</text>
+<text x="52.0" y="380.0" font-size="12" font-weight="400" fill="#ffffff" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">HC 987.654/RJ</text>
+<text x="372.0" y="380.0" font-size="12" font-weight="400" fill="#c3c2b7">987654</text>
+<text x="532.0" y="380.0" font-size="12" font-weight="400" fill="#c3c2b7">nenhum registro</text>
+<text x="692.0" y="380.0" font-size="12" font-weight="600" fill="#ffffff">inventada</text>
+<line x1="28" y1="391" x2="852" y2="391" stroke="#2c2c2a"/>
+<text x="28.0" y="410.0" font-size="13" font-weight="600" fill="#3987e5">③</text>
+<text x="52.0" y="410.0" font-size="12" font-weight="400" fill="#ffffff">julgado do STJ proferido em 2021 pela relatoria de…</text>
+<text x="372.0" y="410.0" font-size="12" font-weight="400" fill="#c3c2b7">sem número</text>
+<text x="532.0" y="410.0" font-size="12" font-weight="400" fill="#c3c2b7">não há o que consultar</text>
+<text x="692.0" y="410.0" font-size="12" font-weight="600" fill="#ffffff">incompleta</text>
+<text x="28.0" y="444.0" font-size="11" font-weight="400" fill="#c3c2b7">Exemplo ilustrativo, com números fictícios. Cada saída leva também uma confiança: a taxa de acerto medida para aquele tipo de caso.</text>
+<text x="28.0" y="460.0" font-size="11" font-weight="400" fill="#c3c2b7">Um modelo que decidisse sozinho se a citação existe estaria chutando com fluência, que é a alucinação que o desafio quer pegar.</text>
+</svg>

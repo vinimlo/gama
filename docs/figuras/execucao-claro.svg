@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="508" viewBox="0 0 880 508" role="img" aria-labelledby="t d" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+<title id="t">O que o run.sh faz</title>
+<desc id="d">Preparação, com rede e uma vez: bash run.sh --preparar constrói a imagem Docker e baixa os pesos vinimlo/gama na revisão 5f924ca para a pasta modelos. Execução, sem rede: bash run.sh com o caminho do .db, a pasta de .txt e o arquivo de saída monta o índice a partir do .db recebido, extrai, aplica a guarda, resolve, grava um JSON por documento e converte para o CSV da submissão.</desc>
+<rect x="0.5" y="0.5" width="879" height="507" rx="10" fill="#fcfcfb" stroke="rgba(11,11,11,0.10)"/>
+<text x="28.0" y="40.0" font-size="17" font-weight="600" fill="#0b0b0b">O que o run.sh faz</text>
+<text x="28.0" y="62.0" font-size="12.5" font-weight="400" fill="#52514e">A rede só entra na preparação. A execução roda com --network none.</text>
+<rect x="28.0" y="84.0" width="824.0" height="140.0" rx="8" fill="none" stroke="#c3c2b7" stroke-width="1.2" stroke-dasharray="6 5"/>
+<text x="44.0" y="108.0" font-size="13" font-weight="600" fill="#0b0b0b">1 · Preparação</text>
+<text x="836.0" y="108.0" font-size="11.5" font-weight="400" fill="#898781" text-anchor="end">com rede, uma vez</text>
+<text x="44.0" y="131.0" font-size="12.5" font-weight="400" fill="#0b0b0b" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">bash run.sh --preparar</text>
+<rect x="44.0" y="146.0" width="388.0" height="64.0" rx="8" fill="#f4f3ee" stroke="#c3c2b7" stroke-width="1.2"/>
+<text x="56.0" y="170.0" font-size="13" font-weight="600" fill="#0b0b0b">Imagem Docker</text>
+<text x="56.0" y="190.0" font-size="11" font-weight="400" fill="#52514e">Python 3.12, torch 2.14.0 (CUDA 12.6), versões fixadas</text>
+<rect x="448.0" y="146.0" width="388.0" height="64.0" rx="8" fill="#f4f3ee" stroke="#c3c2b7" stroke-width="1.2"/>
+<text x="460.0" y="170.0" font-size="13" font-weight="600" fill="#0b0b0b">Pesos do extrator</text>
+<text x="460.0" y="190.0" font-size="11" font-weight="400" fill="#52514e">vinimlo/gama na revisão 5f924ca, 1,03 GB, em ./modelos</text>
+<polyline points="440.0,224.0 440.0,246.0" fill="none" stroke="#898781" stroke-width="1.4"/><polygon points="440.0,246 435.0,238.0 445.0,238.0" fill="#898781"/>
+<rect x="28.0" y="248.0" width="824.0" height="232.0" rx="8" fill="none" stroke="#2a78d6" stroke-width="1.2"/>
+<text x="44.0" y="272.0" font-size="13" font-weight="600" fill="#0b0b0b">2 · Execução</text>
+<text x="836.0" y="272.0" font-size="11.5" font-weight="400" fill="#898781" text-anchor="end">sem rede (--network none)</text>
+<text x="44.0" y="295.0" font-size="12.5" font-weight="400" fill="#0b0b0b" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">bash run.sh &lt;caminho_db&gt; &lt;pasta_txt&gt; &lt;arquivo_saida.csv&gt;</text>
+<rect x="44.0" y="312.0" width="204.0" height="40.0" rx="8" fill="#f4f3ee" stroke="#c3c2b7" stroke-width="1.2"/>
+<text x="56.0" y="329.0" font-size="12" font-weight="600" fill="#0b0b0b" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">acervo .db</text>
+<text x="56.0" y="344.0" font-size="10.5" font-weight="400" fill="#898781">o da avaliação, qualquer caminho</text>
+<polyline points="248.0,332.0 278.0,332.0" fill="none" stroke="#898781" stroke-width="1.4"/><polygon points="278,332 270.0,327.0 270.0,337.0" fill="#898781"/>
+<rect x="44.0" y="360.0" width="204.0" height="40.0" rx="8" fill="#f4f3ee" stroke="#c3c2b7" stroke-width="1.2"/>
+<text x="56.0" y="377.0" font-size="12" font-weight="600" fill="#0b0b0b" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">pasta com os .txt</text>
+<text x="56.0" y="392.0" font-size="10.5" font-weight="400" fill="#898781">um documento por arquivo</text>
+<polyline points="248.0,380.0 278.0,380.0" fill="none" stroke="#898781" stroke-width="1.4"/><polygon points="278,380 270.0,375.0 270.0,385.0" fill="#898781"/>
+<rect x="44.0" y="408.0" width="204.0" height="40.0" rx="8" fill="#f4f3ee" stroke="#c3c2b7" stroke-width="1.2"/>
+<text x="56.0" y="425.0" font-size="12" font-weight="600" fill="#0b0b0b" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">./modelos</text>
+<text x="56.0" y="440.0" font-size="10.5" font-weight="400" fill="#898781">os pesos baixados antes</text>
+<polyline points="248.0,428.0 278.0,428.0" fill="none" stroke="#898781" stroke-width="1.4"/><polygon points="278,428 270.0,423.0 270.0,433.0" fill="#898781"/>
+<text x="44.0" y="468.0" font-size="10.5" font-weight="400" fill="#898781">montados só para leitura</text>
+<rect x="280.0" y="312.0" width="320.0" height="136.0" rx="8" fill="#e3eefb" stroke="#2a78d6" stroke-width="1.2"/>
+<text x="292.0" y="336.0" font-size="13" font-weight="600" fill="#0b0b0b">container gama</text>
+<text x="292.0" y="360.0" font-size="11.5" font-weight="400" fill="#52514e">1. monta o índice a partir do .db recebido</text>
+<text x="292.0" y="380.0" font-size="11.5" font-weight="400" fill="#52514e">2. extrai, aplica a guarda e resolve</text>
+<text x="292.0" y="400.0" font-size="11.5" font-weight="400" fill="#52514e">3. grava um JSON por documento</text>
+<text x="292.0" y="420.0" font-size="11.5" font-weight="400" fill="#52514e">4. converte para CSV com o conversor oficial</text>
+<polyline points="600.0,348.0 630.0,348.0" fill="none" stroke="#898781" stroke-width="1.4"/><polygon points="630,348 622.0,343.0 622.0,353.0" fill="#898781"/>
+<rect x="632.0" y="324.0" width="204.0" height="48.0" rx="8" fill="#f4f3ee" stroke="#c3c2b7" stroke-width="1.2"/>
+<text x="644.0" y="344.0" font-size="12" font-weight="600" fill="#0b0b0b" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">&lt;arquivo_saida&gt;.csv</text>
+<text x="644.0" y="360.0" font-size="10.5" font-weight="400" fill="#898781">o formato da submissão</text>
+<polyline points="600.0,412.0 630.0,412.0" fill="none" stroke="#898781" stroke-width="1.4"/><polygon points="630,412 622.0,407.0 622.0,417.0" fill="#898781"/>
+<rect x="632.0" y="388.0" width="204.0" height="48.0" rx="8" fill="#f4f3ee" stroke="#c3c2b7" stroke-width="1.2"/>
+<text x="644.0" y="408.0" font-size="12" font-weight="600" fill="#0b0b0b" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">&lt;arquivo_saida&gt;.json/</text>
+<text x="644.0" y="424.0" font-size="10.5" font-weight="400" fill="#898781">um JSON por documento</text>
+<text x="28.0" y="496.0" font-size="11" font-weight="400" fill="#52514e">Usa a GPU se o Docker tiver o runtime NVIDIA. Sem ela roda em CPU, em cerca de 1 s por documento, dentro do teto de 60 s.</text>
+</svg>

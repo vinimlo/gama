@@ -4,7 +4,8 @@ Gama é o extrator de citações da solução, nomeado em homenagem a Luiz Gama
 (1830–1882), advogado abolicionista que libertou centenas de pessoas nos tribunais
 citando a lei com precisão.
 
-Preenchido a cada versão submetida. `scripts/baixar_pesos.sh` lê as duas primeiras chaves.
+Preenchido a cada versão submetida. O `run.sh`, o `make pesos` e o `scripts/baixar_pesos.sh`
+leem as duas chaves abaixo.
 
 repo: vinimlo/gama
 revisao: 5f924ca2fa77c2aae6afe6d770c78ca4438f52f3
