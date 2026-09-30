@@ -17,103 +17,158 @@ import os
 import pathlib
 import sys
 import time
+from dataclasses import dataclass
 
-from .classificar import classificar
-from .extratores import carregar
-from .indice import construir
-from .resolver import resolver
-from .span import aparar, aparar_todos  # noqa: F401  (aparar: scripts do treino importam daqui)
+from .classificar import Citacao, Classificador
+from .extratores import CatalogoDeExtratores, Extrator, ExtratorRegua
+from .indice import Indice
+from .resolver import Resolvedor
+from .span import Intervalo, Span, aparar  # noqa: F401  (aparar: fachada, scripts do treino importam daqui)
 
 SCHEMA = "1.2"
 DB_PADRAO = "/app/dados/desafio1_bracis.db"
 
 
+@dataclass(frozen=True)
+class Documento:
+    nome: str          # documento_id: o nome do .txt sem extensão
+    texto: str
+
+    @classmethod
+    def ler(cls, arq) -> Documento:
+        """Texto exatamente como veio: newline="" preserva \r\n. read_text() trocaria por
+        \n e deslocaria todos os offsets depois da primeira quebra (revisão independente, rodada 1, achado 2)."""
+        with open(arq, encoding="utf-8", newline="") as fh:
+            return cls(pathlib.Path(arq).stem, fh.read())
+
+
+class Pipeline:
+    """Documento -> lista de citações já classificadas.
+
+    O extrator decide O QUE é citação; o índice decide se ela existe no acervo.
+    Sem extrator explícito, usa a régua (baseline).
+    """
+    IOU_MAXIMO = 0.5
+
+    def __init__(self, indice: Indice, extrator: Extrator | None = None,
+                 classificador: Classificador | None = None):
+        self.extrator = extrator or ExtratorRegua()
+        self.resolvedor = Resolvedor(indice)
+        self.classificador = classificador or Classificador()
+
+    def processar(self, texto: str) -> list[Citacao]:
+        spans = Span.aparar_todos(self.extrator.extrair(texto), texto)
+        return self.sem_sobreposicao([self.classificador.classificar(s, self.resolvedor.resolver(s)) for s in spans])
+
+    @classmethod
+    def sem_sobreposicao(cls, citacoes: list) -> list:
+        """Última guarda antes do JSON: duas predições com IoU >= 0,5 entre si invalidam a
+        submissão inteira (regra da métrica). Só esse critério — interseção pequena é
+        permitida e pode ser dois acertos (revisão independente, rodada 2, achado 4).
+        Aceita qualquer objeto com `inicio` e `fim`."""
+        mantidas = []
+        for c in sorted(citacoes, key=lambda c: (c.inicio, -(c.fim - c.inicio))):
+            if not any(Intervalo.iou(c, m) >= cls.IOU_MAXIMO for m in mantidas):
+                mantidas.append(c)
+        return mantidas
+
+
+class SaidaJSON:
+    """Um .json por documento, no schema da organização."""
+    SCHEMA = SCHEMA
+
+    def __init__(self, pasta):
+        self.pasta = pathlib.Path(pasta)
+        self.pasta.mkdir(parents=True, exist_ok=True)
+
+    def documento(self, doc: Documento, citacoes: list) -> dict:
+        return {
+            "schema_version": self.SCHEMA,
+            "documento_id": doc.nome,
+            "citacoes": [c.para_json(i + 1) for i, c in enumerate(citacoes)],
+        }
+
+    def escrever(self, doc: Documento, citacoes: list) -> pathlib.Path:
+        # Encoding e regra rigida: UTF-8 sem BOM, LF, NFC. Nao alterar.
+        arq = self.pasta / f"{doc.nome}.json"
+        arq.write_text(json.dumps(self.documento(doc, citacoes), ensure_ascii=False, indent=2), encoding="utf-8")
+        return arq
+
+
+class Aplicacao:
+    """O entrypoint: lê os argumentos, monta índice e extrator uma vez e processa a pasta."""
+
+    @staticmethod
+    def argumentos() -> argparse.ArgumentParser:
+        ap = argparse.ArgumentParser(description="Gama: verificador de citacoes juridicas (BRACIS 2026 x Jusbrasil)")
+        ap.add_argument("--input", required=True, help="pasta com os .txt")
+        ap.add_argument("--output", required=True, help="pasta de saida dos .json")
+        ap.add_argument("--db", default=os.environ.get("GAMA_DB", DB_PADRAO),
+                        help="base canonica SQLite")
+        ap.add_argument("--extrator", default=os.environ.get("GAMA_EXTRATOR", "regua"),
+                        choices=CatalogoDeExtratores.NOMES, help="quem decide o que e citacao")
+        ap.add_argument("--modelos", default=os.environ.get("GAMA_MODELOS", "/models"),
+                        help="pasta com os pesos do extrator neural (montada por volume)")
+        return ap
+
+    @staticmethod
+    def extrator(nome: str, modelos: str) -> Extrator:
+        if nome != "regua" and not (pathlib.Path(modelos) / "config.json").exists():
+            # Sem pesos montados: saída válida pela régua é melhor que submissão vazia.
+            print(f"AVISO: sem pesos em {modelos} (monte com -v <pesos>:/models:ro); "
+                  "usando o extrator de regras", file=sys.stderr)
+            nome = "regua"
+        print(f"extrator: {nome}", file=sys.stderr)
+        return CatalogoDeExtratores(modelos).carregar(nome)
+
+    def executar(self, argv=None) -> int:
+        args = self.argumentos().parse_args(argv)
+        entrada = pathlib.Path(args.input)
+        saida = SaidaJSON(args.output)
+
+        arquivos = sorted(entrada.glob("*.txt"))
+        if not arquivos:
+            print(f"nenhum .txt em {entrada}", file=sys.stderr)
+            return 1
+
+        t0 = time.perf_counter()
+        pipeline = Pipeline(Indice.do_banco(args.db), self.extrator(args.extrator, args.modelos))
+        t_indice = time.perf_counter() - t0
+
+        total = 0
+        for arq in arquivos:
+            doc = Documento.ler(arq)
+            citacoes = pipeline.processar(doc.texto)
+            total += len(citacoes)
+            saida.escrever(doc, citacoes)
+
+        gasto = time.perf_counter() - t0
+        print(f"{len(arquivos)} documentos, {total} citacoes -> {saida.pasta}")
+        print(f"indice {t_indice:.2f}s | total {gasto:.2f}s | "
+              f"{gasto / len(arquivos) * 1000:.0f} ms/documento")
+        return 0
+
+
+# ------------------------------------------------------------------ fachadas (até a leva 8)
+
 def ler_texto(arq) -> str:
-    """Texto exatamente como veio: newline="" preserva \r\n. read_text() trocaria por
-    \n e deslocaria todos os offsets depois da primeira quebra (revisão independente, rodada 1, achado 2)."""
-    with open(arq, encoding="utf-8", newline="") as fh:
-        return fh.read()
+    return Documento.ler(arq).texto
 
 
 def _iou(a, b) -> float:
-    i = max(0, min(a.fim, b.fim) - max(a.inicio, b.inicio))
-    return i / (max(a.fim, b.fim) - min(a.inicio, b.inicio)) if i else 0.0
+    return Intervalo.iou(a, b)
 
 
 def sem_sobreposicao(citacoes: list) -> list:
-    """Última guarda antes do JSON: duas predições com IoU >= 0,5 entre si invalidam a
-    submissão inteira (regra da métrica). Só esse critério — interseção pequena é
-    permitida e pode ser dois acertos (revisão independente, rodada 2, achado 4)."""
-    mantidas = []
-    for c in sorted(citacoes, key=lambda c: (c.inicio, -(c.fim - c.inicio))):
-        if not any(_iou(c, m) >= 0.5 for m in mantidas):
-            mantidas.append(c)
-    return mantidas
+    return Pipeline.sem_sobreposicao(citacoes)
 
 
 def processar(texto: str, idx, extrator=None) -> list:
-    """Documento -> lista de citacoes ja classificadas.
-
-    O extrator decide O QUE e citacao; o indice decide se ela existe no acervo.
-    Sem extrator explicito, usa a regua (baseline).
-    """
-    extrator = extrator or carregar("regua")
-    spans = aparar_todos(extrator.extrair(texto), texto)
-    return sem_sobreposicao([classificar(span, resolver(span, idx)) for span in spans])
+    return Pipeline(idx, extrator).processar(texto)
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(description="Gama: verificador de citacoes juridicas (BRACIS 2026 x Jusbrasil)")
-    ap.add_argument("--input", required=True, help="pasta com os .txt")
-    ap.add_argument("--output", required=True, help="pasta de saida dos .json")
-    ap.add_argument("--db", default=os.environ.get("GAMA_DB", DB_PADRAO),
-                    help="base canonica SQLite")
-    ap.add_argument("--extrator", default=os.environ.get("GAMA_EXTRATOR", "regua"),
-                    choices=["regua", "neural", "neural-cru", "uniao"], help="quem decide o que e citacao")
-    ap.add_argument("--modelos", default=os.environ.get("GAMA_MODELOS", "/models"),
-                    help="pasta com os pesos do extrator neural (montada por volume)")
-    args = ap.parse_args(argv)
-
-    entrada = pathlib.Path(args.input)
-    saida = pathlib.Path(args.output)
-    saida.mkdir(parents=True, exist_ok=True)
-
-    arquivos = sorted(entrada.glob("*.txt"))
-    if not arquivos:
-        print(f"nenhum .txt em {entrada}", file=sys.stderr)
-        return 1
-
-    t0 = time.perf_counter()
-    idx = construir(args.db)
-    nome = args.extrator
-    if nome != "regua" and not (pathlib.Path(args.modelos) / "config.json").exists():
-        # Sem pesos montados: saída válida pela régua é melhor que submissão vazia.
-        print(f"AVISO: sem pesos em {args.modelos} (monte com -v <pesos>:/models:ro); "
-              "usando o extrator de regras", file=sys.stderr)
-        nome = "regua"
-    extrator = carregar(nome, args.modelos)
-    print(f"extrator: {nome}", file=sys.stderr)
-    t_indice = time.perf_counter() - t0
-
-    total = 0
-    for arq in arquivos:
-        # Encoding e regra rigida: UTF-8 sem BOM, LF, NFC. Nao alterar.
-        texto = ler_texto(arq)
-        citacoes = processar(texto, idx, extrator)
-        total += len(citacoes)
-        doc = {
-            "schema_version": SCHEMA,
-            "documento_id": arq.stem,
-            "citacoes": [c.para_json(i + 1) for i, c in enumerate(citacoes)],
-        }
-        (saida / f"{arq.stem}.json").write_text(
-            json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
-
-    gasto = time.perf_counter() - t0
-    print(f"{len(arquivos)} documentos, {total} citacoes -> {saida}")
-    print(f"indice {t_indice:.2f}s | total {gasto:.2f}s | "
-          f"{gasto / len(arquivos) * 1000:.0f} ms/documento")
-    return 0
+    return Aplicacao().executar(argv)
 
 
 if __name__ == "__main__":

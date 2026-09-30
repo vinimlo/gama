@@ -19,6 +19,11 @@ class Intervalo:
         """Caracteres entre o fim de um e o início do outro; negativa quando se cruzam."""
         return max(outro.inicio - self.fim, self.inicio - outro.fim)
 
+    def iou(self, outro: Intervalo) -> float:
+        """Interseção sobre união, em caracteres; 0 quando não se cruzam."""
+        i = max(0, min(self.fim, outro.fim) - max(self.inicio, outro.inicio))
+        return i / (max(self.fim, outro.fim) - min(self.inicio, outro.inicio)) if i else 0.0
+
 
 @dataclass(frozen=True)
 class Span(Intervalo):
