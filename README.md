@@ -455,7 +455,7 @@ passo 4 em diante tudo parte do dataset e dos pesos, em revisão fixa.
 |---|---|
 | Código | este repositório; cada submissão cita o commit que produziu as saídas |
 | Modelo | [`vinimlo/gama`](https://huggingface.co/vinimlo/gama), revisão fixa no [MODELO.md](MODELO.md); destilado do v1.2, que parte de [`jhu-clsp/mmBERT-base`](https://huggingface.co/jhu-clsp/mmBERT-base) (MIT), também com revisão fixa |
-| Ambiente | `Dockerfile` (Python 3.12, torch 2.14.0) e `requirements.txt`, com as versões de transformers, tokenizers, numpy e pandas fixadas |
+| Ambiente | `Dockerfile` (Python 3.12, torch 2.14.0) e `requirements.txt`, com as versões de transformers, tokenizers, safetensors, numpy e pandas fixadas |
 | Comando | `bash run.sh --preparar` e `bash run.sh <caminho_db> <pasta_txt> <arquivo_saida.csv>` |
 | Determinismo | inferência em `eval()` sem amostragem, algoritmos determinísticos do torch, `PYTHONHASHSEED=0`; a saída é a mesma em GPU e em CPU |
 | Rede | nenhuma chamada em tempo de execução (`--network none`, `HF_HUB_OFFLINE=1`) |
