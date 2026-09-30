@@ -289,24 +289,43 @@ make submissao            # saidas/submission.csv pelo conversor oficial
 make test                 # testes
 ```
 
-### Contrato de execução da organização
+### Execução pela organização
 
-A imagem avaliada é o alvo padrão do `Dockerfile` (torch com CUDA 12.6). Pesos e dados
-chegam por volume e nada sai para a rede:
+Um comando só, que recebe o `.db`, a pasta com os `.txt` e o arquivo de saída:
+
+```bash
+bash run.sh <caminho_db> <pasta_txt> <arquivo_saida.csv>
+```
+
+Ele grava `<arquivo_saida.csv>` no formato da submissão (pelo conversor oficial,
+`vendor/json_to_submission.py`) e, ao lado, a pasta `<arquivo_saida>.json/` com um JSON por
+documento no formato do contrato. Só depende de Docker. Na primeira vez constrói a imagem
+(alvo padrão do `Dockerfile`, torch com CUDA 12.6) e baixa os pesos na revisão fixa do
+[MODELO.md](MODELO.md), e para isso precisa de rede; depois disso a execução roda com
+`--network none`. Com runtime NVIDIA no Docker ele usa a GPU; sem GPU visível o extrator roda
+em CPU, em cerca de 1 s por documento, dentro do teto de 60 s.
+
+Não há pré-processamento do `.db`: o índice canônico é montado a partir da base recebida a
+cada execução, então um `.db` novo no formato original entra direto. Testado num clone limpo
+com a base do dev copiada para outro caminho e outro nome: o CSV saiu idêntico, byte a byte,
+ao da submissão do v1.3.
+
+O que o `run.sh` executa, para quem preferir rodar à mão:
 
 ```bash
 docker build -t gama .
 docker run --rm --gpus all --network none \
+  -v /caminho/acervo.db:/data/acervo.db:ro \
+  -v /caminho/txt:/data/in:ro \
   -v "$PWD/modelos:/models:ro" \
-  -v "$PWD/dados:/app/dados:ro" \
-  -v /caminho/entrada:/data/in:ro \
   -v /caminho/saida:/data/out \
-  gama --input /data/in --output /data/out
+  gama --input /data/in --output /data/out --db /data/acervo.db
+docker run --rm --network none -v /caminho/saida:/data/out --entrypoint python gama \
+  vendor/json_to_submission.py /data/out /data/out/submission.csv
 ```
 
 O stderr informa `extrator: neural`. Se o volume dos pesos faltar, aparece um aviso e o
-pipeline segue com a régua, porque uma saída válida vale mais que uma submissão vazia. Sem
-GPU visível o extrator roda em CPU, em cerca de 1 s por documento, dentro do teto de 60 s.
+pipeline segue com a régua, porque uma saída válida vale mais que uma submissão vazia.
 
 ## Reprodutibilidade
 
@@ -315,7 +334,7 @@ GPU visível o extrator roda em CPU, em cerca de 1 s por documento, dentro do te
 | Código | este repositório; cada submissão cita o commit que produziu as saídas |
 | Modelo | [`vinimlo/gama`](https://huggingface.co/vinimlo/gama), revisão fixa no [MODELO.md](MODELO.md); destilado do v1.2, que parte de [`jhu-clsp/mmBERT-base`](https://huggingface.co/jhu-clsp/mmBERT-base) (MIT), também com revisão fixa |
 | Ambiente | `Dockerfile` (Python 3.12, torch 2.14.0) e `requirements.txt` com versões fixadas |
-| Comando | o bloco acima |
+| Comando | `bash run.sh <caminho_db> <pasta_txt> <arquivo_saida.csv>` |
 | Determinismo | inferência em `eval()` sem amostragem, algoritmos determinísticos do torch, `PYTHONHASHSEED=0`; a saída é a mesma em GPU e em CPU |
 | Rede | nenhuma chamada em tempo de execução (`HF_HUB_OFFLINE=1`) |
 | Dados | fora da imagem e fora do repositório; chegam por volume |
