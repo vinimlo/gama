@@ -1,22 +1,20 @@
 # -*- coding: utf-8 -*-
 """Classe e confiança a partir da resolução (D-002, D-006).
 
-A tabela calibrada (calibracao.json) é trocada por uma fixa em cada teste: aqui se mede a
-regra de decisão, não os números da calibração da vez.
+O classificador recebe uma tabela medida fixa: aqui se mede a regra de decisão, não os
+números da calibração da vez (calibracao.json).
 """
 import pytest
 
 from gama import classificar as mod
-from gama.classificar import CONFIANCA, CONFIANCA_PADRAO, Citacao, classificar, faixa
+from gama.classificar import CONFIANCA, CONFIANCA_PADRAO, Citacao, Classificador, TabelaDeConfianca
 from gama.resolver import Resolucao
 from gama.span import Span
 
 TABELA = {"processo|real|alta": 0.99, "processo|real_ambiguo|alta": 0.4, "vaga|incompleta|alta": 0.97}
-
-
-@pytest.fixture(autouse=True)
-def tabela_fixa(monkeypatch):
-    monkeypatch.setattr(mod, "TABELA", dict(TABELA))
+CLASSIFICADOR = Classificador(TabelaDeConfianca(TABELA))
+classificar = CLASSIFICADOR.classificar
+faixa = TabelaDeConfianca.faixa
 
 
 def _sp(conf=None, forma="processo"):
@@ -79,9 +77,23 @@ def test_calibracao_substitui_o_prior_no_balde_medido():
     assert classificar(_sp(0.99), Resolucao([], "processo")).confianca == CONFIANCA[("processo", "inventada")]
 
 
-def test_tabela_lida_a_cada_chamada(monkeypatch):
+def test_tabela_calibrada_e_a_do_modulo(monkeypatch):
     monkeypatch.setattr(mod, "TABELA", {"processo|real|regra": 0.11})
-    assert classificar(_sp(), Resolucao(["x"], "processo")).confianca == 0.11
+    assert Classificador().classificar(_sp(), Resolucao(["x"], "processo")).confianca == 0.11
+
+
+def test_tabela_com_priores_e_padrao_proprios():
+    t = TabelaDeConfianca({"a|real|regra": 0.3}, priores={("b", "real"): 0.6}, padrao=0.1)
+    assert t.confianca("a", "real", None) == (0.3, ("a", "real", "regra"))
+    assert t.confianca("b", "real", 0.99) == (0.6, ("b", "real", "alta"))
+    assert t.confianca("c", "real", 0.5) == (0.1, ("c", "real", "baixa"))
+
+
+def test_citacao_e_um_intervalo():
+    def c(inicio, fim):
+        return Citacao(inicio, fim, "x" * (fim - inicio), "lei", "real", "1", 0.9)
+
+    assert c(0, 10).cruza(c(5, 12)) and c(0, 10).distancia(c(12, 13)) == 2
 
 
 def test_para_json():

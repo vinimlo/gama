@@ -115,14 +115,14 @@ def test_r2_4_sobreposicao_so_invalida_com_iou_meio():
 
 
 def test_r2_5_confianca_so_dos_tokens_da_entidade():
-    from gama.classificar import faixa
+    from gama.classificar import TabelaDeConfianca
     from gama.extratores.neural import ExtratorNeural
     n = ExtratorNeural.__new__(ExtratorNeural)
     n.tok = lambda texto, **kw: {"input_ids": [10, 11, 12, 13],
                                  "offset_mapping": [(0, 1), (1, 2), (2, 5), (6, 9)]}
     n._logits = lambda ids: ([0, 0, bio.ID["B-JURIS"], bio.ID["I-JURIS"]], [1.0, 1.0, .97, .97])
     s, = n.extrair("Terna 725")
-    assert faixa(s.confianca) == "baixa"
+    assert TabelaDeConfianca.faixa(s.confianca) == "baixa"
 
 
 def test_r2_6_id_aceita_lista_como_a_metrica():

@@ -8,13 +8,15 @@ import pathlib
 
 import pytest
 
-from gama.classificar import classificar
-from gama.formas import forma, span_de
+from gama.classificar import Classificador
+from gama.formas import DetectorDeForma
 from gama.indice import Indice
 from gama.resolver import Resolvedor
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 DB = RAIZ / "dados" / "desafio1_bracis.db"
+
+DETECTOR = DetectorDeForma()
 
 
 @pytest.fixture(scope="module")
@@ -24,15 +26,15 @@ def idx():
 
 def _classe(idx, trecho, rotulo="JURIS"):
     texto = f"Cita-se o {trecho}, no ponto."
-    sp = span_de(texto, 10, 10 + len(trecho), rotulo)
-    c = classificar(sp, Resolvedor(idx).resolver(sp))
+    sp = DETECTOR.span(texto, 10, 10 + len(trecho), rotulo)
+    c = Classificador().classificar(sp, Resolvedor(idx).resolver(sp))
     return c.classificacao, c.id_canonico
 
 
 def test_ordinal_por_extenso_nao_vira_tema():
-    assert forma("Terceiro AgR na Rcl nº 62425/SP") == "processo"
-    assert forma("Tema 2.680 da repercussão geral") == "tema"
-    assert forma("Temã 2.680 da repercussão geral") == "tema"
+    assert DETECTOR.forma("Terceiro AgR na Rcl nº 62425/SP") == "processo"
+    assert DETECTOR.forma("Tema 2.680 da repercussão geral") == "tema"
+    assert DETECTOR.forma("Temã 2.680 da repercussão geral") == "tema"
 
 
 @pytest.mark.dados
@@ -165,8 +167,8 @@ def test_empate_sem_cadeia_continua_empate(idx):
     """Duas fichas do mesmo ARE que só diferem no ordinal dos embargos, e o texto não traz
     cadeia: nenhuma regra pode escolher, a confiança fica a do empate."""
     texto = "Cita-se o ARE nº 1356440/SP, no ponto."
-    sp = span_de(texto, 10, 27, "JURIS")
-    c = classificar(sp, Resolvedor(idx).resolver(sp))
+    sp = DETECTOR.span(texto, 10, 27, "JURIS")
+    c = Classificador().classificar(sp, Resolvedor(idx).resolver(sp))
     assert c.classificacao == "real" and c.balde[:2] == ("processo", "real_ambiguo")
 
 

@@ -4,7 +4,7 @@
 Cada fachada só delega: aqui se confere que ela chega à classe com os mesmos limites.
 Sai inteiro junto com as fachadas, quando os consumidores migrarem.
 """
-from gama import cabecalho, indice, normalizar, pipeline, resolver, span
+from gama import cabecalho, classificar, formas, indice, normalizar, pipeline, resolver, span
 from gama.cabecalho import CadeiaDeClasse, LeitorDeNumeroProprio
 from gama.extratores import carregar, guarda
 from gama.extratores.regua import ExtratorRegua
@@ -98,3 +98,14 @@ def test_resolver():
     assert resolver.TRIBUNAL_DA_CLASSE is ClasseProcessual.TRIBUNAL_DA_CLASSE
     assert resolver.CLASSE_POR_EXTENSO is ClasseProcessual.POR_EXTENSO
     assert resolver._ART_NUM.search("art. 5").group(1) == "5"
+
+
+def test_classificar_e_formas(monkeypatch):
+    sp = formas.span_de("Ver REsp 1/SP", 4, 13, "JURIS", 0.99)
+    assert sp == formas.DetectorDeForma().span("Ver REsp 1/SP", 4, 13, "JURIS", 0.99)
+    assert formas.forma("Súmula 7") == formas.DetectorDeForma().forma("Súmula 7") == "sumula"
+    assert classificar.faixa(0.99) == classificar.TabelaDeConfianca.faixa(0.99) == "alta"
+    res = resolver.Resolucao(["1"], "processo")
+    assert classificar.classificar(sp, res) == classificar.Classificador().classificar(sp, res)
+    monkeypatch.setattr(classificar, "TABELA", {"processo|real|alta": 0.12})
+    assert classificar.classificar(sp, res).confianca == 0.12                    # lida a cada chamada
