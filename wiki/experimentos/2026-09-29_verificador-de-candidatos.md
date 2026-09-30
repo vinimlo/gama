@@ -317,6 +317,33 @@ O GLiNER piora a C. Nas ementas, entre 18% e 23% dos spans fortes corretos receb
 dele. No estresse isso quase não acontece (3 de 4.447 spans fortes), e são exatamente os 3
 documentos mudados.
 
+## 6. GLiNER2.5-multi-Decide
+
+A triagem deixou de fora a família GLiNER, e o `fastino/GLiNER2.5-multi-Decide` (revisão
+`a35a0cd`, 287M, Apache-2.0) foi testado depois, no mesmo protocolo. É o classificador
+multilíngue da família 2.5, feito para escolher entre rótulos dados na hora. A pergunta foi
+binária (sim ou não, sobre o trecho entre `[[ ]]`), com três formulações fixadas antes e a
+escolha nas 305.
+
+Sem treino ele também não tem sinal. As três formulações dão AUROC de 0,449, 0,478 e 0,446 nas
+305, abaixo do acaso; a escolhida fica em 0,515 nas 172. Na política A ele perde da produção
+(0,8054 e 0,8264; nas 172, −0,0127, IC95 −0,0260 a −0,0014).
+
+Fine-tunado nos mesmos dados (taxa do encoder e época escolhidas na validação interna), cai na
+faixa dos outros quatro:
+
+| Política | τ | F1 nas 305 | F1 nas 172 | 172 contra a produção (IC95) | Estresse mudados |
+|---|---|---|---|---|---|
+| A | 0,90 | 0,8367 | 0,8504 | +0,0113 (+0,0041 a +0,0192) | 0 |
+| B | 0,90 | 0,8599 | 0,8755 | +0,0364 (+0,0268 a +0,0468) | 31 |
+| C | 0,70 | 0,9189 | 0,9167 | +0,0775 (+0,0547 a +0,1010) | 36 |
+
+A AUROC fica em 0,988 nas 305 e 0,989 nas 172. Os 36 documentos da C no estresse enganam:
+quase todos os scores ali saturam em 1,0, e é o desempate entre Gama e régua que segura o
+número; com a régua vencendo o empate, sobem para 591. A B aceita o mesmo número de processo
+no cabeçalho que os outros aceitavam. O dev não foi medido, porque a biblioteca `gliner2` não
+está na imagem. Custo: cerca de US$ 0,90 em quatro jobs na L4.
+
 ## Custo e tempo
 
 | | Jobs | Hardware | Custo | Por candidato, GPU | Por candidato, CPU do container |
