@@ -12,16 +12,23 @@ from __future__ import annotations
 
 import pathlib
 
-from ..formas import span_de
+from ..formas import DetectorDeForma
 from ..span import Span
-from . import bio
 from .base import Extrator
+from .bio import EsquemaBIO, Janelas
 
 
 class ExtratorNeural(Extrator):
+    """O modelo (pesos em `pasta`) em janelas de até `max_len` tokens, com os tokens
+    especiais do tokenizador em cada janela; a dona de cada token é a janela em que ele
+    está mais ao centro."""
     nome = "neural-cru"
+    MAX_LEN = 2048
+    esquema = EsquemaBIO()
+    formas = DetectorDeForma()
 
-    def __init__(self, pasta: str | pathlib.Path, max_len: int | None = None):
+    def __init__(self, pasta: str | pathlib.Path, max_len: int | None = None,
+                 esquema: EsquemaBIO | None = None, formas: DetectorDeForma | None = None):
         import torch
         from transformers import AutoModelForTokenClassification, AutoTokenizer
 
@@ -33,26 +40,37 @@ class ExtratorNeural(Extrator):
         self.disp = "cuda" if torch.cuda.is_available() else "cpu"
         self.modelo.to(self.disp)
         teto = getattr(self.modelo.config, "max_position_embeddings", 512) or 512
-        self.max_len = min(max_len or 2048, teto)
-        com = self.tok("a")["input_ids"]
-        sem = self.tok("a", add_special_tokens=False)["input_ids"]
+        self.max_len = min(max_len or self.MAX_LEN, teto)
+        self.pre, self.suf = self._especiais(self.tok)
+        if esquema is not None:
+            self.esquema = esquema
+        if formas is not None:
+            self.formas = formas
+
+    @staticmethod
+    def _especiais(tok) -> tuple[list, list]:
+        """Os ids que o tokenizador põe antes e depois do texto ([CLS] ... [SEP])."""
+        com = tok("a")["input_ids"]
+        sem = tok("a", add_special_tokens=False)["input_ids"]
         k = next(i for i in range(len(com)) if com[i:i + len(sem)] == sem)
-        self.pre, self.suf = com[:k], com[k + len(sem):]
+        return com[:k], com[k + len(sem):]
+
+    def _probabilidades(self, janela: list):
+        """Probabilidades por token de uma janela (sem as posições dos especiais)."""
+        t = self.torch.tensor([self.pre + janela + self.suf], device=self.disp)
+        lg = self.modelo(input_ids=t, attention_mask=self.torch.ones_like(t)).logits[0]
+        p = self.torch.softmax(lg.float(), dim=-1)
+        return p[len(self.pre):len(self.pre) + len(janela)].cpu()
 
     def _logits(self, ids: list) -> tuple[list, list]:
-        """Probabilidades por token do documento inteiro, janela a janela."""
+        """Rótulo e probabilidade dele, por token do documento inteiro, janela a janela."""
         corpo = self.max_len - len(self.pre) - len(self.suf)
-        cob = bio.janelas(len(ids), corpo, corpo // 2)
-        por_janela = []
+        cob = Janelas(corpo, corpo // 2).cobrir(len(ids))
         with self.torch.no_grad():
-            for a, b in cob:
-                t = self.torch.tensor([self.pre + ids[a:b] + self.suf], device=self.disp)
-                lg = self.modelo(input_ids=t, attention_mask=self.torch.ones_like(t)).logits[0]
-                p = self.torch.softmax(lg.float(), dim=-1)
-                por_janela.append(p[len(self.pre):len(self.pre) + (b - a)].cpu())
+            por_janela = [self._probabilidades(ids[a:b]) for a, b in cob]
         rot, conf = [], []
         for i in range(len(ids)):
-            k = bio.janela_dona(i, cob)
+            k = Janelas.dona(i, cob)
             p = por_janela[k][i - cob[k][0]]
             j = int(p.argmax())
             rot.append(j)
@@ -66,12 +84,12 @@ class ExtratorNeural(Extrator):
         if not ids:
             return []
         rot, conf = self._logits(ids)
+        o = self.esquema.ID["O"]
         spans = []
-        o = bio.ID["O"]
-        for a, b, tipo in bio.decodificar(offs, rot, texto):
+        for a, b, tipo in self.esquema.decodificar(offs, rot, texto):
             # confiança do span = média sobre os tokens ROTULADOS como entidade: token
             # "O" recuperado pela extensão até a borda da palavra não conta a favor
             # (revisão independente, rodada 2, achado 5)
             cs = [c for (s, e), c, r in zip(offs, conf, rot) if s < b and a < e and r != o]
-            spans.append(span_de(texto, a, b, tipo, sum(cs) / len(cs) if cs else None))
+            spans.append(self.formas.span(texto, a, b, tipo, sum(cs) / len(cs) if cs else None))
         return spans
